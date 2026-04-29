@@ -1,8 +1,9 @@
 # Test Health Analysis
 
 A single-page web app that turns a Codility assessment export into a branded
-test-health report — engagement, scoring, time pressure, integrity flags,
-similarity check — and a PowerPoint deck ready to share with a customer.
+test-health report — covering engagement, scoring, time pressure, integrity
+flags, and similarity check — plus a PowerPoint deck ready to share with a
+customer.
 
 The app is intentionally a single static HTML file with three vendored JS
 libraries. No build step, no server, no framework. Open `index.html` in a
