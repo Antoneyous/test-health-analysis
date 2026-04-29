@@ -1,0 +1,19 @@
+# OS / editor cruft
+.DS_Store
+.Rhistory
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Local build / debug artifacts
+.tmp-slides*/
+*.log
+node_modules/
+
+# Generated reports — these are user-specific and shouldn't be committed
+*.pptx
+*.xls
+*.xlsx

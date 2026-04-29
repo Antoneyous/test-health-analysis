@@ -1,0 +1,2747 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Test Health Analysis</title>
+  <script src="assets/vendor/xlsx.full.min.js"></script>
+  <script src="assets/vendor/pptxgen.bundle.js"></script>
+  <script src="assets/vendor/chart.umd.min.js"></script>
+  <script src="assets/logos.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* ── Codility Brand v2.0 tokens ── */
+    :root {
+      /* Primary action — Ultramarine */
+      --blue:        #4A64E9;
+      --blue-hover:  #3C53C2;
+      --blue-deep:   #30418C;
+      --blue-tint:   #E8ECFF;
+      --blue-pale:   #F5F7FF;
+      /* Accent — Raspberry (emphasis, drop-off, "notice this") */
+      --raspberry:        #C82372;
+      --raspberry-hover:  #B30C5C;
+      --raspberry-tint:   #FEEAF3;
+      /* Highlight — Yellow (callouts, featured) */
+      --yellow:        #FEE64B;
+      --yellow-light:  #FFF196;
+      --yellow-pale:   #FFFBD1;
+      /* Cool greys */
+      --grey-50:  #F8F9FA;
+      --grey-100: #F5F7F9;
+      --grey-200: #E9EDF1;
+      --grey-300: #D8DFE4;
+      --grey-500: #7E8891;
+      --grey-600: #5D666F;
+      --grey-700: #393C4B;
+      --navy:     #253641;
+      /* Semantic — status only */
+      --green:      #2A9D71;
+      --green-bg:   #E6FBF3;
+      --red:        #C32F2F;
+      --red-bg:     #FDECEC;
+      /* Caution = Codility yellow (#FEE64B brand) — pale bg + dark yellow text for contrast */
+      --amber:      #806000;
+      --amber-bg:   #FFFBD1;
+      --cerulean:   #007FB3;
+      --cerulean-bg:#E1F1FA;
+      /* Convenience aliases used elsewhere in the app */
+      --ink:           var(--grey-700);
+      --muted:         var(--grey-500);
+      --light:         var(--grey-50);
+      --border:        var(--grey-300);
+      --card:          #FFFFFF;
+      --yellow-bg:     var(--yellow-pale);
+      --yellow-border: var(--yellow-light);
+      --blue-bg:       var(--blue-tint);
+      --gray-bg:       var(--grey-100);
+      /* Brand gradients */
+      --hero-gradient: linear-gradient(231deg, #4A64E9 0%, #C82372 100%);
+      --hero-stripe:   linear-gradient(90deg, #4A64E9 0%, #C82372 100%);
+      /* Elevation */
+      --shadow-l1: 0 1px 2px rgba(37,54,65,.06);
+      --shadow-l2: 0 6px 20px rgba(37,54,65,.10);
+      /* Radius scale */
+      --r-tiny: 2px; --r-small: 4px; --r-med: 8px; --r-large: 12px; --r-xl: 16px;
+    }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--grey-50); color: var(--grey-700);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-feature-settings: 'cv11', 'ss01', 'ss03';
+      letter-spacing: -0.005em;
+    }
+    h1, h2, h3, h4, h5, h6 { letter-spacing: -0.018em; font-weight: 700; }
+    /* Brand stripe at the very top of every screen */
+    body::before {
+      content: ''; display: block; height: 4px;
+      background: var(--hero-stripe);
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    }
+
+    /* ── Tooltip system ── */
+    .tip-wrap { position: relative; display: inline-flex; align-items: center; }
+    .tip-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 15px; height: 15px; border-radius: 50%;
+      border: 1.5px solid var(--border); background: white;
+      color: var(--muted); font-size: 10px; font-weight: 700;
+      cursor: help; flex-shrink: 0; margin-left: 4px;
+    }
+    .tip-box {
+      display: none;
+      position: fixed; /* fixed so it's never clipped */
+      z-index: 9999;
+      min-width: 200px; max-width: 280px;
+      background: #1f2937; color: #f9fafb;
+      padding: 9px 12px; border-radius: 8px;
+      font-size: 12px; font-weight: 400; line-height: 1.5;
+      pointer-events: none; white-space: normal;
+    }
+    .tip-icon:hover + .tip-box,
+    .tip-icon:focus + .tip-box { display: block; }
+
+    /* Calc tooltip on hoverable values */
+    .calc-wrap { position: relative; display: inline-block; cursor: help; }
+    .calc-box {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      min-width: 220px; max-width: 300px;
+      background: #1f2937; color: #f9fafb;
+      padding: 10px 13px; border-radius: 8px;
+      font-size: 12px; line-height: 1.6;
+      pointer-events: none; white-space: normal;
+    }
+    .calc-wrap:hover .calc-box { display: block; }
+    .calc-nums { color: #fcd34d; font-weight: 600; display: block; margin-top: 3px; }
+    .calc-formula { font-family: monospace; font-size: 11px; background: rgba(255,255,255,.1); padding: 2px 5px; border-radius: 4px; display: block; margin-top: 3px; }
+
+    /* ── Upload screen ── */
+    #upload-screen { display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 0 0 56px; gap: 0; }
+
+    /* Hero — full-bleed brand gradient */
+    .upload-hero {
+      width: 100%;
+      background: var(--hero-gradient);
+      color: #fff;
+      padding: 64px 24px 56px;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .upload-hero .eyebrow {
+      font-size: 12px; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: rgba(255,255,255,.78); margin-bottom: 8px;
+    }
+    .upload-hero h1 {
+      font-size: 48px; font-weight: 700; line-height: 1.15;
+      text-align: center; margin-bottom: 12px; letter-spacing: -.01em;
+    }
+    .upload-hero p {
+      color: rgba(255,255,255,.85);
+      text-align: center; font-size: 16px; line-height: 1.5;
+      max-width: 520px;
+    }
+
+    /* Content stack sits over a soft tint band that lifts the cards off the gradient */
+    .upload-stack {
+      width: 100%; max-width: 600px;
+      display: flex; flex-direction: column; gap: 16px;
+      padding: 0 20px;
+      margin-top: -28px; /* overlap the hero a touch */
+    }
+
+    .upload-box {
+      width: 100%;
+      border: 2px dashed var(--grey-300);
+      border-radius: var(--r-large);
+      background: var(--card);
+      padding: 36px 24px; text-align: center; cursor: pointer;
+      transition: border-color .15s, background .15s, transform .15s;
+      box-shadow: var(--shadow-l1);
+    }
+    .upload-box:hover, .upload-box.dragover {
+      border-color: var(--blue);
+      background: var(--blue-pale);
+    }
+    .upload-box svg { margin-bottom: 12px; color: var(--blue); opacity: 1; }
+    .upload-box p { color: var(--grey-600); font-size: 14px; margin-top: 4px; }
+    .upload-box input { display: none; }
+    .upload-btn {
+      display: inline-block; margin-top: 16px;
+      background: var(--blue); color: #fff;
+      border: none; border-radius: var(--r-med);
+      padding: 10px 24px; font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+      transition: background .15s;
+    }
+    .upload-btn:hover { background: var(--blue-hover); }
+
+    .config-panel {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--grey-200);
+      border-radius: var(--r-large);
+      padding: 22px 24px;
+      box-shadow: var(--shadow-l1);
+    }
+    .config-panel h3 {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--grey-500);
+      margin-bottom: 16px;
+    }
+    .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .config-field label {
+      display: block; font-size: 12px; font-weight: 600;
+      color: var(--grey-700); margin-bottom: 6px;
+    }
+    .config-field input, .config-field select {
+      width: 100%; padding: 9px 11px;
+      border: 1px solid var(--grey-300);
+      border-radius: var(--r-med);
+      font-size: 14px; background: #fff; color: var(--grey-700);
+      font-family: inherit;
+      transition: border-color .12s, box-shadow .12s;
+    }
+    .config-field input:focus, .config-field select:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px var(--blue-tint);
+    }
+    .config-field.full { grid-column: 1 / -1; }
+
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0; border-bottom: 1px solid var(--grey-200);
+    }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-row span { font-size: 14px; color: var(--grey-700); }
+    .toggle { position: relative; width: 38px; height: 22px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0;
+      background: var(--grey-300);
+      border-radius: 99px; cursor: pointer; transition: .2s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute;
+      width: 16px; height: 16px; left: 3px; top: 3px;
+      background: white; border-radius: 50%;
+      transition: .2s;
+      box-shadow: 0 1px 2px rgba(0,0,0,.15);
+    }
+    .toggle input:checked + .toggle-slider { background: var(--blue); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+    /* Integrity panel tabs */
+    .integrity-tab {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 10px 14px;
+      margin-bottom: -1px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color .12s, border-color .12s;
+      letter-spacing: .01em;
+    }
+    .integrity-tab:hover { color: var(--ink); }
+    .integrity-tab.active {
+      color: var(--blue);
+      border-bottom-color: var(--blue);
+    }
+    .integrity-filter-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 10px;
+      border-radius: 99px;
+      background: var(--light);
+      border: 1px solid var(--grey-200);
+      font-size: 11px; font-weight: 600;
+      color: var(--ink);
+      cursor: pointer;
+      transition: background .12s, border-color .12s;
+      user-select: none;
+    }
+    .integrity-filter-chip:hover { background: var(--grey-100); }
+    .integrity-filter-chip input { margin: 0; cursor: pointer; }
+    .integrity-filter-chip.active {
+      background: var(--raspberry-tint);
+      border-color: #f4c0d6;
+      color: var(--raspberry);
+    }
+    .integrity-bar-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 0;
+    }
+    .integrity-bar-row .lbl {
+      width: 110px; font-size: 11px; font-weight: 600;
+      color: var(--ink);
+    }
+    .integrity-bar-row .bar-track {
+      flex: 1; height: 14px; background: var(--light);
+      border-radius: 4px; overflow: hidden;
+    }
+    .integrity-bar-row .bar-fill {
+      height: 100%; border-radius: 4px;
+    }
+    .integrity-bar-row .cnt {
+      width: 64px; font-size: 11px; color: var(--muted);
+      text-align: right;
+    }
+
+    .run-btn {
+      width: 100%;
+      background: var(--blue); color: #fff;
+      border: none; border-radius: var(--r-med);
+      padding: 14px; font-size: 15px; font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .15s;
+    }
+    .run-btn:disabled {
+      background: var(--grey-300); color: var(--grey-500);
+      cursor: not-allowed;
+    }
+    .run-btn:not(:disabled):hover { background: var(--blue-hover); }
+    #upload-error {
+      color: var(--red); font-size: 13px; display: none;
+      width: 100%; padding: 10px 14px;
+      background: var(--red-bg); border-radius: var(--r-med);
+      border: 1px solid #f3c7c7;
+    }
+
+    /* ── Report ── */
+    #report-screen { display: none; }
+    .report-topbar {
+      background: var(--card);
+      border-bottom: 1px solid var(--grey-200);
+      padding: 10px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap;
+      box-shadow: var(--shadow-l1);
+    }
+    .topbar-brand {
+      display: flex; align-items: center; gap: 14px;
+      font-size: 13px; font-weight: 600; color: var(--grey-500);
+    }
+    .topbar-brand .topbar-divider {
+      width: 1px; height: 22px; background: var(--grey-200);
+    }
+    /* Official Codility logotype — referenced from disk in the dashboard, and
+       fetched + base64-embedded at PPTX export time. Two variants: dark
+       (navy on light bg) and light (white on dark bg). */
+    .codility-logo { display: inline-block; height: 28px; width: auto; user-select: none; }
+    .codility-logo.dashboard { height: 24px; }
+    .codility-logo.welcome   { height: 44px; margin-bottom: 18px; }
+    .back-btn {
+      background: transparent;
+      border: 1px solid var(--grey-300);
+      border-radius: var(--r-med);
+      padding: 7px 14px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; color: var(--grey-700);
+      font-family: inherit;
+      transition: background .12s, border-color .12s;
+    }
+    .back-btn:hover {
+      background: var(--blue-pale);
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+    .dl-btn {
+      background: var(--blue); color: #fff;
+      border: none; border-radius: var(--r-med);
+      padding: 8px 16px; font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+      transition: background .15s;
+    }
+    .dl-btn:hover { background: var(--blue-hover); }
+    .dl-btn.accent { background: var(--raspberry); }
+    .dl-btn.accent:hover { background: var(--raspberry-hover); }
+
+    .report-body { max-width: 100%; margin: 0 auto; padding: 12px 24px 40px; }
+    .report-title-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px; gap: 16px; flex-wrap: wrap;
+    }
+    .report-title { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+    .report-title h1 {
+      font-size: 22px; font-weight: 700;
+      color: var(--navy); letter-spacing: -.01em;
+    }
+    .report-title .test-name {
+      font-size: 13px; font-weight: 600; color: var(--blue);
+    }
+    .report-meta-badge {
+      background: var(--blue-tint);
+      border: 1px solid var(--blue);
+      border-radius: var(--r-med);
+      padding: 6px 10px;
+      font-size: 11px; text-align: right; line-height: 1.4;
+      color: var(--grey-700);
+    }
+    .report-meta-badge strong { font-weight: 700; color: var(--blue-deep); }
+
+    /* Stats bar */
+    .stats-bar {
+      background: var(--card);
+      border: 1px solid var(--grey-200);
+      border-radius: var(--r-large);
+      display: grid; grid-template-columns: repeat(3,1fr);
+      overflow: visible; margin-bottom: 16px;
+      box-shadow: var(--shadow-l1);
+    }
+    .stats-section {
+      padding: 14px 16px;
+      border-right: 1px solid var(--grey-200);
+      overflow: visible;
+    }
+    .stats-section:last-child { border-right: none; }
+    .stats-section-title {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--grey-500);
+      text-align: center; margin-bottom: 12px;
+      padding-bottom: 10px; border-bottom: 1px solid var(--grey-200);
+      display: flex; align-items: center; justify-content: center; gap: 4px;
+    }
+    .stats-cols { display: flex; justify-content: space-around; gap: 6px; }
+    .stat-item { text-align: center; flex: 1; overflow: visible; }
+    .stat-label {
+      font-size: 11px; color: var(--grey-500); line-height: 1.3;
+      margin-bottom: 6px;
+      display: flex; align-items: center; justify-content: center; gap: 2px;
+    }
+    .stat-value {
+      font-size: 22px; font-weight: 700; line-height: 1;
+      color: var(--navy);
+    }
+    /* Default badge = neutral grey. Use modifier classes for semantic meaning. */
+    .badge {
+      display: inline-block; margin-top: 6px;
+      padding: 3px 10px; border-radius: 99px;
+      font-size: 11px; font-weight: 600;
+      background: var(--grey-100);
+      border: 1px solid var(--grey-300);
+      color: var(--grey-600);
+    }
+    .badge.green {
+      background: var(--green-bg); border-color: #b7e8d3; color: var(--green);
+    }
+    .badge.gray  {
+      background: var(--grey-100); border-color: var(--grey-300); color: var(--grey-600);
+    }
+    .badge.blue  {
+      background: var(--blue-tint); border-color: #c2cdf7; color: var(--blue-deep);
+    }
+    .badge.red   {
+      background: var(--raspberry-tint); border-color: #f4c0d6; color: var(--raspberry);
+    }
+    .badge.amber {
+      background: var(--amber-bg); border-color: var(--yellow-light); color: var(--amber);
+    }
+    .badge.yellow {
+      background: var(--yellow-pale); border-color: var(--yellow-light); color: #806000;
+    }
+
+    /* Layout */
+    .main-grid { display: grid; grid-template-columns: 1.2fr 0.8fr 0.9fr; gap: 16px; margin-bottom: 16px; align-items: start; }
+    .bottom-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin-bottom: 16px; align-items: start; }
+    .middle-row { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 16px; margin-bottom: 16px; align-items: start; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--grey-200);
+      border-radius: var(--r-large);
+      overflow: visible;
+      box-shadow: var(--shadow-l1);
+    }
+    .card-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--grey-200);
+      font-size: 13px; font-weight: 700;
+      color: var(--navy);
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    /* Task table */
+    .task-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .task-table th {
+      padding: 10px 14px; text-align: left;
+      font-size: 11px; font-weight: 700; color: var(--grey-500);
+      text-transform: uppercase; letter-spacing: .06em;
+      background: var(--grey-50);
+      border-bottom: 1px solid var(--grey-200);
+    }
+    .task-table th .th-inner { display: flex; align-items: center; gap: 4px; }
+    .task-table td {
+      padding: 0; border-bottom: 1px solid var(--grey-200);
+      vertical-align: middle;
+    }
+    .task-table tr:last-child td { border-bottom: none; }
+
+    /* Slot row (the numbered group header) */
+    .slot-row td {
+      background: var(--blue-pale);
+      padding: 8px 14px;
+      font-weight: 700; font-size: 12px;
+      color: var(--blue-deep);
+      border-bottom: 1px solid var(--grey-200);
+    }
+
+    /* Task variant row */
+    .variant-row td { padding: 10px 14px; border-bottom: 1px solid var(--grey-100); }
+    .variant-row:last-of-type td { border-bottom: none; }
+
+    .task-name-chip {
+      display: inline-block; padding: 3px 9px;
+      border-radius: var(--r-small);
+      font-size: 12px; font-weight: 600;
+    }
+    /* Difficulty chips are descriptive, not status — keep them neutral */
+    .chip-easy,
+    .chip-medium,
+    .chip-hard { background: var(--grey-100); color: var(--grey-700); border: 1px solid var(--grey-200); }
+    .avg-score   { font-weight: 700; font-size: 14px; color: var(--navy); }
+    .disc-value  { font-weight: 700; font-size: 13px; }
+
+    /* Insights */
+    .insights-list { padding: 0; }
+    .insight-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--grey-200);
+    }
+    .insight-item:last-child { border-bottom: none; }
+    .insight-icon {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-size: 12px; font-weight: 700;
+    }
+    .insight-icon.ok      { background: var(--green-bg); color: var(--green); }
+    .insight-icon.warn    { background: var(--amber-bg); color: var(--amber); }
+    .insight-icon.neutral { background: var(--grey-100); color: var(--grey-500); }
+    .insight-title {
+      font-size: 13px; font-weight: 700; margin-bottom: 2px;
+      color: var(--navy);
+    }
+    .insight-desc  { font-size: 12px; color: var(--grey-600); line-height: 1.45; }
+
+    /* Filter chips */
+    .filter-chip {
+      display: inline-flex; align-items: center;
+      padding: 5px 13px; border-radius: 99px;
+      font-size: 12px; font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--grey-300);
+      background: var(--card); color: var(--grey-600);
+      transition: all .12s; user-select: none;
+    }
+    .filter-chip.active {
+      background: var(--blue); color: #fff;
+      border-color: var(--blue);
+    }
+    .filter-chip:hover:not(.active) {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: var(--blue-pale);
+    }
+
+    /* Chart */
+    .chart-wrapper { padding: 14px 16px; }
+    .chart-meta { font-size: 12px; color: var(--grey-500); margin-bottom: 10px; }
+    #scoreChart { max-height: 200px; }
+
+    @media (max-width: 760px) {
+      .stats-bar { grid-template-columns: 1fr; }
+      .stats-section { border-right: none; border-bottom: 1px solid var(--border); }
+      .middle-row { grid-template-columns: 1fr; }
+    }
+
+    /* Print / PDF */
+    @media print {
+      .report-topbar { display: none; }
+      body { background: white; }
+      .report-body { padding: 10px; }
+      .card, .stats-bar { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+     UPLOAD SCREEN
+══════════════════════════════════ -->
+<div id="upload-screen">
+  <div class="upload-hero">
+    <img class="codility-logo welcome" src="assets/codility-logo-light.png" alt="Codility" />
+    <h1>Test Health Analysis</h1>
+    <p>Upload an assessment export to generate an instant assessment health report — engagement, scoring, time pressure, behavioural signals, and more.</p>
+  </div>
+
+  <div class="upload-stack">
+
+  <div class="upload-box" id="drop-zone">
+    <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/>
+    </svg>
+    <p id="drop-label" style="font-size:15px;font-weight:600;color:var(--navy);margin-top:0;">Drag &amp; drop your CSV here</p>
+    <p style="font-size:12px;color:var(--grey-500);margin-top:4px;">CSV, XLS, or XLSX — analysed entirely in your browser</p>
+    <button class="upload-btn" onclick="document.getElementById('file-input').click()">Choose file</button>
+    <input type="file" id="file-input" accept=".csv,.xls,.xlsx" />
+  </div>
+
+  <div class="config-panel">
+    <h3>Test Details</h3>
+    <div class="config-grid">
+      <div class="config-field full">
+        <label>Test Creator Name</label>
+        <input type="text" id="cfg-creator" placeholder="e.g. Dylan Caldeira" />
+      </div>
+      <div class="config-field">
+        <label>Fairness Rating (%)</label>
+        <input type="number" id="cfg-fairness" placeholder="e.g. 90" min="0" max="100" />
+      </div>
+      <div class="config-field" style="display:flex;flex-direction:column;justify-content:flex-end;">
+        <label style="margin-bottom:8px;">Fairness vs Global Avg</label>
+        <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 6px;font-size:12px;font-weight:600;cursor:pointer;background:var(--light);">
+            <input type="radio" name="fairness-rel" value="above" id="fair-above" style="accent-color:var(--green);" /> Above
+          </label>
+          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 6px;font-size:12px;font-weight:600;cursor:pointer;background:var(--light);border-left:1px solid var(--border);">
+            <input type="radio" name="fairness-rel" value="below" id="fair-below" style="accent-color:var(--red);" /> Below
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="config-panel">
+    <h3>Assessment Configuration</h3>
+    <div class="config-grid">
+      <div class="config-field">
+        <label>Passing Score (%)</label>
+        <input type="number" id="cfg-passing" placeholder="e.g. 75" min="0" max="100" />
+      </div>
+      <div class="config-field">
+        <label>Max Test Duration (min)</label>
+        <input type="number" id="cfg-maxtime" placeholder="e.g. 60" min="1" />
+      </div>
+    </div>
+    <div style="margin-top:12px;">
+      <div class="toggle-row">
+        <span>Task rotation enabled</span>
+        <label class="toggle"><input type="checkbox" id="cfg-rotation"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>Proctoring enabled</span>
+        <label class="toggle"><input type="checkbox" id="cfg-proctoring"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>Leaked item present</span>
+        <label class="toggle"><input type="checkbox" id="cfg-leaked"><span class="toggle-slider"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>Weighted scoring enabled</span>
+        <label class="toggle"><input type="checkbox" id="cfg-weighted"><span class="toggle-slider"></span></label>
+      </div>
+    </div>
+    <!-- Weight inputs — shown dynamically after CSV loaded + toggle on -->
+    <div id="weight-inputs-wrap" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px;">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em;">Task Slot Weights</div>
+      <div id="weight-inputs-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px;" id="weight-total-hint"></div>
+    </div>
+  </div>
+
+  <div id="upload-error"></div>
+  <button class="run-btn" id="run-btn" disabled>Generate Report</button>
+
+  </div><!-- /upload-stack -->
+</div>
+
+<!-- ══════════════════════════════════
+     REPORT SCREEN
+══════════════════════════════════ -->
+<div id="report-screen">
+  <div class="report-topbar">
+    <div class="topbar-brand">
+      <img class="codility-logo dashboard" src="assets/codility-logo-dark.png" alt="Codility" />
+      <span class="topbar-divider"></span>
+      <span style="color:var(--navy);font-weight:600;">Test Health Analysis</span>
+    </div>
+    <button class="back-btn" onclick="showUpload()">← New report</button>
+    <span style="font-size:12px;color:var(--grey-500)" id="report-filename"></span>
+    <button class="dl-btn accent" onclick="safeRun(downloadPPTX, this)" style="margin-left:auto">⬇ Download PPTX</button>
+  </div>
+
+  <div class="report-body" id="report-body">
+
+    <div class="report-title-row">
+      <div class="report-title">
+        <h1>Test Health Analysis</h1>
+        <div class="test-name" id="r-test-name"></div>
+      </div>
+      <div class="report-meta-badge" id="r-meta-badge"></div>
+    </div>
+
+    <!-- Date filter -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-header">
+        Filter by Date
+        <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Filter the cohort by invitation date (Create date). Select which years and months to include — all invitations sent in that window are kept, including those that never converted. Statistics update immediately.</span></span>
+        <span id="r-filter-active" style="display:none;margin-left:auto;font-size:11px;font-weight:600;color:var(--blue);background:var(--blue-bg);padding:2px 10px;border-radius:99px;border:1px solid #c2cdf7;">Filtered</span>
+      </div>
+      <div style="padding:14px 16px;">
+        <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Year</div>
+            <div id="filter-years" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Month</div>
+            <div id="filter-months" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+          </div>
+          <div style="margin-left:auto;align-self:flex-end;">
+            <button onclick="clearDateFilter()" style="font-size:12px;font-weight:600;color:var(--muted);background:none;border:1px solid var(--border);border-radius:8px;padding:5px 12px;cursor:pointer;">Clear filter</button>
+          </div>
+        </div>
+        <div id="filter-summary" style="margin-top:10px;font-size:12px;color:var(--muted);"></div>
+      </div>
+    </div>
+
+    <!-- Weighted scoring indicator (compact, no banner) -->
+    <div id="r-weighted-notice" style="display:none;margin-bottom:12px;">
+      <span style="font-size:12px;font-weight:600;color:var(--blue);background:var(--blue-bg);padding:3px 12px;border-radius:99px;border:1px solid #c2cdf7;">⚖ Weighted scoring enabled</span>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="stats-bar">
+
+      <!-- Candidate Engagement -->
+      <div class="stats-section">
+        <div class="stats-section-title">
+          Candidate Engagement
+          <span class="tip-wrap">
+            <span class="tip-icon">?</span>
+            <span class="tip-box">How many candidates received an invitation, started the test, and submitted at least partial work. Big drop-offs from invitation → attempt or attempt → non-zero suggest the test is too long, too hard, or unclear.</span>
+          </span>
+        </div>
+        <div class="stats-cols">
+
+          <div class="stat-item">
+            <div class="stat-label">Number of Invitations
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Total rows in the CSV export — every candidate who received an invitation link.</span></span>
+            </div>
+            <div class="calc-wrap">
+              <div class="stat-value" id="r-invitations">—</div>
+              <div class="calc-box" id="calc-invitations"></div>
+            </div>
+          </div>
+
+          <div class="stat-item">
+            <div class="stat-label">Number of Attempts
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Candidates who have a Start date AND a numeric % total score in the CSV.</span></span>
+            </div>
+            <div class="calc-wrap">
+              <div class="stat-value" id="r-attempts">—</div>
+              <div class="calc-box" id="calc-attempts"></div>
+            </div>
+            <div class="badge" id="r-dropoff1"></div>
+          </div>
+
+          <div class="stat-item">
+            <div class="stat-label">Number of Non Zero Attempts
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Attempted candidates whose % total score is greater than 0 — people who submitted at least partial work.</span></span>
+            </div>
+            <div class="calc-wrap">
+              <div class="stat-value" id="r-nonzero">—</div>
+              <div class="calc-box" id="calc-nonzero"></div>
+            </div>
+            <div class="badge" id="r-dropoff2"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Scoring & Outcomes -->
+      <div class="stats-section">
+        <div class="stats-section-title">
+          Scoring &amp; Outcomes
+          <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Score statistics calculated across ALL attempts (including zero scores).</span></span>
+        </div>
+        <div class="stats-cols">
+
+          <div class="stat-item">
+            <div class="stat-label">Passing Score
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">The minimum % total score threshold for passing, entered manually in the config. Leave blank if the test has no passing threshold.</span></span>
+            </div>
+            <div class="stat-value" id="r-passing-score">—</div>
+          </div>
+
+          <div class="stat-item">
+            <div class="stat-label">Passing Rate
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">% of ALL attempts (including zeros) that met or exceeded the passing score. Formula: passed ÷ total attempts × 100. N/A if no passing score is set.</span></span>
+            </div>
+            <div class="calc-wrap">
+              <div class="stat-value" id="r-passing-rate">—</div>
+              <div class="calc-box" id="calc-passing-rate"></div>
+            </div>
+            <div class="badge" id="r-passing-badge" style="display:none"></div>
+          </div>
+
+          <div class="stat-item">
+            <div class="stat-label">Median Score
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Middle value of all attempt scores sorted ascending (including zeros). Half scored above, half below.</span></span>
+            </div>
+            <div class="calc-wrap">
+              <div class="stat-value" id="r-median-score">—</div>
+              <div class="calc-box" id="calc-median-score"></div>
+            </div>
+            <div class="badge" id="r-difficulty-badge" style="display:none"></div>
+          </div>
+
+          <div class="stat-item">
+            <div class="stat-label">Score SD
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Standard deviation of all attempt scores (including zeros). Measures spread — a low SD means candidates clustered around the median; a high SD means scores were spread across the range.</span></span>
+            </div>
+            <div class="calc-wrap">
+              <div class="stat-value" id="r-score-sd">—</div>
+              <div class="calc-box" id="calc-score-sd"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Assessment Experience -->
+      <div class="stats-section">
+        <div class="stats-section-title">
+          Assessment Experience
+          <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">How candidates experienced the test in terms of time spent and perceived fairness.</span></span>
+        </div>
+        <div class="stats-cols">
+
+          <div class="stat-item">
+            <div class="stat-label">Median Attempt Time
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Median of Time Used (minutes) across all attempts. Compared against the max duration you entered. Both too low (rushed/gave up) and too high (time pressure) are flagged.</span></span>
+            </div>
+            <div class="calc-wrap">
+              <div class="stat-value" id="r-median-time">—</div>
+              <div class="calc-box" id="calc-median-time"></div>
+            </div>
+            <div class="badge" id="r-time-badge" style="display:none"></div>
+          </div>
+
+          <div class="stat-item">
+            <div class="stat-label">Fairness Rating
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Candidate-reported fairness score from the assessment dashboard. Not in the CSV — enter it manually. Higher is better; very low ratings are flagged.</span></span>
+            </div>
+            <div class="stat-value" id="r-fairness">—</div>
+            <div class="badge" id="r-fairness-badge" style="display:none"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Main 3-column grid: task table | insights | signals -->
+    <div class="main-grid">
+
+      <!-- Task analysis -->
+      <div class="card">
+        <div class="card-header">
+          Task Analysis
+          <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Per-task stats across ALL attempts that have a score for that task. When task rotation is on, tasks are grouped by slot — each slot is one position in the test, served as one of several random variants.</span></span>
+        </div>
+        <table class="task-table">
+          <thead>
+            <tr>
+              <th><div class="th-inner">#</div></th>
+              <th><div class="th-inner">Task / Difficulty</div></th>
+              <th>
+                <div class="th-inner">Avg. Score
+                  <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Mean of Task N score % across all attempts that have a score for this task (including zeros). High (>85%) or very low (<15%) may indicate calibration issues.</span></span>
+                </div>
+              </th>
+              <th>
+                <div class="th-inner">Discrimination
+                  <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Pearson r between this task's score and the candidate's total score. Higher is better — it means the task reliably separates strong from weak candidates. Values below 0.2 may indicate a poor discriminator.</span></span>
+                </div>
+              </th>
+              <th>
+                <div class="th-inner">N
+                  <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Number of attempts that received this specific task variant.</span></span>
+                </div>
+              </th>
+              <th id="th-weight" style="display:none">
+                <div class="th-inner">Weight
+                  <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">The percentage weight assigned to this task slot. All slot weights should sum to 100%.</span></span>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="r-task-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Insights -->
+      <div class="card">
+        <div class="card-header">Assessment Health Insights</div>
+        <div class="insights-list" id="r-insights"></div>
+      </div>
+
+      <!-- Integrity (replaces "Behavioural Signals") -->
+      <div class="card">
+        <div class="card-header" style="flex-wrap:wrap;gap:0;">
+          <span style="display:flex;align-items:center;">Integrity
+            <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Three lenses on assessment integrity. Switch tabs to see the population by Integrity Risk level, Similarity Check verdicts, or Behavioural Signals. Each tab can exclude worrisome candidates and recompute the dashboard's KPIs above.</span></span>
+          </span>
+          <div id="integrity-filters-active" style="margin-left:auto;font-size:10px;font-weight:700;color:var(--raspberry);text-transform:uppercase;letter-spacing:.06em;display:none;align-items:center;gap:6px;">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--raspberry);"></span>
+            <span id="integrity-filters-active-text"></span>
+          </div>
+        </div>
+        <div class="integrity-tabs" style="display:flex;gap:0;border-bottom:1px solid var(--grey-200);padding:0 14px;">
+          <button class="integrity-tab active" data-tab="risk" onclick="switchIntegrityTab('risk')">Integrity Risk</button>
+          <button class="integrity-tab" data-tab="sim" onclick="switchIntegrityTab('sim')">Similarity Check</button>
+          <button class="integrity-tab" data-tab="sig" onclick="switchIntegrityTab('sig')">Behavioural Signals</button>
+        </div>
+        <div id="r-integrity-body" style="padding:14px;"></div>
+      </div>
+
+    </div><!-- /main-grid -->
+
+    <!-- Bottom 2-column grid: chart | (nothing, just full width chart) -->
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-header">
+        Live Score Distribution
+        <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Histogram of % total score across ALL attempts including zeros. Hover each bar for exact counts.</span></span>
+      </div>
+      <div class="chart-wrapper">
+        <div class="chart-meta" id="r-chart-meta"></div>
+        <canvas id="scoreChart"></canvas>
+      </div>
+    </div>
+
+  </div><!-- /report-body -->
+</div><!-- /report-screen -->
+
+<script>
+
+// ── Codility logos ──
+// PptxGenJS's addImage requires data URIs, not file paths. The data URIs are
+// loaded from assets/logos.js (a small generated file with the two PNGs as
+// base64). Keeping them in a separate script — instead of inlined in this
+// file or fetched from disk — lets the PPTX export work in three places:
+//   • served over http:// (production, GitHub Pages)
+//   • opened directly via file:// (no server, where fetch() and tainted-canvas
+//     conversion are blocked)
+//   • offline (the data URIs are already in memory once the script tag runs)
+const LOGO_DATA_URIS = {
+  dark:  window.CODILITY_LOGO_DARK_URI,
+  light: window.CODILITY_LOGO_LIGHT_URI,
+};
+async function loadLogoDataURIs(){
+  // No-op: the data URIs are already loaded synchronously via the <script>
+  // tag in <head>. This wrapper exists so downloadPPTX() can stay async-aware.
+  if (!LOGO_DATA_URIS.dark || !LOGO_DATA_URIS.light) {
+    throw new Error('Codility logo data URIs not loaded — check assets/logos.js is included');
+  }
+}
+
+
+// ── safeRun: surface async errors instead of swallowing them silently. ──
+// Without this an unhandled rejection inside an async onclick handler dies in
+// the console with no UI feedback ("button does nothing"). Wrap once here so
+// every download button benefits.
+async function safeRun(fn, btn){
+  const orig = btn ? btn.textContent : null;
+  try {
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Working…'; }
+    await fn();
+  } catch (e) {
+    console.error('[download error]', e);
+    alert('Sorry — something went wrong while generating the file:\n\n' + (e && e.message ? e.message : e));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = orig; }
+  }
+}
+
+// ══════════════════════════════════
+// TOOLTIP POSITIONING (fixed coords)
+// ══════════════════════════════════
+document.addEventListener('mouseover', e => {
+  const icon = e.target.closest('.tip-icon');
+  if (!icon) return;
+  const box = icon.nextElementSibling;
+  if (!box || !box.classList.contains('tip-box')) return;
+  const r = icon.getBoundingClientRect();
+  box.style.left = Math.max(8, r.left + r.width/2 - 110) + 'px';
+  box.style.top  = (r.top - 8) + 'px';
+  box.style.transform = 'translateY(-100%)';
+});
+
+document.addEventListener('mouseover', e => {
+  const wrap = e.target.closest('.calc-wrap');
+  if (!wrap) return;
+  const box = wrap.querySelector('.calc-box');
+  if (!box) return;
+  const r = wrap.getBoundingClientRect();
+  box.style.left = Math.max(8, r.left + r.width/2 - 120) + 'px';
+  box.style.top  = (r.top - 8) + 'px';
+  box.style.transform = 'translateY(-100%)';
+});
+
+// ══════════════════════════════════
+// UTILS
+// ══════════════════════════════════
+const $ = id => document.getElementById(id);
+let chartInstance = null;
+
+function parseNum(v) {
+  if (v === null || v === undefined) return NaN;
+  if (typeof v === 'number') return isFinite(v) ? v : NaN;
+  const s = String(v).replace(/[%,$\s]/g,'');
+  if (s === '') return NaN;   // blank input → NaN, not 0
+  const n = Number(s);
+  return isFinite(n) ? n : NaN;
+}
+function isNA(v) {
+  if (v == null) return true;
+  const s = String(v).trim().toLowerCase();
+  return s===''||s==='na'||s==='n/a'||s==='null'||s==='-';
+}
+function median(arr) {
+  if (!arr.length) return NaN;
+  const s = [...arr].sort((a,b)=>a-b);
+  const m = Math.floor(s.length/2);
+  return s.length%2===0 ? (s[m-1]+s[m])/2 : s[m];
+}
+function mean(arr) {
+  return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : NaN;
+}
+function sd(arr) {
+  if(arr.length<2) return NaN;
+  const avg=mean(arr);
+  return Math.sqrt(arr.reduce((s,x)=>s+(x-avg)**2,0)/(arr.length-1));
+}
+function pearson(xs, ys) {
+  if (xs.length!==ys.length||xs.length<2) return NaN;
+  const mx=mean(xs), my=mean(ys);
+  let num=0,dx2=0,dy2=0;
+  for(let i=0;i<xs.length;i++){const a=xs[i]-mx,b=ys[i]-my;num+=a*b;dx2+=a*a;dy2+=b*b;}
+  const d=Math.sqrt(dx2*dy2);
+  return d===0?NaN:num/d;
+}
+function fmt(n,d=1){ return isFinite(n)?n.toFixed(d):'N/A'; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(ds){
+  if(!ds)return'';
+  const d=new Date(ds);
+  if(isNaN(d))return ds;
+  return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+}
+function mode(arr){
+  const f={};arr.forEach(v=>{f[v]=(f[v]||0)+1;});
+  return Object.entries(f).sort((a,b)=>b[1]-a[1])[0][0];
+}
+
+// ══════════════════════════════════
+// CSV PARSER
+// ══════════════════════════════════
+function parseCSV(text){
+  const rows=[];let row=[],cell='',inQ=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i],n=text[i+1];
+    if(c==='"'){if(inQ&&n==='"'){cell+='"';i++;}else inQ=!inQ;}
+    else if(c===','&&!inQ){row.push(cell);cell='';}
+    else if((c==='\n'||c==='\r')&&!inQ){
+      if(c==='\r'&&n==='\n')i++;
+      row.push(cell);cell='';
+      if(row.some(x=>x.trim()))rows.push(row);
+      row=[];
+    } else cell+=c;
+  }
+  if(cell||row.length){row.push(cell);if(row.some(x=>x.trim()))rows.push(row);}
+  if(rows.length<2)return[];
+  const headers=rows[0].map(h=>h.trim());
+  return rows.slice(1).map(r=>{
+    const obj={};headers.forEach((h,i)=>{obj[h]=r[i]!==undefined?r[i].trim():'';});
+    return obj;
+  });
+}
+
+// ══════════════════════════════════
+// FILE HANDLING
+// ══════════════════════════════════
+let parsedRows=null, csvFileName='';
+const dropZone=$('drop-zone'), fileInput=$('file-input');
+
+dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('dragover');});
+dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop',e=>{
+  e.preventDefault();dropZone.classList.remove('dragover');
+  const f=e.dataTransfer.files[0];if(f)handleFile(f);
+});
+fileInput.addEventListener('change',()=>{if(fileInput.files[0])handleFile(fileInput.files[0]);});
+
+function handleFile(file){
+  csvFileName=file.name;
+  const ext=file.name.split('.').pop().toLowerCase();
+  const reader=new FileReader();
+
+  reader.onload=e=>{
+    try{
+      let rows;
+      if(ext==='csv'){
+        rows=parseCSV(e.target.result);
+      } else {
+        // XLS / XLSX via SheetJS
+        const data=new Uint8Array(e.target.result);
+        const wb=XLSX.read(data,{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const raw=XLSX.utils.sheet_to_json(ws,{defval:''});
+        // Normalise headers (SheetJS preserves them)
+        rows=raw.map(r=>{
+          const obj={};
+          Object.keys(r).forEach(k=>{obj[k.trim()]=String(r[k]);});
+          return obj;
+        });
+      }
+      if(!rows.length) throw new Error('No data rows found.');
+      if(!rows[0].hasOwnProperty('% total score')) throw new Error("Missing '% total score' column — check this is the right assessment export.");
+      parsedRows=rows;
+      showError('');
+      $('run-btn').disabled=false;
+      $('drop-label').textContent=`✓ ${file.name} — ${rows.length} rows loaded`;
+      // Auto-detect first attempt date
+      const starts=rows.map(r=>r['Start date']).filter(v=>!isNA(v)).sort();
+      if(starts.length) parsedRows._firstStart=starts[0];
+      // Detect task slot numbers for weight inputs
+      const slotNums=new Set();
+      Object.keys(rows[0]).forEach(k=>{const m=k.match(/^Task (\d+) name$/i);if(m)slotNums.add(Number(m[1]));});
+      parsedRows._slotNums=[...slotNums].sort((a,b)=>a-b);
+
+      // ── Auto-detect rotation ──
+      // If any slot has 2+ unique task names across rows, the test uses rotation.
+      // Pre-fill the toggle so the user doesn't have to know — they can still flip it.
+      let rotationDetected=false;
+      parsedRows._slotNums.forEach(n=>{
+        const names=new Set();
+        rows.forEach(r=>{const v=r[`Task ${n} name`];if(!isNA(v)&&String(v).trim())names.add(String(v).trim());});
+        if(names.size>=2) rotationDetected=true;
+      });
+      const rotEl=$('cfg-rotation');
+      if(rotEl){
+        rotEl.checked=rotationDetected;
+        rotEl.dispatchEvent(new Event('change',{bubbles:true}));
+      }
+      renderWeightInputs();
+    }catch(err){
+      showError(err.message);parsedRows=null;$('run-btn').disabled=true;
+    }
+  };
+
+  if(ext==='csv') reader.readAsText(file);
+  else            reader.readAsArrayBuffer(file);
+}
+
+function showError(msg){const el=$('upload-error');el.textContent=msg;el.style.display=msg?'block':'none';}
+
+$('run-btn').addEventListener('click',()=>{
+  if(!parsedRows)return;
+  const fairnessRel=document.querySelector('input[name="fairness-rel"]:checked');
+  const cfg={
+    passingScore: parseNum($('cfg-passing').value),
+    maxTime: parseNum($('cfg-maxtime').value),
+    rotation: $('cfg-rotation').checked,
+    proctoring: $('cfg-proctoring').checked,
+    leaked: $('cfg-leaked').checked,
+    weighted: $('cfg-weighted').checked,
+    slotWeights: getSlotWeights(),
+    creator: $('cfg-creator').value.trim(),
+    fairness: parseNum($('cfg-fairness').value),
+    fairnessRel: fairnessRel ? fairnessRel.value : null,
+  };
+  buildReport(parsedRows, cfg);
+});
+
+// ══════════════════════════════════
+// WEIGHT INPUTS
+// ══════════════════════════════════
+function renderWeightInputs(){
+  const wrap=$('weight-inputs-wrap');
+  const grid=$('weight-inputs-grid');
+  const isOn=$('cfg-weighted').checked;
+  const slots=parsedRows?._slotNums||[];
+  if(!isOn||!slots.length){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  grid.innerHTML=slots.map(n=>`
+    <div class="config-field">
+      <label>Slot ${n} weight (%)</label>
+      <input type="number" id="cfg-weight-slot-${n}" min="0" max="100" placeholder="e.g. 40"
+        oninput="updateWeightHint()" />
+    </div>`).join('');
+  updateWeightHint();
+}
+
+function updateWeightHint(){
+  const slots=parsedRows?._slotNums||[];
+  const total=slots.reduce((sum,n)=>{
+    const v=parseNum($(`cfg-weight-slot-${n}`)?.value||'');
+    return sum+(isFinite(v)?v:0);
+  },0);
+  const hint=$('weight-total-hint');
+  if(!hint)return;
+  const rounded=Math.round(total*10)/10;
+  if(rounded===0){ hint.textContent=''; return; }
+  const ok=Math.abs(rounded-100)<0.1;
+  hint.textContent=`Total: ${rounded}%${ok?' ✓':' — weights should sum to 100%'}`;
+  hint.style.color=ok?'var(--green)':'var(--red)';
+}
+
+function getSlotWeights(){
+  const slots=parsedRows?._slotNums||[];
+  const weights={};
+  slots.forEach(n=>{
+    const v=parseNum($(`cfg-weight-slot-${n}`)?.value||'');
+    weights[n]=isFinite(v)?v:null;
+  });
+  return weights;
+}
+
+$('cfg-weighted').addEventListener('change', renderWeightInputs);
+
+function showUpload(){
+  $('upload-screen').style.display='flex';
+  $('report-screen').style.display='none';
+}
+
+// ══════════════════════════════════
+// DATE FILTER
+// ══════════════════════════════════
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let _allRows=null; // store full unfiltered rows after first report generation
+let _lastCfg=null;
+let _activeYears=new Set();
+let _activeMonths=new Set();
+
+function buildDateFilter(rows){
+  // Collect unique years from Create date (invitation date) — partitioning by Start date
+  // would hide unattempted invitations and break drop-off math per period.
+  const years=new Set();
+  rows.forEach(r=>{
+    const s=r['Create date'];
+    if(!isNA(s)){const d=new Date(s);if(!isNaN(d))years.add(d.getFullYear());}
+  });
+  const sortedYears=[...years].sort();
+
+  // Render year chips
+  const yWrap=$('filter-years');
+  yWrap.innerHTML=sortedYears.map(y=>`<span class="filter-chip active" data-year="${y}" onclick="toggleFilterChip(this,'year')">${y}</span>`).join('');
+  _activeYears=new Set(sortedYears);
+
+  // Render month chips (all 12, always shown)
+  const mWrap=$('filter-months');
+  mWrap.innerHTML=MONTHS.map((m,i)=>`<span class="filter-chip active" data-month="${i+1}" onclick="toggleFilterChip(this,'month')">${m}</span>`).join('');
+  _activeMonths=new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
+
+  updateFilterSummary(rows);
+}
+
+function toggleFilterChip(el, type){
+  el.classList.toggle('active');
+  if(type==='year'){
+    const y=Number(el.dataset.year);
+    if(el.classList.contains('active')) _activeYears.add(y); else _activeYears.delete(y);
+  } else {
+    const m=Number(el.dataset.month);
+    if(el.classList.contains('active')) _activeMonths.add(m); else _activeMonths.delete(m);
+  }
+  applyDateFilter();
+}
+
+function clearDateFilter(){
+  document.querySelectorAll('#filter-years .filter-chip, #filter-months .filter-chip').forEach(c=>{
+    c.classList.add('active');
+    if(c.dataset.year) _activeYears.add(Number(c.dataset.year));
+    if(c.dataset.month) _activeMonths.add(Number(c.dataset.month));
+  });
+  applyDateFilter();
+}
+
+function getFilteredRows(rows){
+  // If all active (nothing deselected), skip filtering
+  const allYears=[...$('filter-years').querySelectorAll('[data-year]')].map(c=>Number(c.dataset.year));
+  const allActive=allYears.every(y=>_activeYears.has(y))&&_activeMonths.size===12;
+  if(allActive) return rows;
+  return rows.filter(r=>{
+    // Filter by Create date (invitation), not Start date — keeps unattempted invitations in the bucket.
+    const s=r['Create date'];
+    if(isNA(s)) return false;
+    const d=new Date(s);
+    if(isNaN(d)) return false;
+    return _activeYears.has(d.getFullYear())&&_activeMonths.has(d.getMonth()+1);
+  });
+}
+
+function updateFilterSummary(rows){
+  const filtered=getFilteredRows(rows);
+  const isFiltered=filtered.length<rows.length;
+  $('r-filter-active').style.display=isFiltered?'inline-block':'none';
+  $('filter-summary').textContent=isFiltered
+    ?`Showing ${filtered.length} of ${rows.length} attempts after filter`
+    :`Showing all ${rows.length} attempts`;
+}
+
+function applyDateFilter(){
+  if(!_allRows||!_lastCfg) return;
+  const filtered=getFilteredRows(_allRows);
+  updateFilterSummary(_allRows);
+  buildReport(filtered, _lastCfg, /*skipFilterRebuild=*/true);
+}
+
+// ══════════════════════════════════
+// INTEGRITY (3 tabs: risk / similarity / behavioural signals)
+// ══════════════════════════════════
+const SIGNAL_COLS=[
+  {key:'Detected pasting code into Codility assessment',     label:'Pasting code'},
+  {key:'Detected attempt to copy task description',          label:'Copying task description'},
+  {key:'Detected leaving Codility assessment tab',           label:'Leaving assessment tab'},
+  {key:'Detected abnormally little time spent on task',      label:'Abnormally little time on task'},
+  {key:'Detected suspicious typing pattern',                 label:'Suspicious typing pattern'},
+  {key:'Detected use of AI assistant',                       label:'Use of AI assistant'},
+];
+
+function isSignalTriggered(val){
+  if(isNA(val)) return false;
+  const s=String(val).trim().toLowerCase();
+  return s==='detected'||s==='yes'||s==='true'||s==='1';
+}
+
+// Integrity Risk Status — 'high' / 'moderate' / 'low' / 'no_risk' (and blanks)
+function getRiskLevel(r){
+  const v=r['Integrity Risk Status'];
+  if(isNA(v)) return null;
+  return String(v).trim().toLowerCase();
+}
+
+// Similarity Check — 'please resolve' / 'acknowledged' / 'skipped' / 'in review'
+function getSimVerdict(r){
+  const v=r['Similarity Check'];
+  if(isNA(v)) return null;
+  return String(v).trim().toLowerCase();
+}
+
+// Number of behavioural signals triggered for this candidate
+function getSignalCount(r){
+  return SIGNAL_COLS.filter(sig=>isSignalTriggered(r[sig.key])).length;
+}
+
+// Master state — three independent filters. Default: nothing excluded.
+window._integrityFilters={
+  risk:  { high:false, moderate:false },
+  sim:   { pleaseResolve:false, acknowledged:false },
+  sig:   { enabled:false, threshold:2 },
+};
+window._integrityActiveTab='risk';
+
+// Given rows, return a Set of rows that should be excluded based on current filter state.
+// Stacks across all three tabs.
+function getIntegrityExcluded(rows){
+  const f=window._integrityFilters;
+  const excl=new Set();
+  rows.forEach(r=>{
+    if(f.risk.high && getRiskLevel(r)==='high') excl.add(r);
+    if(f.risk.moderate && getRiskLevel(r)==='moderate') excl.add(r);
+    if(f.sim.pleaseResolve && getSimVerdict(r)==='please resolve') excl.add(r);
+    if(f.sim.acknowledged && getSimVerdict(r)==='acknowledged') excl.add(r);
+    if(f.sig.enabled && getSignalCount(r)>=f.sig.threshold) excl.add(r);
+  });
+  return excl;
+}
+
+function integrityFiltersOn(){
+  const f=window._integrityFilters;
+  return f.risk.high||f.risk.moderate||f.sim.pleaseResolve||f.sim.acknowledged||f.sig.enabled;
+}
+
+// Called by tab buttons — repaint body + maintain active state on tab buttons.
+function switchIntegrityTab(name){
+  window._integrityActiveTab=name;
+  document.querySelectorAll('.integrity-tab').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.tab===name);
+  });
+  renderIntegrityBody();
+}
+
+// Toggling any filter checkbox: update state, re-run report so KPIs reflect the cohort,
+// then repaint the integrity body so the chips show their active styling.
+function toggleIntegrityFilter(group, key, checked){
+  if(group==='sig' && key==='enabled') window._integrityFilters.sig.enabled=checked;
+  else if(group==='risk') window._integrityFilters.risk[key]=checked;
+  else if(group==='sim') window._integrityFilters.sim[key]=checked;
+  applyDateFilter(); // re-runs buildReport against currently date-filtered rows
+}
+
+function setSignalThreshold(v){
+  const n=Math.max(1,parseInt(v)||2);
+  window._integrityFilters.sig.threshold=n;
+  if(window._integrityFilters.sig.enabled){
+    applyDateFilter();
+  }else{
+    renderIntegrityBody(); // just repaint the distribution
+  }
+}
+
+let _integrityRows=null; // currently date-filtered population (pre-integrity-exclusion)
+
+// Repaints the active tab body + the "filters active" pill.
+function renderIntegrityBody(){
+  if(!_integrityRows) return;
+  const rows=_integrityRows;
+  const excluded=getIntegrityExcluded(rows);
+
+  // Filter pill — show whenever any toggle is on, and label by exclusion count.
+  // We deliberately keep it visible at 0 too, otherwise users could leave a filter
+  // on (with no matching candidates) and not realize KPIs are still "filtered".
+  const pill=$('integrity-filters-active');
+  const pillText=$('integrity-filters-active-text');
+  if(integrityFiltersOn()){
+    pill.style.display='inline-flex';
+    pillText.textContent=excluded.size===0
+      ? 'Filters on · 0 candidates match'
+      : `${excluded.size} candidate${excluded.size===1?'':'s'} excluded`;
+  }else{
+    pill.style.display='none';
+  }
+
+  const body=$('r-integrity-body');
+  const tab=window._integrityActiveTab;
+  if(tab==='risk') body.innerHTML=renderRiskTab(rows);
+  else if(tab==='sim') body.innerHTML=renderSimTab(rows);
+  else body.innerHTML=renderSigTab(rows);
+}
+
+// ───── Tab 1: Integrity Risk ─────
+function renderRiskTab(rows){
+  const f=window._integrityFilters.risk;
+  const attempted=rows.filter(r=>!isNA(r['Start date'])&&isFinite(parseNum(r['% total score'])));
+  const withRisk=attempted.filter(r=>getRiskLevel(r)!==null);
+  if(!withRisk.length){
+    return `<div style="color:var(--muted);font-size:13px;">No Integrity Risk data in this export.</div>`;
+  }
+  const buckets=[
+    {key:'high',     label:'High',     desc:'Strong indicators of integrity breach',       color:'var(--red)'},
+    {key:'moderate', label:'Moderate', desc:'Some suspicious activity captured',           color:'var(--amber)'},
+    {key:'low',      label:'Low',      desc:'Minor or borderline indicators',              color:'#7c8ee8'},
+    {key:'no_risk',  label:'No risk',  desc:'No integrity concerns detected',              color:'var(--green)'},
+  ];
+  const counts=Object.fromEntries(buckets.map(b=>[b.key,withRisk.filter(r=>getRiskLevel(r)===b.key).length]));
+  const total=withRisk.length;
+  const high=counts.high||0;
+  const highPct=total?((high/total)*100).toFixed(1):'0.0';
+
+  return `
+    <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <div style="font-size:28px;font-weight:800;line-height:1;color:${highPct>15?'var(--red)':highPct>5?'var(--amber)':'var(--green)'}">${highPct}%</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;margin-bottom:12px;">${high} of ${total} candidates flagged High risk</div>
+        ${buckets.map(b=>{
+          const c=counts[b.key]||0;
+          const pct=total?(c/total)*100:0;
+          return `<div class="integrity-bar-row">
+            <div class="lbl" style="color:${b.color}">${b.label}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct.toFixed(1)}%;background:${b.color}"></div></div>
+            <div class="cnt">${c} (${pct.toFixed(1)}%)</div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="flex:1;min-width:220px;">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Exclude from data</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label class="integrity-filter-chip ${f.high?'active':''}" style="justify-content:flex-start;">
+            <input type="checkbox" ${f.high?'checked':''} onchange="toggleIntegrityFilter('risk','high',this.checked)">
+            <span>Exclude <b>High</b> risk (${counts.high||0})</span>
+          </label>
+          <label class="integrity-filter-chip ${f.moderate?'active':''}" style="justify-content:flex-start;">
+            <input type="checkbox" ${f.moderate?'checked':''} onchange="toggleIntegrityFilter('risk','moderate',this.checked)">
+            <span>Also exclude <b>Moderate</b> risk (${counts.moderate||0})</span>
+          </label>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;">
+          High = strong indicators of an integrity breach. Moderate = notable but lower-confidence signals. Toggling these recomputes the dashboard above with those candidates removed.
+        </div>
+      </div>
+    </div>`;
+}
+
+// ───── Tab 2: Similarity Check ─────
+function renderSimTab(rows){
+  const f=window._integrityFilters.sim;
+  const attempted=rows.filter(r=>!isNA(r['Start date'])&&isFinite(parseNum(r['% total score'])));
+  const withSim=attempted.filter(r=>getSimVerdict(r)!==null);
+  if(!withSim.length){
+    return `<div style="color:var(--muted);font-size:13px;">No Similarity Check data in this export.</div>`;
+  }
+  const buckets=[
+    {key:'please resolve',label:'Likely plagiarized',     desc:"Codility's review found likely plagiarism",      color:'var(--red)'},
+    {key:'acknowledged',  label:'Confirmed plagiarized',  desc:'Customer confirmed plagiarism',                   color:'var(--raspberry)'},
+    {key:'skipped',       label:'Skipped',                desc:'Did not reach passing score for similarity check',color:'#7c8ee8'},
+    {key:'in review',     label:'In review',              desc:'Awaiting review',                                 color:'var(--amber)'},
+  ];
+  const counts=Object.fromEntries(buckets.map(b=>[b.key,withSim.filter(r=>getSimVerdict(r)===b.key).length]));
+  const total=withSim.length;
+  const concerning=(counts['please resolve']||0)+(counts['acknowledged']||0);
+  const concPct=total?((concerning/total)*100).toFixed(1):'0.0';
+
+  return `
+    <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <div style="font-size:28px;font-weight:800;line-height:1;color:${concPct>10?'var(--red)':concPct>5?'var(--amber)':'var(--green)'}">${concPct}%</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;margin-bottom:12px;">${concerning} of ${total} flagged as likely or confirmed plagiarized</div>
+        ${buckets.filter(b=>(counts[b.key]||0)>0).map(b=>{
+          const c=counts[b.key]||0;
+          const pct=total?(c/total)*100:0;
+          return `<div class="integrity-bar-row">
+            <div class="lbl" style="color:${b.color}">${b.label}</div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct.toFixed(1)}%;background:${b.color}"></div></div>
+            <div class="cnt">${c} (${pct.toFixed(1)}%)</div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="flex:1;min-width:220px;">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Exclude from data</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label class="integrity-filter-chip ${f.pleaseResolve?'active':''}" style="justify-content:flex-start;">
+            <input type="checkbox" ${f.pleaseResolve?'checked':''} onchange="toggleIntegrityFilter('sim','pleaseResolve',this.checked)">
+            <span>Exclude <b>Likely plagiarized</b> (${counts['please resolve']||0})</span>
+          </label>
+          <label class="integrity-filter-chip ${f.acknowledged?'active':''}" style="justify-content:flex-start;">
+            <input type="checkbox" ${f.acknowledged?'checked':''} onchange="toggleIntegrityFilter('sim','acknowledged',this.checked)">
+            <span>Exclude <b>Confirmed plagiarized</b> (${counts['acknowledged']||0})</span>
+          </label>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;">
+          Likely plagiarized = Codility's review found likely plagiarism. Confirmed plagiarized = customer reviewed and confirmed it. Skipped is informational only — those candidates didn't reach the similarity-check passing score.
+        </div>
+      </div>
+    </div>`;
+}
+
+// ───── Tab 3: Behavioural Signals (preserves prior renderSignals UX) ─────
+function renderSigTab(rows){
+  const f=window._integrityFilters.sig;
+  const threshold=f.threshold;
+  const attempted=rows.filter(r=>!isNA(r['Start date'])&&isFinite(parseNum(r['% total score'])));
+
+  // Are signals enabled at all?
+  const anySignalData=SIGNAL_COLS.some(sig=>
+    attempted.some(r=>!isNA(r[sig.key])&&String(r[sig.key]).toLowerCase()!=='disabled in settings')
+  );
+  if(!anySignalData){
+    return `<div style="color:var(--muted);font-size:13px;">Behavioural signals are disabled in settings for this test.</div>`;
+  }
+
+  const counts=attempted.map(getSignalCount);
+  const highRisk=counts.filter(c=>c>=threshold).length;
+  const highPct=attempted.length?((highRisk/attempted.length)*100).toFixed(1):'0.0';
+
+  // Distribution 0..6+
+  const dist=[0,1,2,3,4,5,6].map(n=>({
+    label:n===6?'6+':String(n),
+    count:n===6?counts.filter(c=>c>=6).length:counts.filter(c=>c===n).length,
+  }));
+
+  // Signal types triggered in the >=threshold group
+  const highRiskRows=attempted.filter(r=>getSignalCount(r)>=threshold);
+  const sigBreakdown=SIGNAL_COLS.filter(sig=>highRiskRows.some(r=>isSignalTriggered(r[sig.key])));
+
+  return `
+    <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <div style="font-size:28px;font-weight:800;line-height:1;color:${highPct>15?'var(--red)':highPct>5?'var(--amber)':'var(--green)'}">${highPct}%</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;margin-bottom:10px;">${highRisk} of ${attempted.length} triggered ${threshold}+ signals</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          ${dist.map(d=>{
+            const pct=attempted.length?((d.count/attempted.length)*100):0;
+            const isThresh=parseInt(d.label)>=threshold||(d.label==='6+'&&6>=threshold);
+            return `<div style="display:flex;align-items:center;gap:6px;">
+              <div style="width:22px;font-size:10px;font-weight:600;color:${isThresh?'var(--red)':'var(--muted)'};text-align:right;">${d.label}</div>
+              <div style="flex:1;height:12px;background:var(--light);border-radius:3px;overflow:hidden;">
+                <div style="width:${Math.max(pct,0).toFixed(1)}%;height:100%;background:${isThresh?'var(--red)':'var(--border)'};border-radius:3px;"></div>
+              </div>
+              <div style="width:38px;font-size:10px;color:${isThresh?'var(--red)':'var(--muted)'};">${d.count}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <div style="flex:1;min-width:200px;">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Threshold</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+          <input type="number" id="signal-threshold" min="1" max="6" value="${threshold}" onchange="setSignalThreshold(this.value)" style="width:60px;padding:6px 8px;border:1px solid var(--grey-200);border-radius:6px;font-family:inherit;font-size:13px;">
+          <span style="font-size:11px;color:var(--muted);">signals = high risk</span>
+        </div>
+        ${sigBreakdown.length?`
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Signal types in ${threshold}+ group</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;">
+          ${sigBreakdown.map(s=>`<span style="background:var(--grey-100);border:1px solid var(--grey-200);color:var(--grey-700);border-radius:99px;padding:2px 9px;font-size:11px;font-weight:600;">${esc(s.label)}</span>`).join('')}
+        </div>`:''}
+      </div>
+
+      <div style="min-width:200px;">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Exclude from data</div>
+        <label class="integrity-filter-chip ${f.enabled?'active':''}" style="justify-content:flex-start;">
+          <input type="checkbox" ${f.enabled?'checked':''} onchange="toggleIntegrityFilter('sig','enabled',this.checked)">
+          <span>Exclude <b>${threshold}+ signal</b> candidates (${highRisk})</span>
+        </label>
+        <div style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;">
+          Behavioural signals are softer indicators than the Integrity Risk Status. Use this filter to see how the dashboard changes if signal-flagged candidates are removed.
+        </div>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════
+// ANALYSIS ENGINE
+// ══════════════════════════════════
+function buildReport(rows, cfg, skipFilterRebuild=false){
+  // Store for date filter re-runs.
+  // On a fresh load (skipFilterRebuild=false) reset the integrity filter state too —
+  // a brand-new dataset shouldn't carry over the previous run's exclusions.
+  if(!skipFilterRebuild){
+    _allRows=rows; _lastCfg=cfg; window._filterBuilt=false;
+    window._integrityFilters={
+      risk:  { high:false, moderate:false },
+      sim:   { pleaseResolve:false, acknowledged:false },
+      sig:   { enabled:false, threshold:2 },
+    };
+    window._integrityActiveTab='risk';
+  }
+
+  // Stash the date-filtered population so the Integrity panel can render
+  // its tabs against the current cohort (pre-integrity-exclusion).
+  _integrityRows=rows;
+
+  // Apply integrity exclusions on top of the date filter — this is what the
+  // dashboard's KPIs (drop-off, median, passing rate, score distribution) see.
+  const excluded=getIntegrityExcluded(rows);
+  if(excluded.size){
+    rows=rows.filter(r=>!excluded.has(r));
+  }
+
+  // Detect task slot columns
+  const taskNums=new Set();
+  Object.keys(rows[0]).forEach(k=>{const m=k.match(/^Task (\d+) name$/i);if(m)taskNums.add(Number(m[1]));});
+  const taskNumbers=[...taskNums].sort((a,b)=>a-b);
+
+  const totalInvitations=rows.length;
+
+  // Attempts: has Start date + numeric total score
+  const attempted=rows.filter(r=>!isNA(r['Start date'])&&isFinite(parseNum(r['% total score'])));
+  const numAttempts=attempted.length;
+
+  // Non-zero
+  const nonZero=attempted.filter(r=>parseNum(r['% total score'])>0);
+  const numNonZero=nonZero.length;
+
+  // All scores incl zeros
+  const allScores=attempted.map(r=>parseNum(r['% total score'])).filter(isFinite);
+  const medScore=median(allScores);
+  const scoreSD=sd(allScores);
+
+  // Time
+  const times=attempted.map(r=>parseNum(r['Time Used (minutes)'])).filter(isFinite);
+  const medTime=median(times);
+
+  // Passing rate
+  let passingRate=null,passedCount=0;
+  if(isFinite(cfg.passingScore)&&allScores.length){
+    passedCount=allScores.filter(s=>s>=cfg.passingScore).length;
+    passingRate=(passedCount/allScores.length)*100;
+  }
+
+  // ── Task slots ──
+  // Group by slot number; each slot may have multiple task name variants (rotation)
+  const slots=taskNumbers.map(n=>{
+    const nameKey=`Task ${n} name`;
+    const scoreKey=`Task ${n} score %`;
+    const diffKey=`Task ${n} difficulty`;
+
+    // Find all unique task names that appeared in this slot
+    const nameFreq={};
+    attempted.forEach(r=>{
+      const nm=r[nameKey];
+      if(!isNA(nm)&&nm.trim()){nameFreq[nm]=(nameFreq[nm]||0)+1;}
+    });
+    const variantNames=Object.keys(nameFreq);
+
+    if(variantNames.length===0){
+      // No data for this slot
+      return {num:n, variants:[]};
+    }
+
+    // For each variant, compute stats
+    const variants=variantNames.map(taskName=>{
+      // Attempts that got this specific task
+      const withTask=attempted.filter(r=>r[nameKey]===taskName&&isFinite(parseNum(r[scoreKey])));
+      const taskScores=withTask.map(r=>parseNum(r[scoreKey]));
+      const totalScoresForTask=withTask.map(r=>parseNum(r['% total score']));
+
+      // Difficulty — use the most common value seen for this task
+      const diffs=withTask.map(r=>r[diffKey]).filter(v=>!isNA(v));
+      const diff=diffs.length?mode(diffs):'';
+
+      const avg=mean(taskScores);
+      const disc=pearson(taskScores,totalScoresForTask);
+
+      return {
+        name:taskName, diff, avg, disc,
+        n:withTask.length,
+        taskScores, totalScoresForTask,
+      };
+    });
+
+    // Sort variants by name alphabetically
+    variants.sort((a,b)=>a.name.localeCompare(b.name));
+
+    return {num:n, variants};
+  }).filter(s=>s.variants.length>0);
+
+  // Test name & first attempt date
+  const testName=rows.find(r=>r['Test'])?.['Test']||'Assessment';
+  const firstStart=rows._firstStart||null;
+
+  render({
+    testName,cfg,csvFileName,
+    totalInvitations,numAttempts,numNonZero,
+    allScores,medScore,scoreSD,passingRate,passedCount,
+    medTime,times,
+    slots,
+    firstStart: firstStart || (rows._firstStart||null),
+  });
+}
+
+// ══════════════════════════════════
+// RENDER
+// ══════════════════════════════════
+function setCalc(id,label,nums){
+  const el=$(id);if(!el)return;
+  el.innerHTML=`<span>${esc(label)}</span>${nums?`<span class="calc-nums">${esc(nums)}</span>`:''}`;
+}
+function setBadge(id,text,cls){
+  const el=$(id);if(!el)return;
+  el.textContent=text;el.className='badge '+cls;el.style.display='';
+}
+function hideBadge(id){const el=$(id);if(el)el.style.display='none';}
+
+function render(d){
+  $('report-filename').textContent=d.csvFileName;
+  $('r-test-name').textContent=d.testName;
+  d.firstStart = d.firstStart || (parsedRows && parsedRows._firstStart) || null;
+
+  // Meta badge — first attempt from CSV, creator from input
+  let metaHtml='';
+  if(d.cfg.creator) metaHtml+=`<div>Test created by <strong>${esc(d.cfg.creator)}</strong></div>`;
+  const dateDisplay=d.firstStart?fmtDate(d.firstStart.split(' ')[0]):null;
+  if(dateDisplay) metaHtml+=`<div>First used on <strong style="color:var(--navy)">${esc(dateDisplay)}</strong></div>`;
+  $('r-meta-badge').innerHTML=metaHtml||'<span style="color:var(--muted);font-size:12px">No creator info entered</span>';
+
+  // ── Engagement ──
+  const dropoff1=d.totalInvitations>0?Math.round((1-d.numAttempts/d.totalInvitations)*100):0;
+  const dropoff2=d.numAttempts>0?Math.round((1-d.numNonZero/d.numAttempts)*100):0;
+
+  $('r-invitations').textContent=d.totalInvitations.toLocaleString();
+  setCalc('calc-invitations','Total rows in CSV',`= ${d.totalInvitations.toLocaleString()} rows`);
+
+  $('r-attempts').textContent=d.numAttempts.toLocaleString();
+  setCalc('calc-attempts','Rows with Start date + numeric % total score',`${d.numAttempts} of ${d.totalInvitations} invitations`);
+
+  // Drop-off 1: very high (>50%) = red, mid (>25%) = caution yellow, low (≤10%) = green, else neutral
+  $('r-dropoff1').textContent=`${dropoff1}% Drop-off Rate`;
+  $('r-dropoff1').className=dropoff1>50?'badge red':dropoff1>25?'badge amber':dropoff1<=10?'badge green':'badge gray';
+
+  $('r-nonzero').textContent=d.numNonZero.toLocaleString();
+  setCalc('calc-nonzero','Attempts where % total score > 0',`${d.numNonZero} of ${d.numAttempts} attempts`);
+
+  $('r-dropoff2').textContent=`${dropoff2}% Drop-off Rate`;
+  $('r-dropoff2').className=dropoff2>30?'badge red':dropoff2>15?'badge amber':dropoff2<=5?'badge green':'badge gray';
+
+  // ── Scoring ──
+  $('r-passing-score').textContent=isFinite(d.cfg.passingScore)?`${d.cfg.passingScore}%`:'N/A';
+
+  if(d.passingRate!==null){
+    $('r-passing-rate').textContent=`${fmt(d.passingRate,0)}%`;
+    setCalc('calc-passing-rate','passed ÷ total attempts × 100',`${d.passedCount} passed ÷ ${d.allScores.length} attempts = ${fmt(d.passingRate,1)}%`);
+    // Extreme low (<20%) or extreme high (>90%) both flagged; sweet spot 40-70% = green
+    if(d.passingRate<20||d.passingRate>90) setBadge('r-passing-badge',d.passingRate<20?'Very Low':'Very High','red');
+    else if(d.passingRate>=40&&d.passingRate<=70) setBadge('r-passing-badge','Good Range','green');
+    else hideBadge('r-passing-badge');
+  } else {
+    $('r-passing-rate').textContent='N/A';
+    setCalc('calc-passing-rate','Set a passing score in config to compute this.','');
+    hideBadge('r-passing-badge');
+  }
+
+  $('r-median-score').textContent=isFinite(d.medScore)?`${fmt(d.medScore,0)}%`:'N/A';
+  const ss=[...d.allScores].sort((a,b)=>a-b);
+  const mi=Math.floor(ss.length/2);
+  const medStr=ss.length%2===0
+    ?`Avg of positions ${mi} & ${mi+1}: (${fmt(ss[mi-1],0)} + ${fmt(ss[mi],0)}) ÷ 2`
+    :`Middle value at position ${mi+1} of ${ss.length}`;
+  setCalc('calc-median-score',`Median of all ${d.allScores.length} attempt scores (incl. zeros) sorted`,medStr+` = ${fmt(d.medScore,1)}%`);
+
+  // Median score badge: very low (<20%) = red (too hard), very high (>85%) = red (too easy), mid range = green
+  // SD — match the rest of the dashboard which rounds % values to whole numbers.
+  $('r-score-sd').textContent=isFinite(d.scoreSD)?`${fmt(d.scoreSD,0)}%`:'N/A';
+  setCalc('calc-score-sd',
+    `Standard deviation of all ${d.allScores.length} attempt scores (incl. zeros)`,
+    isFinite(d.scoreSD)?`SD = ${fmt(d.scoreSD,0)}%`:''
+  );
+
+  if(isFinite(d.medScore)){
+    if(d.medScore<20)                        setBadge('r-difficulty-badge','High Difficulty','red');
+    else if(d.medScore>85)                   setBadge('r-difficulty-badge','Low Difficulty','red');
+    else if(d.medScore>=40&&d.medScore<=75)  setBadge('r-difficulty-badge','Good Difficulty','green');
+    else                                     setBadge('r-difficulty-badge','Med Difficulty','gray');
+  } else hideBadge('r-difficulty-badge');
+
+  // ── Time ──
+  const maxTime=isFinite(d.cfg.maxTime)?d.cfg.maxTime:null;
+  if(isFinite(d.medTime)){
+    $('r-median-time').textContent=maxTime?`${Math.round(d.medTime)} out of ${maxTime} min`:`${Math.round(d.medTime)} min`;
+    setCalc('calc-median-time',`Median of ${d.times.length} recorded Time Used (minutes) values`,`Median = ${fmt(d.medTime,1)} min`);
+    if(maxTime){
+      const minsLeft=maxTime-d.medTime;
+      // ≤5 min remaining = High Time Pressure (red), ≤10 min = Fine (green), >10 min = Too Much Time (amber)
+      if(minsLeft<=5)       setBadge('r-time-badge','High Time Pressure','red');
+      else if(minsLeft<=10) setBadge('r-time-badge','Fine Time Pressure','green');
+      else                  setBadge('r-time-badge','Too Much Time','');
+    } else hideBadge('r-time-badge');
+  } else {
+    $('r-median-time').textContent='N/A';
+    hideBadge('r-time-badge');
+  }
+
+  // ── Fairness ──
+  if(isFinite(d.cfg.fairness)){
+    $('r-fairness').textContent=`${Math.round(d.cfg.fairness)}%`;
+    const rel=d.cfg.fairnessRel;
+    if(d.cfg.fairness<70)   setBadge('r-fairness-badge','Low Rating','red');
+    else if(rel==='above')  setBadge('r-fairness-badge','Above Global Avg.','green');
+    else if(rel==='below')  setBadge('r-fairness-badge','Below Global Avg.','');
+    else                    setBadge('r-fairness-badge',`${Math.round(d.cfg.fairness)}%`,'gray');
+  } else {
+    $('r-fairness').textContent='N/A';
+    hideBadge('r-fairness-badge');
+  }
+
+  // ── Task table ──
+  const tbody=$('r-task-tbody');
+  const showWeight=d.cfg.weighted&&d.cfg.slotWeights;
+  // Show/hide weight column header
+  const thWeight=$('th-weight');
+  if(thWeight) thWeight.style.display=showWeight?'':'none';
+
+  let tableHtml='';
+  d.slots.forEach(slot=>{
+    const isRotated=slot.variants.length>1;
+    const slotWeight=showWeight?d.cfg.slotWeights[slot.num]:null;
+    const weightDisp=isFinite(slotWeight)?`${slotWeight}%`:'—';
+    // Slot header row — show weight badge here
+    tableHtml+=`<tr class="slot-row">
+      <td>${slot.num}</td>
+      <td colspan="3" style="color:var(--ink)">
+        ${isRotated?`Slot ${slot.num} — ${slot.variants.length} task variants (rotation on)`:`Slot ${slot.num}`}
+      </td>
+      ${showWeight?`<td></td><td style="font-size:12px;font-weight:700;color:var(--blue)">${weightDisp}</td>`:'<td></td>'}
+    </tr>`;
+    slot.variants.forEach(v=>{
+      const chipCls=diffChipClass(v.diff);
+      const avgDisp=isFinite(v.avg)?`${fmt(v.avg,0)}%`:'N/A';
+      const discDisp=isFinite(v.disc)?v.disc.toFixed(2):'N/A';
+      const discCol=discColour(v.disc);
+      const avgCalc=isFinite(v.avg)?`Mean of ${v.n} scores (incl. zeros) for this task = ${fmt(v.avg,1)}%`:'No scores';
+      const discCalc=isFinite(v.disc)?`Pearson r between ${v.n} task scores and total scores. r = ${v.disc.toFixed(4)}`:'Not enough data';
+
+      // Avg score badge (extreme low or high = warn)
+      let avgBadge='';
+      if(isFinite(v.avg)){
+        if(v.avg>85) avgBadge=`<span class="badge amber" style="font-size:10px;padding:1px 6px;margin-left:4px">Very Easy</span>`;
+        else if(v.avg<15) avgBadge=`<span class="badge amber" style="font-size:10px;padding:1px 6px;margin-left:4px">Very Hard</span>`;
+      }
+
+      tableHtml+=`<tr class="variant-row">
+        <td></td>
+        <td><span class="task-name-chip ${chipCls}">${esc(v.name)}</span></td>
+        <td>
+          <div class="calc-wrap" style="display:inline-block">
+            <span class="avg-score">${avgDisp}</span>${avgBadge}
+            <div class="calc-box">
+              <span>${esc(avgCalc)}</span>
+              <span class="calc-formula">mean(task_scores)</span>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="calc-wrap" style="display:inline-block">
+            <span class="disc-value" style="color:${discCol}">${discDisp}</span>
+            <div class="calc-box">
+              <span>${esc(discCalc)}</span>
+              <span class="calc-formula">pearson_r(task_score, total_score)</span>
+            </div>
+          </div>
+        </td>
+        <td>${v.n.toLocaleString()}</td>
+        ${showWeight?`<td></td>`:''}
+      </tr>`;
+    });
+  });
+  tbody.innerHTML=tableHtml;
+
+  // ── Insights ──
+  renderInsights(d);
+
+  // ── Chart ──
+  renderChart(d.allScores);
+  $('r-chart-meta').textContent=`Solutions evaluated = ${d.allScores.length} (all attempts including zeros)`;
+
+  // Weighted scoring notice
+  const wNotice=$('r-weighted-notice');
+  wNotice.style.display=d.cfg.weighted?'flex':'none';
+
+  // Store for PPTX download
+  window._lastRenderData=d;
+
+  // Date filter — rebuild chips only on fresh report load, not on filter re-runs
+  if(!window._filterBuilt){
+    buildDateFilter(_allRows||parsedRows);
+    window._filterBuilt=true;
+  }
+
+  // Integrity panel — always reflects the currently date-filtered cohort,
+  // BEFORE its own exclusions (so the user can see what they're toggling out).
+  renderIntegrityBody();
+
+  $('upload-screen').style.display='none';
+  $('report-screen').style.display='block';
+  window.scrollTo(0,0);
+}
+
+function renderInsights(d){
+  const ins=buildInsightsData(d);
+  $('r-insights').innerHTML=ins.map(i=>`
+    <div class="insight-item">
+      <div class="insight-icon ${i.cls}">${i.icon}</div>
+      <div>
+        <div class="insight-title">${i.title}</div>
+        <div class="insight-desc">${esc(i.desc)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderChart(scores){
+  const labels=['0%','1–10%','11–20%','21–30%','31–40%','41–50%','51–60%','61–70%','71–80%','81–90%','91–100%'];
+  const counts=new Array(11).fill(0);
+  scores.forEach(s=>{
+    if(s===0) counts[0]++;
+    else counts[Math.min(Math.ceil(s/10),10)]++;
+  });
+  const total=scores.length||1;
+  const pcts=counts.map(c=>+((c/total)*100).toFixed(2));
+
+  if(chartInstance){chartInstance.destroy();chartInstance=null;}
+  const ctx=$('scoreChart').getContext('2d');
+  chartInstance=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{
+        data:pcts,
+        backgroundColor:pcts.map((_,i)=>i>=8?'#4A64E9':'#A8B6F4'),
+        borderRadius:4,borderSkipped:false,
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            title:ctx=>`Score range: ${ctx[0].label}`,
+            label:ctx=>{
+              const count=counts[ctx.dataIndex];
+              const pct=ctx.parsed.y;
+              return `${count} candidate${count!==1?'s':''} (${pct}% of all attempts)`;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:11}}},
+        y:{
+          title:{display:true,text:'% of candidates',font:{size:11}},
+          ticks:{callback:v=>v+'%',font:{size:11}},
+          grid:{color:'#f3f4f6'}
+        }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════
+// PPTX DOWNLOAD
+// ══════════════════════════════════
+async function downloadPPTX(){
+  if(!_allRows||!_lastCfg){alert('Generate a report first.');return;}
+  await loadLogoDataURIs();
+
+  // ── Codility Brand v2.0 palette (PPTX hex without the leading #) ──
+  const C={
+    // Primary action — Ultramarine
+    bg:'4A64E9',         // ultramarine
+    bgHover:'3C53C2',
+    bgDark:'30418C',     // deep
+    bgTint:'E8ECFF',     // light tint
+    bgPale:'F5F7FF',     // pale tint
+    // Accent — Raspberry
+    accent2:'C82372',
+    accent2Hover:'B30C5C',
+    accent2Tint:'FEEAF3',
+    // Highlight — Yellow
+    accent:'FEE64B',
+    accentLight:'FFF196',
+    accentPale:'FFFBD1',
+    // Surfaces
+    card:'FFFFFF',
+    cardLight:'FFFFFF',
+    bgLight:'F8F9FA',    // page bg per brand (NOT pure white)
+    // Text
+    ink:'FFFFFF',
+    inkDark:'253641',    // navy — used for body text on light surfaces
+    inkAccent:'30418C',  // deep ultramarine for stat values on light surfaces
+    muted:'BCC8FF',      // muted on dark/coloured bg
+    mutedLight:'7E8891', // grey-500
+    // Borders
+    border:'3C53C2',
+    borderLight:'E9EDF1',// grey-200
+    // Semantic — status only
+    yellow:'FEE64B', yellowBg:'FFFBD1', yellowFg:'806000',
+    green:'2A9D71',  greenBg:'E6FBF3',
+    red:'C32F2F',    redBg:'FDECEC',
+    // Caution = Codility yellow palette (pale bg + dark yellow text for contrast)
+    amber:'806000',  amberBg:'FFFBD1',
+    gray:'F5F7F9',   grayFg:'5D666F',
+  };
+
+  // Modern, editorial sans — falls back gracefully across PowerPoint on Mac/Windows.
+  // Aptos = Microsoft 365 default (Windows/Office 2024). Looks distinctly modern, geometric, with
+  // strong personality — an upgrade over generic Inter/Helvetica.
+  const FONT='Aptos';
+
+  const pres=new PptxGenJS();
+  pres.layout='LAYOUT_16x9'; // 10 × 5.625
+  pres.theme={headFontFace:FONT,bodyFontFace:FONT};
+
+  const testName=_allRows.find(r=>r['Test'])?.['Test']||'Assessment';
+  pres.title=testName;
+  const cfg=_lastCfg;
+  const maxTime=isFinite(cfg.maxTime)?cfg.maxTime:null;
+
+  // ── Codility logos ──
+  // LOGO_DATA_URIS is populated at startup by loadLogoDataURIs(). PptxGenJS
+  // accepts the data URI directly via addImage's `data:` field.
+  // Native logo aspect ratio is ~4.0:1 (2576 × 642). All embeds preserve it.
+  const LOGO_ASPECT = 4.01;
+
+  // ── Shared helpers ──
+  const mkShadow=()=>({type:'outer',color:'000000',blur:8,offset:2,angle:135,opacity:0.06});
+  const generatedOn=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+
+  // Slide counter — used by footer
+  let slideNum=0, totalSlides=0;
+  // Place the official Codility logotype on a slide, preserving aspect ratio.
+  // `variant` is 'dark' (navy on light bg) or 'light' (white on dark bg).
+  function placeLogo(sl, x, y, h, variant){
+    const w=h*LOGO_ASPECT;
+    sl.addImage({data: LOGO_DATA_URIS[variant], x, y, w, h});
+  }
+  // Footer applied to every CONTENT slide (not cover/dividers)
+  function footer(sl, sectionLabel){
+    // Hairline separator above footer
+    sl.addShape(pres.shapes.LINE,{x:0.4,y:5.32,w:9.2,h:0,line:{color:C.borderLight,pt:0.5}});
+    // Official Codility logotype — bottom-left footer, ~0.16" tall
+    placeLogo(sl, 0.4, 5.4, 0.16, 'dark');
+    // Page number, right (skip if totalSlides not yet known)
+    if(slideNum && totalSlides) sl.addText(`${slideNum} / ${totalSlides}`,{x:8,y:5.38,w:1.6,h:0.22,fontFace:FONT,fontSize:8,color:C.mutedLight,align:'right',margin:0});
+  }
+
+  // ── COVER SLIDE ──
+  function coverSlide(){
+    const sl=pres.addSlide();
+    sl.background={color:C.bg};
+    // Subtle deep-tone column on the right for visual interest (uses brand deep ultramarine, not accent2)
+    sl.addShape(pres.shapes.RECTANGLE,{x:7.4,y:0,w:2.6,h:5.625,fill:{color:C.bgDark,transparency:30},line:{type:'none'}});
+    // Official Codility logotype — top-left, white variant for the ultramarine cover
+    placeLogo(sl, 0.7, 0.45, 0.32, 'light');
+    // Eyebrow — fits in the left zone (0.7 to 7.2). LibreOffice can mis-render charSpacing → drop it.
+    sl.addText('TEST HEALTH ANALYSIS',{x:0.7,y:1.35,w:6.4,h:0.4,fontFace:FONT,fontSize:12,bold:true,color:'FFFFFF',transparency:40,valign:'middle',margin:0});
+    // Hairline accent
+    sl.addShape(pres.shapes.LINE,{x:0.7,y:1.85,w:0.6,h:0,line:{color:'FFFFFF',pt:1.5}});
+    // Hero — assessment name
+    sl.addText(testName,{x:0.7,y:2.1,w:6.4,h:1.4,fontFace:FONT,fontSize:42,bold:true,color:'FFFFFF',margin:0,valign:'top'});
+    // Bottom rail — meta
+    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:0.7,y:5.0,w:5,h:0.25,fontFace:FONT,fontSize:10,color:'FFFFFF',transparency:35,margin:0});
+    sl.addText(generatedOn,{x:5.5,y:5.0,w:3.8,h:0.25,fontFace:FONT,fontSize:10,color:'FFFFFF',transparency:35,align:'right',margin:0});
+    return sl;
+  }
+
+  // ── SECTION DIVIDER ──
+  // Brand hierarchy: ultramarine LEADS on cover; navy is STRUCTURAL — used here
+  // on dividers to give the deck a tonal rhythm and let the ultramarine cover/
+  // closing slides feel more like the lead surfaces. The numeral and SECTION
+  // eyebrow share raspberry as the signature accent.
+  function sectionDivider(num, title){
+    const sl=pres.addSlide();
+    sl.background={color:C.inkDark};
+    // Big numeral — white, ghosted (transparency keeps it from overpowering the title).
+    sl.addText(num,{x:6.0,y:0.8,w:3.5,h:4.0,fontFace:FONT,fontSize:200,bold:true,color:'FFFFFF',transparency:75,align:'center',valign:'middle',margin:0});
+    // Section title — left-aligned, vertically centered on the slide for a clean two-element layout.
+    sl.addText(title,{x:0.7,y:2.3,w:5.5,h:1.0,fontFace:FONT,fontSize:38,bold:true,color:'FFFFFF',margin:0,valign:'middle'});
+    return sl;
+  }
+
+  // ── EXECUTIVE SUMMARY ──
+  function execSummarySlide(s){
+    slideNum++;
+    const sl=pres.addSlide();
+    sl.background={color:C.bgLight};
+    // Header
+    sl.addText('OVERVIEW',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
+    sl.addText('Executive Summary',{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+    sl.addText(testName,{x:6.8,y:0.36,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.58,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    sl.addText(generatedOn,{x:6.8,y:0.82,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+
+    // ── KPI TILES (5 across) ──
+    const kpiY=1.2, kpiH=1.3, kpiGap=0.15;
+    const kpiW=(10-0.4-0.4-kpiGap*4)/5;
+    const dropoff=s.invitations? Math.round((1-s.attempts/s.invitations)*100) : 0;
+    // s.passingRate is null when no threshold is configured. isFinite(null) === true
+    // (Number(null) === 0), so we MUST null-check first or "0%" leaks onto the slide.
+    const passing= (s.passingRate!==null && isFinite(s.passingRate))? Math.round(s.passingRate) : null;
+
+    // Median time displayed as "Xm" or "X/Ym" when a max time is configured.
+    // Drop-off is intentionally omitted here: it is implicit in the
+    // invitations/attempts pair shown in the first two tiles (sub-label of
+    // ATTEMPTS already states "X% completion"). Median time, on the other
+    // hand, is a critical signal that wasn't visible anywhere on this slide.
+    const tDisp=isFinite(s.medTime)?(maxTime?`${Math.round(s.medTime)}/${maxTime}m`:`${Math.round(s.medTime)}m`):'—';
+    const tSub=isFinite(s.medTime)&&maxTime?`${Math.round(maxTime-s.medTime)}m left on the clock`:'across all attempts';
+    const kpis=[
+      {label:'INVITATIONS', value:String(s.invitations||0), sub:'candidates invited'},
+      {label:'ATTEMPTS', value:String(s.attempts||0), sub:`${100-dropoff}% completion`},
+      {label:'MEDIAN SCORE', value:isFinite(s.medScore)? `${Math.round(s.medScore)}%` : '—', sub:'across all attempts'},
+      {label:'PASSING RATE', value:passing!==null? `${passing}%` : '—', sub:passing!==null? `${s.passedCount} passed` : 'no threshold set'},
+      {label:'MEDIAN TIME', value:tDisp, sub:tSub},
+    ];
+
+    kpis.forEach((k,i)=>{
+      const x=0.4+i*(kpiW+kpiGap);
+      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x,y:kpiY,w:kpiW,h:kpiH,fill:{color:C.card},line:{color:C.borderLight,pt:1},rectRadius:0.08,shadow:mkShadow()});
+      // Top accent bar
+      sl.addShape(pres.shapes.RECTANGLE,{x,y:kpiY,w:kpiW,h:0.06,fill:{color:C.bg},line:{type:'none'}});
+      sl.addText(k.label,{x:x+0.1,y:kpiY+0.18,w:kpiW-0.2,h:0.2,fontFace:FONT,fontSize:8,bold:true,color:C.mutedLight,charSpacing:2,margin:0});
+      // Auto-shrink the value so longer strings (e.g. "147/180m") fit on one line.
+      // 4 chars or fewer → 30pt; 5–6 chars → 24pt; 7+ chars → 20pt.
+      const vLen=k.value.length;
+      const vSize=vLen<=4?30:vLen<=6?24:20;
+      sl.addText(k.value,{x:x+0.1,y:kpiY+0.42,w:kpiW-0.2,h:0.55,fontFace:FONT,fontSize:vSize,bold:true,color:C.inkAccent,margin:0,valign:'middle',wrap:false,shrinkText:true});
+      sl.addText(k.sub,{x:x+0.1,y:kpiY+1.02,w:kpiW-0.2,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,margin:0,valign:'middle'});
+    });
+
+    // ── KEY FINDINGS ──
+    const findY=2.75;
+    sl.addText('KEY FINDINGS',{x:0.4,y:findY,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.mutedLight,charSpacing:2,margin:0});
+    sl.addShape(pres.shapes.LINE,{x:0.4,y:findY+0.28,w:9.2,h:0,line:{color:C.borderLight,pt:0.5}});
+
+    const findings=buildFindings(s);
+    const findingY=findY+0.4;
+    const findingH=0.6;
+    findings.forEach((f,i)=>{
+      const fy=findingY+i*(findingH+0.1);
+      // Number circle
+      sl.addShape(pres.shapes.OVAL,{x:0.4,y:fy+0.05,w:0.45,h:0.45,fill:{color:C.bgPale},line:{type:'none'}});
+      sl.addText(String(i+1),{x:0.4,y:fy+0.05,w:0.45,h:0.45,fontFace:FONT,fontSize:14,bold:true,color:C.bg,align:'center',valign:'middle',margin:0});
+      // Stat (bold) + diagnostic insight (muted) — Findings interprets the number
+      sl.addText(f.stat,{x:1.0,y:fy,w:8.4,h:0.28,fontFace:FONT,fontSize:13,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+      if(f.insight) sl.addText(f.insight,{x:1.0,y:fy+0.28,w:8.4,h:0.32,fontFace:FONT,fontSize:11,color:C.mutedLight,margin:0,valign:'top'});
+    });
+
+    footer(sl,'EXECUTIVE SUMMARY');
+    return sl;
+  }
+
+  // Build up to 3 key findings for the Executive Summary slide. Each finding
+  // is a {stat, insight} pair. Stat names the data and the direct verdict in
+  // one short sentence ("Given the median score of 100%, the assessment is
+  // too easy."). Insight is a brief, plain-English explanation of why that
+  // verdict follows from the number. No hedging.
+  function buildFindings(s){
+    const findings=[];
+    const dropoff= s.invitations? Math.round((1-s.attempts/s.invitations)*100) : 0;
+    const m = isFinite(s.medScore) ? Math.round(s.medScore) : null;
+    const pr = (s.passingRate!==null && isFinite(s.passingRate)) ? Math.round(s.passingRate): null;
+    const tUsed = isFinite(s.medTime) ? Math.round(s.medTime) : null;
+    const tLeft = (isFinite(s.medTime) && maxTime) ? Math.round(maxTime-s.medTime) : null;
+
+    // Finding 1 — engagement (drop-off)
+    if(dropoff>=50){
+      findings.push({stat:`Given a drop-off of ${dropoff}%, most invited candidates aren't taking the test.`, insight:`The invitation experience is the bottleneck — candidates are receiving the invite but not starting the assessment.`});
+    } else if(dropoff>=25){
+      findings.push({stat:`Given a drop-off of ${dropoff}%, drop-off is too high.`, insight:`A meaningful share of invited candidates never starts the test, costing the funnel signal it should be capturing.`});
+    } else {
+      findings.push({stat:`Given a drop-off of ${dropoff}%, engagement is healthy.`, insight:`Most invited candidates are reaching the test, so the invitation experience is working.`});
+    }
+
+    // Finding 2 — median score
+    if(m!==null){
+      if(m>=80){
+        findings.push({stat:`Given a median score of ${m}%, the assessment is too easy.`, insight:`Most candidates are scoring near the top, so the test isn't differentiating skill levels.`});
+      } else if(m<=20){
+        findings.push({stat:`Given a median score of ${m}%, the assessment is too hard.`, insight:`Most candidates are scoring near the bottom, so the test isn't giving them room to show what they can do.`});
+      } else if(m>=40 && m<=60){
+        findings.push({stat:`Given a median score of ${m}%, difficulty is well-calibrated.`, insight:`Scores are spread across the range, so the test is separating stronger and weaker candidates.`});
+      } else {
+        findings.push({stat:`Given a median score of ${m}%, difficulty is slightly off-center.`, insight:`Scores skew to one side of the range, leaving less room to differentiate candidates on the other side.`});
+      }
+    }
+
+    // Finding 3 — time pressure (preferred), else passing rate
+    if(tLeft!==null && tLeft<=5){
+      findings.push({stat:`Given a median time of ${tUsed} of ${maxTime} minutes, the time limit is too tight.`, insight:`Candidates are running to the wire, so results reflect speed as much as skill.`});
+    } else if(tLeft!==null && tLeft>=10){
+      findings.push({stat:`Given a median time of ${tUsed} of ${maxTime} minutes, the time limit is too loose.`, insight:`Candidates are finishing well before the limit, so the time window isn't doing any work.`});
+    } else if(tLeft!==null){
+      findings.push({stat:`Given a median time of ${tUsed} of ${maxTime} minutes, the time limit is well-calibrated.`, insight:`Candidates are using most of the allotted time without rushing the finish.`});
+    } else if(pr!==null){
+      if(pr>=80){
+        findings.push({stat:`Given a passing rate of ${pr}%, the passing bar is too low.`, insight:`Most candidates are clearing the bar, so the threshold isn't filtering meaningfully.`});
+      } else if(pr<=20){
+        findings.push({stat:`Given a passing rate of ${pr}%, the passing bar is too high.`, insight:`Few candidates are clearing the bar, so qualified candidates are likely being filtered out.`});
+      } else if(pr>=40 && pr<=60){
+        findings.push({stat:`Given a passing rate of ${pr}%, the passing bar is well-calibrated.`, insight:`The threshold is splitting the candidate pool roughly down the middle, which is a strong filter.`});
+      } else {
+        findings.push({stat:`Given a passing rate of ${pr}%, the passing bar is slightly off-center.`, insight:`The filter is workable but leaning toward one side of the candidate pool.`});
+      }
+    }
+
+    return findings.slice(0,3);
+  }
+
+  // ── TABLE OF CONTENTS ──
+  function tocSlide(yearN, monthN){
+    slideNum++;
+    const sl=pres.addSlide();
+    sl.background={color:C.bgLight};
+    // Header
+    sl.addText('CONTENTS',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
+    sl.addText('What you\u2019ll find inside',{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+    sl.addText(testName,{x:6.8,y:0.36,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.58,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+
+    const items=[
+      {num:'01', title:'All Time Overview', desc:'Aggregate performance signals across the entire cohort.'},
+      {num:'02', title:'Year by Year', desc:`Annual breakdown across ${yearN} year${yearN===1?'':'s'} of activity.`},
+      {num:'03', title:'Month by Month', desc:`Monthly drilldown across ${monthN} month${monthN===1?'':'s'} for trend detection.`},
+    ];
+
+    items.forEach((it,i)=>{
+      const y=1.45+i*1.05;
+      // Big numeral — strong ultramarine so it's clearly visible on the light page bg
+      sl.addText(it.num,{x:0.4,y:y,w:1.4,h:0.85,fontFace:FONT,fontSize:54,bold:true,color:C.bg,margin:0,valign:'top'});
+      // Title and desc
+      sl.addText(it.title,{x:1.7,y:y+0.12,w:7.9,h:0.4,fontFace:FONT,fontSize:22,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+      sl.addText(it.desc,{x:1.7,y:y+0.52,w:7.9,h:0.3,fontFace:FONT,fontSize:11,color:C.mutedLight,margin:0,valign:'top'});
+      // Hairline below
+      if(i<items.length-1) sl.addShape(pres.shapes.LINE,{x:0.4,y:y+0.95,w:9.2,h:0,line:{color:C.borderLight,pt:0.5}});
+    });
+
+    footer(sl,'CONTENTS');
+    return sl;
+  }
+
+  // ── RECOMMENDED NEXT STEPS (closing) ──
+  function methodologySlide(){
+    slideNum++;
+    const sl=pres.addSlide();
+    sl.background={color:C.bgLight};
+    sl.addText('NEXT STEPS',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
+    sl.addText('Where to go from here',{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+    sl.addText(testName,{x:6.8,y:0.36,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.58,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+
+    // Build dynamic recommendations based on the overall stats
+    const recs=buildRecommendations(_overall);
+
+    // 3 horizontal action cards stacked vertically
+    const cardW=9.2, cardH=1.15, cardGap=0.18;
+    recs.forEach((r,i)=>{
+      const cy=1.3+i*(cardH+cardGap);
+      // Card
+      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:0.4,y:cy,w:cardW,h:cardH,fill:{color:C.card},line:{color:C.borderLight,pt:1},rectRadius:0.08,shadow:mkShadow()});
+      // Left accent bar
+      sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:cy,w:0.08,h:cardH,fill:{color:C.bg},line:{type:'none'}});
+      // Big number — strong ultramarine so it reads clearly on white card
+      sl.addText(`0${i+1}`,{x:0.65,y:cy+0.18,w:0.85,h:0.85,fontFace:FONT,fontSize:42,bold:true,color:C.bg,margin:0,valign:'middle'});
+      // Action verb (bold) + forward-looking plan (muted) — Next Steps acts
+      sl.addText(r.action,{x:1.65,y:cy+0.18,w:cardW-1.85,h:0.4,fontFace:FONT,fontSize:15,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+      if(r.plan) sl.addText(r.plan,{x:1.65,y:cy+0.55,w:cardW-1.85,h:0.5,fontFace:FONT,fontSize:11,color:C.mutedLight,margin:0,valign:'top'});
+    });
+
+    footer(sl,'NEXT STEPS');
+    return sl;
+  }
+
+  // Build up to 3 recommendations for the closing Next Steps slide. Each
+  // candidate is an {action, plan, topic, priority}. `action` is a direct
+  // imperative ("Increase assessment difficulty."). `plan` is "Given [data],
+  // [specific levers to pull on the test]." Plain English, no hedging.
+  function buildRecommendations(s){
+    const candidates=[];
+    const dropoff= s.invitations? Math.round((1-s.attempts/s.invitations)*100) : 0;
+    const m = isFinite(s.medScore) ? Math.round(s.medScore) : null;
+    const pr = (s.passingRate!==null && isFinite(s.passingRate)) ? Math.round(s.passingRate) : null;
+    const tUsed = isFinite(s.medTime) ? Math.round(s.medTime) : null;
+    const tLeft = (isFinite(s.medTime) && maxTime) ? (maxTime-s.medTime) : null;
+
+    // ── 1. Difficulty — driven by median score ──
+    if(m!==null){
+      if(m>=80){
+        candidates.push({priority:1, topic:'difficulty', action:'Increase assessment difficulty.', plan:`Given the median score of ${m}%, swap an easier task for a harder one or tighten the time limit so stronger candidates can be identified.`});
+      } else if(m<=20){
+        candidates.push({priority:1, topic:'difficulty', action:'Decrease assessment difficulty.', plan:`Given the median score of ${m}%, swap a harder task for a mid-difficulty one or extend the time limit so candidates can demonstrate their skills.`});
+      } else if(m<40 || m>60){
+        candidates.push({priority:3, topic:'difficulty', action:'Recalibrate task difficulty.', plan:`Given the median score of ${m}%, adjust the task mix to bring the median closer to 50%.`});
+      }
+    }
+
+    // ── 2. Passing threshold ──
+    if(pr!==null){
+      if(pr>=80){
+        candidates.push({priority:1, topic:'passing', action:'Raise the passing threshold.', plan:`Given the passing rate of ${pr}%, the bar is too low — set a higher passing score so the filter does real work.`});
+      } else if(pr<=20){
+        candidates.push({priority:1, topic:'passing', action:'Lower the passing threshold.', plan:`Given the passing rate of ${pr}%, the bar is too high — set a lower passing score so qualified candidates aren't filtered out.`});
+      } else if(pr<40 || pr>60){
+        candidates.push({priority:2, topic:'passing', action:'Adjust the passing threshold.', plan:`Given the passing rate of ${pr}%, nudge the threshold so the pass/fail split lands closer to the middle of the pool.`});
+      }
+    }
+
+    // ── 3. Time pressure ──
+    if(tLeft!==null){
+      if(tLeft<=5){
+        candidates.push({priority:1, topic:'time', action:'Loosen the time limit.', plan:`Given the median time of ${tUsed} of ${maxTime} minutes, raise the time limit or trim a task so results reflect skill rather than speed.`});
+      } else if(tLeft>=10){
+        candidates.push({priority:2, topic:'time', action:'Tighten the time limit.', plan:`Given the median time of ${tUsed} of ${maxTime} minutes, shorten the window closer to where candidates actually finish so the assessment runs leaner.`});
+      }
+    }
+
+    // ── 4. Drop-off ──
+    if(dropoff>=50){
+      candidates.push({priority:1, topic:'dropoff', action:'Fix the invitation experience.', plan:`Given the drop-off of ${dropoff}%, rewrite the invitation copy, set clearer expectations on test length, and add reminders so more candidates start the test.`});
+    } else if(dropoff>=25){
+      candidates.push({priority:2, topic:'dropoff', action:'Improve the invitation experience.', plan:`Given the drop-off of ${dropoff}%, refresh invitation copy and add a reminder cadence so more invited candidates take the test.`});
+    }
+
+    // Recommendations only reference the five KPIs surfaced in the deck —
+    // INVITATIONS / ATTEMPTS / MEDIAN SCORE / PASSING RATE / MEDIAN TIME.
+    // Integrity, proctoring, rotation, and other config-only signals are
+    // intentionally excluded so the slide doesn't introduce data points the
+    // reader hasn't already seen.
+
+    // ── Fallbacks ──
+    if(pr===null && candidates.length<3){
+      candidates.push({priority:4, topic:'config', action:'Set a passing threshold.', plan:'No passing score is configured, so passing-rate analysis is unavailable. Set a threshold to surface a sharper read on filtering.'});
+    }
+    if(candidates.length<3){
+      candidates.push({priority:5, topic:'monitor', action:'Keep the assessment as-is.', plan:'No flags surfaced. The current setup is producing workable signals — revisit after the next batch to confirm the trend holds.'});
+    }
+
+    // Sort by priority (lowest = most important), dedupe by topic, take 3.
+    candidates.sort((a,b)=>a.priority-b.priority);
+    const seen=new Set();
+    const out=[];
+    candidates.forEach(c=>{
+      if(seen.has(c.topic)) return;
+      seen.add(c.topic);
+      out.push({action:c.action, plan:c.plan});
+    });
+    return out.slice(0,3);
+  }
+
+  function statSlide(label, s, showFairness=false, sectionLabel='OVERVIEW'){
+    slideNum++;
+    const sl=pres.addSlide();
+    sl.background={color:C.bgLight};
+    // Header — eyebrow above, slide title below (consultant deck style)
+    sl.addText(sectionLabel,{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
+    sl.addText(`Test Health · ${label}`,{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+    // Right side — test name on top, creator below, attempts/invited below that (only when present)
+    sl.addText(testName,{x:6.8,y:0.36,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.58,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    if(s.attempts) sl.addText(`${s.attempts} attempts · ${s.invitations} invited`,{x:6.8,y:0.82,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',valign:'middle',margin:0});
+
+    // ── 3 stat cards ──
+    const cardY=1.2, cardH=1.45, gap=0.18;
+    const cardW=(10-0.4-0.4-gap*2)/3;
+
+    function statCard(sl, cx, cy, title, cols){
+      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:cx,y:cy,w:cardW,h:cardH,fill:{color:C.cardLight},line:{color:C.borderLight,pt:1},rectRadius:0.08,shadow:mkShadow()});
+      sl.addText(title,{x:cx+0.14,y:cy+0.12,w:cardW-0.28,h:0.18,fontFace:FONT,fontSize:8,bold:true,color:C.mutedLight,charSpacing:2,margin:0});
+      sl.addShape(pres.shapes.LINE,{x:cx+0.14,y:cy+0.36,w:cardW-0.28,h:0,line:{color:C.borderLight,pt:0.75}});
+      // Inner padding 0.06 — gives badges full breathing room
+      const innerX=cx+0.06, innerW=cardW-0.12;
+      const colW=innerW/cols.length;
+      cols.forEach((col,i)=>{
+        const colX=innerX+i*colW;
+        sl.addText(col.label,{x:colX,y:cy+0.42,w:colW,h:0.18,fontFace:FONT,fontSize:8,color:C.mutedLight,align:'center',margin:0});
+        sl.addText(col.val,{x:colX,y:cy+0.6,w:colW,h:0.4,fontFace:FONT,fontSize:col.val.length>5?18:22,bold:true,color:C.inkDark,align:'center',margin:0,valign:'middle'});
+        if(col.badge){
+          const bBg=col.badgeBg||C.gray, bFg=col.badgeFg||C.grayFg;
+          // Badge fills column with 0.04" inset and a single line of bold 8pt — fits "Good Difficulty", "Above Global Avg.", etc.
+          sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:colX+0.04,y:cy+1.08,w:colW-0.08,h:0.24,fill:{color:bBg},line:{type:'none'},rectRadius:0.12});
+          sl.addText(col.badge,{x:colX+0.04,y:cy+1.08,w:colW-0.08,h:0.24,fontFace:FONT,fontSize:8,bold:true,color:bFg,align:'center',margin:0,valign:'middle',wrap:false,shrinkText:true});
+        }
+      });
+    }
+
+    // Engagement — drop-off is status: high=red, mid=yellow, low=green
+    const d1off=(1-s.attempts/Math.max(s.invitations,1))*100;
+    const d2off=(1-s.nonZero/Math.max(s.attempts,1))*100;
+    const dropTone=p=>p>=25?{bg:C.redBg,fg:C.red}:p>=10?{bg:C.amberBg,fg:C.amber}:{bg:C.greenBg,fg:C.green};
+    const d1t=dropTone(d1off), d2t=dropTone(d2off);
+    statCard(sl,0.4,cardY,'CANDIDATE ENGAGEMENT',[
+      {label:'Invitations',val:String(s.invitations)},
+      {label:'Attempts',val:String(s.attempts),badge:`${Math.round(d1off)}% drop-off`,badgeBg:d1t.bg,badgeFg:d1t.fg},
+      {label:'Non-Zero',val:String(s.nonZero),badge:`${Math.round(d2off)}% drop-off`,badgeBg:d2t.bg,badgeFg:d2t.fg},
+    ]);
+
+    // Scoring — when no passing score is configured, display N/A (not 0%, which would
+    // misleadingly imply zero candidates cleared the bar).
+    const psDisp=isFinite(cfg.passingScore)?`${cfg.passingScore}%`:'N/A';
+    const prDisp=s.passingRate!==null?`${Math.round(s.passingRate)}%`:'N/A';
+    const msDisp=isFinite(s.medScore)?`${Math.round(s.medScore)}%`:'N/A';
+    const msBg=isFinite(s.medScore)?(s.medScore<20||s.medScore>85?C.redBg:s.medScore>=40&&s.medScore<=75?C.greenBg:C.gray):null;
+    const msFg=isFinite(s.medScore)?(s.medScore<20||s.medScore>85?C.red:s.medScore>=40&&s.medScore<=75?C.green:C.grayFg):null;
+    const msBadge=isFinite(s.medScore)?(s.medScore<20?'High Difficulty':s.medScore>85?'Low Difficulty':s.medScore>=40&&s.medScore<=75?'Good Difficulty':'Med Difficulty'):null;
+    statCard(sl,0.4+(cardW+gap),cardY,'SCORING & OUTCOMES',[
+      {label:'Passing Score',val:psDisp},
+      {label:'Passing Rate',val:prDisp},
+      {label:'Median Score',val:msDisp,badge:msBadge,badgeBg:msBg,badgeFg:msFg},
+    ]);
+
+    // Experience — fairness only on all-time slide
+    const tDisp=isFinite(s.medTime)?(maxTime?`${Math.round(s.medTime)}/${maxTime}m`:`${Math.round(s.medTime)}m`):'N/A';
+    const tBadge=isFinite(s.medTime)&&maxTime?(maxTime-s.medTime<=5?'High Time Pressure':maxTime-s.medTime<=10?'Fine Time Pressure':'Too Much Time'):null;
+    const tBg=tBadge?(tBadge==='High Time Pressure'?C.redBg:tBadge==='Fine Time Pressure'?C.greenBg:C.amberBg):null;
+    const tFg=tBadge?(tBadge==='High Time Pressure'?C.red:tBadge==='Fine Time Pressure'?C.green:C.amber):null;
+    const expCols=[{label:'Median Time',val:tDisp,badge:tBadge,badgeBg:tBg,badgeFg:tFg}];
+    if(showFairness&&isFinite(cfg.fairness)){
+      const rel=cfg.fairnessRel;
+      const low=cfg.fairness<70;
+      const fBadge=low?'Low Rating':rel==='above'?'Above Global Avg.':rel==='below'?'Below Global Avg.':null;
+      const fBg=low?C.redBg:rel==='above'?C.greenBg:C.amberBg;
+      const fFg=low?C.red:rel==='above'?C.green:C.amber;
+      expCols.push({label:'Fairness Rating',val:`${Math.round(cfg.fairness)}%`,badge:fBadge,badgeBg:fBg,badgeFg:fFg});
+    }
+    statCard(sl,0.4+(cardW+gap)*2,cardY,'ASSESSMENT EXPERIENCE',expCols);
+
+    // ── Score distribution chart ──
+    if(s.allScores.length){
+      const chartLabels=['0%','1-10%','11-20%','21-30%','31-40%','41-50%','51-60%','61-70%','71-80%','81-90%','91-100%'];
+      const chartCounts=new Array(11).fill(0);
+      s.allScores.forEach(sc=>{if(sc===0)chartCounts[0]++;else chartCounts[Math.min(Math.ceil(sc/10),10)]++;});
+      const tot=s.allScores.length||1;
+      const chartVals=chartCounts.map(c=>+((c/tot)*100).toFixed(2));
+      // Card wrapping the chart for visual cohesion with the stat cards above
+      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:0.4,y:2.85,w:9.2,h:1.7,fill:{color:C.card},line:{color:C.borderLight,pt:1},rectRadius:0.08,shadow:mkShadow()});
+      sl.addText('SCORE DISTRIBUTION',{x:0.55,y:2.93,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.mutedLight,charSpacing:2,margin:0});
+      sl.addText(`${s.allScores.length} attempts`,{x:3.4,y:2.93,w:6.05,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+      sl.addChart(pres.charts.BAR,[{name:'%',labels:chartLabels,values:chartVals}],{
+        x:0.5,y:3.18,w:9.0,h:1.32,barDir:'col',
+        chartColors:chartVals.map((_,i)=>i>=8?C.bg:'A8B6F4'),
+        chartArea:{fill:{color:C.card},roundedCorners:false},
+        plotArea:{fill:{color:C.card}},
+        catAxisLabelFontFace:FONT,valAxisLabelFontFace:FONT,
+        catAxisLabelColor:C.mutedLight,valAxisLabelColor:C.mutedLight,
+        catAxisLabelFontSize:8,valAxisLabelFontSize:8,
+        valGridLine:{color:C.borderLight,size:0.5},catGridLine:{style:'none'},
+        catAxisLineShow:false,valAxisLineShow:false,
+        showLegend:false,showValue:true,
+        dataLabelFontFace:FONT,dataLabelColor:C.inkDark,dataLabelFontSize:7,
+        valAxisLabelFormatCode:'0"%"',
+      });
+    } else {
+      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:0.4,y:2.85,w:9.2,h:1.7,fill:{color:C.card},line:{color:C.borderLight,pt:1},rectRadius:0.08});
+      sl.addText('No attempt data for this period.',{x:0.4,y:2.85,w:9.2,h:1.7,fontFace:FONT,fontSize:13,color:C.mutedLight,align:'center',valign:'middle',margin:0});
+    }
+
+    // ── KEY TAKEAWAY strip ──
+    // Only the All Time / Overall slide gets a takeaway — Year and Month
+    // breakdowns leave the strip off so the deck doesn't repeat the same
+    // observation eight times. The takeaway is rendered as two short parts: a
+    // plain stat sentence, then a generic recommendation, so it reads like a
+    // presenter rather than a run-on hedge.
+    const takeaway = sectionLabel==='ALL TIME' ? buildTakeaway(s, showFairness, cfg, maxTime) : null;
+    if(takeaway){
+      // Subtle ultramarine-tint band, accented with a left border bar
+      sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:4.7,w:9.2,h:0.55,fill:{color:C.bgPale},line:{type:'none'}});
+      sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:4.7,w:0.05,h:0.55,fill:{color:C.bg},line:{type:'none'}});
+      sl.addText('KEY TAKEAWAY',{x:0.6,y:4.74,w:1.6,h:0.18,fontFace:FONT,fontSize:8,bold:true,color:C.bg,charSpacing:2,margin:0});
+      const txt=[];
+      txt.push({text:takeaway.stat,options:{bold:true,color:C.inkDark}});
+      if(takeaway.descriptor){
+        txt.push({text:'  ',options:{}});
+        txt.push({text:takeaway.descriptor,options:{color:C.mutedLight}});
+      }
+      sl.addText(txt,{x:0.6,y:4.93,w:8.9,h:0.27,fontFace:FONT,fontSize:11,margin:0,valign:'middle',wrap:false,shrinkText:true});
+    }
+
+    footer(sl, sectionLabel);
+    return sl;
+  }
+
+  // Build a single-sentence "key takeaway" interpreting the stats visible on
+  // the slide. Data-led, hedged, no em dashes. The takeaway must reference
+  // only metrics shown on the stat slide itself (engagement, scoring, time,
+  // fairness when present). Integrity is intentionally excluded since it is
+  // not surfaced on these slides.
+  // Returns a {stat, descriptor} pair. The takeaway names the single most
+  // prominent signal on the slide and labels it directly — "too easy", "too
+  // hard", "too tight" — not "toward the top of the range". Findings explain
+  // why; Next Steps act on it.
+  function buildTakeaway(s, showFairness, cfg, maxTime){
+    if(!s.attempts) return null;
+    const dropoff=Math.round((1-s.attempts/Math.max(s.invitations,1))*100);
+    const m=isFinite(s.medScore)?Math.round(s.medScore):null;
+    const pr=(s.passingRate!==null && isFinite(s.passingRate))?Math.round(s.passingRate):null;
+    const tLeft=(isFinite(s.medTime)&&maxTime)?(maxTime-s.medTime):null;
+    const tUsed=isFinite(s.medTime)?Math.round(s.medTime):null;
+
+    // Pick the strongest signal among metrics actually shown on the slide.
+    // Order: extreme median score, time pressure, drop-off, passing rate, fallback.
+    if(m!==null && m>=85){
+      return {stat:`Median score is ${m}%.`, descriptor:`The assessment is too easy.`};
+    }
+    if(m!==null && m<=20){
+      return {stat:`Median score is ${m}%.`, descriptor:`The assessment is too hard.`};
+    }
+    if(tLeft!==null && tLeft<=5){
+      return {stat:`Median time used is ${tUsed} of ${maxTime} minutes.`, descriptor:`The time limit is too tight.`};
+    }
+    if(tLeft!==null && tLeft>=10){
+      return {stat:`Median time used is ${tUsed} of ${maxTime} minutes.`, descriptor:`The time limit is too loose.`};
+    }
+    if(dropoff>=50){
+      return {stat:`Drop-off is ${dropoff}%.`, descriptor:`Most invited candidates aren't taking the test.`};
+    }
+    if(dropoff>=25){
+      return {stat:`Drop-off is ${dropoff}%.`, descriptor:`Drop-off is too high.`};
+    }
+    if(pr!==null && pr>=80){
+      return {stat:`Passing rate is ${pr}%.`, descriptor:`The passing bar is too low.`};
+    }
+    if(pr!==null && pr<=20){
+      return {stat:`Passing rate is ${pr}%.`, descriptor:`The passing bar is too high.`};
+    }
+    if(m!==null && m>=40 && m<=60){
+      return {stat:`Median score is ${m}%.`, descriptor:`Difficulty is well-calibrated.`};
+    }
+    return {stat:`${s.attempts} attempts across ${s.invitations} invitations.`, descriptor:`No flags this period.`};
+  }
+
+  // ── Compute stats helper ──
+  function computeStats(rows){
+    const attempted=rows.filter(r=>!isNA(r['Start date'])&&isFinite(parseNum(r['% total score'])));
+    const allScores=attempted.map(r=>parseNum(r['% total score'])).filter(isFinite);
+    const times=attempted.map(r=>parseNum(r['Time Used (minutes)'])).filter(isFinite);
+    const nonZero=allScores.filter(s=>s>0).length;
+    const medScore=median(allScores);
+    const medTime=median(times);
+    let passingRate=null,passedCount=0;
+    if(isFinite(cfg.passingScore)&&allScores.length){
+      passedCount=allScores.filter(s=>s>=cfg.passingScore).length;
+      passingRate=(passedCount/allScores.length)*100;
+    }
+    // Integrity Risk — % of attempted candidates with a 'high' status. Used to
+    // decide if proctoring should be recommended. Returns null when no data.
+    let highIntegrityPct=null, highIntegrityCount=0, integrityWithData=0;
+    attempted.forEach(r=>{
+      const v=r['Integrity Risk Status'];
+      if(isNA(v)) return;
+      integrityWithData++;
+      if(String(v).trim().toLowerCase()==='high') highIntegrityCount++;
+    });
+    if(integrityWithData) highIntegrityPct=(highIntegrityCount/integrityWithData)*100;
+    return {
+      invitations:rows.length, attempts:attempted.length, nonZero,
+      allScores, medScore, medTime,
+      passingRate, passedCount,
+      highIntegrityPct, highIntegrityCount, integrityWithData,
+    };
+  }
+
+  // ── Build year+month index from Create date (invitation date) ──
+  // Partitioning by Start date would silently exclude unattempted invitations and force
+  // every per-period drop-off to ~0%. Create date keeps the full cohort in each bucket.
+  const yearMap=new Map(); // year → [months]
+  _allRows.forEach(r=>{
+    const sv=r['Create date'];
+    if(isNA(sv)) return;
+    const d=new Date(sv);
+    if(isNaN(d)) return;
+    const y=d.getFullYear(), m=d.getMonth()+1;
+    if(!yearMap.has(y)) yearMap.set(y,[]);
+    if(!yearMap.get(y).includes(m)) yearMap.get(y).push(m);
+  });
+  const years=[...yearMap.keys()].sort();
+  years.forEach(y=>yearMap.get(y).sort((a,b)=>a-b));
+
+  // Compute overall stats once — used for cover, exec summary
+  const _overall=computeStats(_allRows);
+
+  // ── Pre-compute slide count so footer page numbers render ──
+  // 1 cover + 1 exec summary + 1 TOC + 3 dividers + (1 + years + months) stat slides + 1 methodology
+  let monthCount=0;
+  years.forEach(y=>{ monthCount += yearMap.get(y).length; });
+  const statCount = 1 + years.length + monthCount;
+  // totalSlides counts only CONTENT slides (those that increment slideNum):
+  //   exec summary + TOC + statCount + methodology = 3 + statCount
+  totalSlides = 3 + statCount;
+
+  // ════════════════════════════════
+  // 1. COVER
+  // ════════════════════════════════
+  coverSlide();
+
+  // ════════════════════════════════
+  // 2. EXECUTIVE SUMMARY
+  // ════════════════════════════════
+  execSummarySlide(_overall);
+
+  // ════════════════════════════════
+  // 3. TABLE OF CONTENTS
+  // ════════════════════════════════
+  tocSlide(years.length, monthCount);
+
+  // ════════════════════════════════
+  // SECTION 1 — ALL TIME
+  // ════════════════════════════════
+  sectionDivider('01','All Time Overview');
+  statSlide('All Time', _overall, /*showFairness=*/true, 'ALL TIME');
+
+  // ════════════════════════════════
+  // SECTION 2 — BY YEAR
+  // ════════════════════════════════
+  sectionDivider('02','Year by Year');
+  years.forEach(y=>{
+    // Bucket by invitation date (Create date) so unattempted invitations contribute to drop-off.
+    const yRows=_allRows.filter(r=>{
+      if(isNA(r['Create date'])) return false;
+      const d=new Date(r['Create date']);
+      return !isNaN(d)&&d.getFullYear()===y;
+    });
+    statSlide(String(y), computeStats(yRows), false, 'YEAR BY YEAR');
+  });
+
+  // ════════════════════════════════
+  // SECTION 3 — BY MONTH
+  // ════════════════════════════════
+  sectionDivider('03','Month by Month');
+  years.forEach(y=>{
+    yearMap.get(y).forEach(m=>{
+      // Bucket by invitation date (Create date) — same reason as Year by Year above.
+      const mRows=_allRows.filter(r=>{
+        if(isNA(r['Create date'])) return false;
+        const d=new Date(r['Create date']);
+        return !isNaN(d)&&d.getFullYear()===y&&d.getMonth()+1===m;
+      });
+      statSlide(`${MONTHS[m-1]} ${y}`, computeStats(mRows), false, 'MONTH BY MONTH');
+    });
+  });
+
+  // ════════════════════════════════
+  // CLOSING — METHODOLOGY
+  // ════════════════════════════════
+  methodologySlide();
+
+  const fname=`${(testName||'Assessment').replace(/[^a-z0-9]/gi,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')}.pptx`;
+  await pres.writeFile({fileName:fname});
+}
+
+// ── old per-slide helpers kept for reference (not called) ──
+
+// Shared insights builder (used by both render + PPTX)
+function buildInsightsData(d){
+  const ins=[];
+  const maxTime=isFinite(d.cfg.maxTime)?d.cfg.maxTime:null;
+  if(isFinite(d.medTime)&&maxTime){
+    const minsLeft=maxTime-d.medTime;
+    const ok=minsLeft>5&&minsLeft<=10;
+    const desc=minsLeft<=5
+      ?`High time pressure — only ${Math.round(minsLeft)} min left (median ${Math.round(d.medTime)} of ${maxTime} min)`
+      :minsLeft<=10
+      ?`Fine — ${Math.round(minsLeft)} min remaining (median ${Math.round(d.medTime)} of ${maxTime} min)`
+      :`Too much time — ${Math.round(minsLeft)} min remaining (median ${Math.round(d.medTime)} of ${maxTime} min)`;
+    ins.push({icon:ok?'✓':'⚠',cls:ok?'ok':'warn',title:'Time Pressure',desc});
+  } else if(isFinite(d.medTime)){
+    ins.push({icon:'✓',cls:'ok',title:'Time Pressure',desc:`Median attempt time of ${Math.round(d.medTime)} min (no max duration set)`});
+  }
+  const cfgNotes=[];
+  if(!d.cfg.rotation)   cfgNotes.push('No task rotation');
+  if(!d.cfg.proctoring) cfgNotes.push('No proctoring');
+  ins.push({icon:cfgNotes.length?'⚠':'✓',cls:cfgNotes.length?'warn':'ok',title:'Configuration',desc:cfgNotes.length?cfgNotes.join('; '):'Task rotation: ON; Proctoring: ON'});
+  if(isFinite(d.medScore)){
+    const tooEasy=d.medScore>85,tooHard=d.medScore<20;
+    ins.push({icon:(tooEasy||tooHard)?'⚠':'✓',cls:(tooEasy||tooHard)?'warn':'ok',title:'Difficulty',
+      desc:tooEasy?`Very high median score of ${Math.round(d.medScore)}% (may be too easy)`:tooHard?`Very low median score of ${Math.round(d.medScore)}% (may be too hard)`:`Moderate median score of ${Math.round(d.medScore)}%`});
+  }
+  const lowAvgTasks=d.slots.flatMap(s=>s.variants).filter(v=>isFinite(v.avg)&&v.avg<15);
+  const qIssues=[];
+  if(d.cfg.leaked) qIssues.push('Leaked items flagged');
+  if(lowAvgTasks.length) qIssues.push(`${lowAvgTasks.length} task(s) with very low scores`);
+  ins.push({icon:qIssues.length?'⚠':'✓',cls:qIssues.length?'warn':'ok',title:'Question Quality',desc:qIssues.length?qIssues.join('; '):'No leaked items; task scores look reasonable'});
+  if(isFinite(d.cfg.fairness)){
+    const low=d.cfg.fairness<70,rel=d.cfg.fairnessRel;
+    ins.push({icon:low?'⚠':'✓',cls:low?'warn':'ok',title:'Candidate Feedback',
+      desc:low?`Low fairness rating of ${Math.round(d.cfg.fairness)}%`:rel==='above'?`Fairness ${Math.round(d.cfg.fairness)}% — above global avg`:rel==='below'?`Fairness ${Math.round(d.cfg.fairness)}% — below global avg`:`Fairness rating of ${Math.round(d.cfg.fairness)}%`});
+  } else {
+    ins.push({icon:'○',cls:'neutral',title:'Candidate Feedback',desc:'No fairness rating entered'});
+  }
+  return ins;
+}
+
+// ══════════════════════════════════
+// HELPERS
+// ══════════════════════════════════
+function diffChipClass(diff){
+  if(!diff)return'';
+  const d=diff.toLowerCase();
+  return d==='easy'?'chip-easy':d==='medium'?'chip-medium':d==='hard'?'chip-hard':'';
+}
+function discColour(r){
+  if(!isFinite(r))return'inherit';
+  if(r>=0.3)return'var(--green)';
+  if(r>=0)return'var(--grey-700)';
+  return'var(--red)';
+}
+</script>
+</body>
+</html>
