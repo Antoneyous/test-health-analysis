@@ -2127,8 +2127,8 @@ async function downloadPPTX(){
     sl.addText('OVERVIEW',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
     sl.addText('Executive Summary',{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
     sl.addText(testName,{x:6.8,y:0.36,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
-    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.58,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
-    sl.addText(generatedOn,{x:6.8,y:0.82,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.54,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    sl.addText(generatedOn,{x:6.8,y:0.72,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
 
     // ── KPI TILES (5 across) ──
     const kpiY=1.2, kpiH=1.3, kpiGap=0.15;
@@ -2247,7 +2247,9 @@ async function downloadPPTX(){
   }
 
   // ── TABLE OF CONTENTS ──
-  function tocSlide(yearN, monthN){
+  // includeIntegrity adds a 4th row when the export has integrity data; the
+  // row spacing tightens slightly to keep all four rows above the footer.
+  function tocSlide(yearN, monthN, includeIntegrity){
     slideNum++;
     const sl=pres.addSlide();
     sl.background={color:C.bgLight};
@@ -2255,23 +2257,28 @@ async function downloadPPTX(){
     sl.addText('CONTENTS',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
     sl.addText('What you\u2019ll find inside',{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
     sl.addText(testName,{x:6.8,y:0.36,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
-    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.58,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.54,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
 
     const items=[
       {num:'01', title:'All Time Overview', desc:'Aggregate performance signals across the entire cohort.'},
       {num:'02', title:'Year by Year', desc:`Annual breakdown across ${yearN} year${yearN===1?'':'s'} of activity.`},
       {num:'03', title:'Month by Month', desc:`Monthly drilldown across ${monthN} month${monthN===1?'':'s'} for trend detection.`},
     ];
+    if(includeIntegrity){
+      items.push({num:'04', title:'Integrity Impact', desc:'How the headline KPIs shift when High-risk candidates are removed.'});
+    }
 
+    // Tighter row spacing when 4 items so everything stays above the footer.
+    const rowH = items.length>=4 ? 0.92 : 1.05;
     items.forEach((it,i)=>{
-      const y=1.45+i*1.05;
+      const y=1.45+i*rowH;
       // Big numeral — strong ultramarine so it's clearly visible on the light page bg
       sl.addText(it.num,{x:0.4,y:y,w:1.4,h:0.85,fontFace:FONT,fontSize:54,bold:true,color:C.bg,margin:0,valign:'top'});
       // Title and desc
       sl.addText(it.title,{x:1.7,y:y+0.12,w:7.9,h:0.4,fontFace:FONT,fontSize:22,bold:true,color:C.inkDark,margin:0,valign:'middle'});
       sl.addText(it.desc,{x:1.7,y:y+0.52,w:7.9,h:0.3,fontFace:FONT,fontSize:11,color:C.mutedLight,margin:0,valign:'top'});
       // Hairline below
-      if(i<items.length-1) sl.addShape(pres.shapes.LINE,{x:0.4,y:y+0.95,w:9.2,h:0,line:{color:C.borderLight,pt:0.5}});
+      if(i<items.length-1) sl.addShape(pres.shapes.LINE,{x:0.4,y:y+rowH-0.1,w:9.2,h:0,line:{color:C.borderLight,pt:0.5}});
     });
 
     footer(sl,'CONTENTS');
@@ -2286,7 +2293,7 @@ async function downloadPPTX(){
     sl.addText('NEXT STEPS',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
     sl.addText('Where to go from here',{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
     sl.addText(testName,{x:6.8,y:0.36,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
-    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.58,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.54,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
 
     // Build dynamic recommendations based on the overall stats
     const recs=buildRecommendations(_overall);
@@ -2307,6 +2314,181 @@ async function downloadPPTX(){
     });
 
     footer(sl,'NEXT STEPS');
+    return sl;
+  }
+
+  // ── INTEGRITY IMPACT ──
+  // Side-by-side comparison of the same 5 KPIs (Invitations, Attempts, Median
+  // Score, Passing Rate, Median Time) computed against (a) all candidates and
+  // (b) the cohort with High Integrity Risk candidates removed. Each KPI on
+  // the right side gets a delta chip showing how much the metric moved when
+  // the high-risk cohort is excluded.
+  //
+  // Gating: the calling code skips this slide when the export has no
+  // Integrity Risk Status column (integrityWithData === 0), so this function
+  // assumes it is safe to render. When zero candidates are flagged, the slide
+  // still renders but the sub-header explains there's nothing to compare.
+  function integrityImpactSlide(){
+    slideNum++;
+    const sl=pres.addSlide();
+    sl.background={color:C.bgLight};
+    // Header — same eyebrow + title pattern as the other content slides
+    sl.addText('INTEGRITY IMPACT',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
+    sl.addText('What changes when high-risk candidates are removed',{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+    sl.addText(testName,{x:6.8,y:0.36,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.54,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    sl.addText(generatedOn,{x:6.8,y:0.72,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+
+    // Compute "high-risk excluded" stats by filtering _allRows.
+    const highRiskRows=_allRows.filter(r=>{
+      const v=r['Integrity Risk Status'];
+      if(isNA(v)) return false;
+      return String(v).trim().toLowerCase()==='high';
+    });
+    const cleanRows=_allRows.filter(r=>!highRiskRows.includes(r));
+    const sBefore=_overall;
+    const sAfter=computeStats(cleanRows);
+
+    // Sub-header strip — shows the population delta in plain English
+    const flagged=highRiskRows.length;
+    const flaggedPct= sBefore.integrityWithData ? ((sBefore.highIntegrityCount/sBefore.integrityWithData)*100) : 0;
+    const subText= flagged>0
+      ? `${flagged} of ${sBefore.integrityWithData} candidates with integrity data are flagged High risk (${flaggedPct.toFixed(1)}%). The right column shows what the dashboard reads with those candidates removed.`
+      : `No candidates were flagged High risk in this export. The columns below match — integrity exclusions don't change the read.`;
+    sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:1.15,w:9.2,h:0.42,fill:{color:C.bgPale},line:{type:'none'}});
+    sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:1.15,w:0.05,h:0.42,fill:{color:C.accent2},line:{type:'none'}});
+    sl.addText(subText,{x:0.6,y:1.17,w:8.9,h:0.38,fontFace:FONT,fontSize:10,color:C.inkDark,margin:0,valign:'middle',wrap:true});
+
+    // Two columns: ALL CANDIDATES vs HIGH-RISK EXCLUDED. Each column has 5
+    // stacked tiles in the same order as the Executive Summary so readers
+    // don't have to learn a new layout.
+    const colY=1.75;
+    const colGap=0.2;
+    const colW=(10-0.4-0.4-colGap)/2;
+    // Tile geometry sized so the 5-tile column ends above the Key Takeaway
+    // band. 5 × 0.50 + 4 × 0.08 gaps = 2.82, leaving room for the takeaway
+    // and footer between y=5.05 and y=5.32.
+    const tileH=0.50, tileGap=0.08;
+
+    function kpiSet(s){
+      const dropoff=s.invitations? Math.round((1-s.attempts/s.invitations)*100) : 0;
+      const passing=(s.passingRate!==null && isFinite(s.passingRate))? Math.round(s.passingRate) : null;
+      const tDisp=isFinite(s.medTime)?(maxTime?`${Math.round(s.medTime)}/${maxTime}m`:`${Math.round(s.medTime)}m`):'—';
+      return [
+        {label:'INVITATIONS',  value:String(s.invitations||0),                                  raw:s.invitations||0},
+        {label:'ATTEMPTS',     value:String(s.attempts||0),    sub:`${100-dropoff}% completion`, raw:s.attempts||0},
+        {label:'MEDIAN SCORE', value:isFinite(s.medScore)?`${Math.round(s.medScore)}%`:'—',     raw:isFinite(s.medScore)?Math.round(s.medScore):null},
+        {label:'PASSING RATE', value:passing!==null?`${passing}%`:'—',                          raw:passing},
+        {label:'MEDIAN TIME',  value:tDisp,                                                     raw:isFinite(s.medTime)?Math.round(s.medTime):null},
+      ];
+    }
+    const left=kpiSet(sBefore);
+    const right=kpiSet(sAfter);
+
+    // Captions
+    sl.addText('ALL CANDIDATES',     {x:0.4,           y:colY,w:colW,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.mutedLight,charSpacing:2,margin:0,align:'center'});
+    sl.addText('HIGH-RISK EXCLUDED', {x:0.4+colW+colGap,y:colY,w:colW,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2, charSpacing:2,margin:0,align:'center'});
+
+    const tilesY=colY+0.3;
+    function tile(sl, x, y, k, isAfter, deltaText, deltaTone){
+      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x,y,w:colW,h:tileH,fill:{color:C.card},line:{color:C.borderLight,pt:1},rectRadius:0.06,shadow:mkShadow()});
+      // Left rail accent — raspberry on the "after" column to signal comparison cohort
+      sl.addShape(pres.shapes.RECTANGLE,{x,y,w:0.05,h:tileH,fill:{color:isAfter?C.accent2:C.bg},line:{type:'none'}});
+      // Label (left)
+      sl.addText(k.label,{x:x+0.18,y:y+0.06,w:colW*0.5,h:0.2,fontFace:FONT,fontSize:8,bold:true,color:C.mutedLight,charSpacing:2,margin:0,valign:'middle'});
+      if(k.sub) sl.addText(k.sub,{x:x+0.18,y:y+0.26,w:colW*0.5,h:0.22,fontFace:FONT,fontSize:8,color:C.mutedLight,margin:0,valign:'middle'});
+      // ── Right zone (value + optional chip) ──
+      // The value and chip both live in the right half of the tile. To stop
+      // the chip overlapping the value, we split the right zone vertically:
+      //   • when there's a chip on the "after" column: value occupies the top
+      //     ~60% and the chip sits below it.
+      //   • otherwise the value uses the full right-zone height (centered).
+      const rightX=x+colW*0.5;
+      const rightW=colW*0.5-0.1;
+      const showChip=isAfter && deltaText;
+      // Split the right zone so value (top) and chip (bottom) don't collide.
+      // tileH=0.50: value height 0.26, chip height 0.14, with 0.04 top inset
+      // and 0.03 bottom inset — leaves a 0.03 gap between value and chip.
+      const valH=showChip ? tileH*0.52 : tileH-0.12;
+      const valY=y+0.04;
+      // Values get a touch smaller when the chip is below them so they don't
+      // crowd the chip; shrinkText also kicks in for very long strings.
+      const vSize= showChip
+        ? (k.value.length<=4?16:k.value.length<=6?14:12)
+        : (k.value.length<=4?20:k.value.length<=6?16:14);
+      sl.addText(k.value,{x:rightX,y:valY,w:rightW,h:valH,fontFace:FONT,fontSize:vSize,bold:true,color:C.inkAccent,align:'right',margin:0,valign:'middle',wrap:false,shrinkText:true});
+      if(showChip){
+        const chipW=0.85, chipH=tileH*0.28;
+        const chipX=x+colW-chipW-0.1;
+        const chipY=y+tileH-chipH-0.03; // anchor to the bottom so it can't overflow
+        const tone= deltaTone==='up'  ? {bg:C.greenBg, fg:C.green}
+                  : deltaTone==='down'? {bg:C.redBg,   fg:C.red}
+                  :                      {bg:C.gray,    fg:C.grayFg};
+        sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:chipX,y:chipY,w:chipW,h:chipH,fill:{color:tone.bg},line:{type:'none'},rectRadius:0.08});
+        sl.addText(deltaText,{x:chipX,y:chipY,w:chipW,h:chipH,fontFace:FONT,fontSize:8,bold:true,color:tone.fg,align:'center',valign:'middle',margin:0,wrap:false,shrinkText:true});
+      }
+    }
+
+    // Delta semantics:
+    //   • Median Score, Passing Rate UP after exclusion = high-risk cohort was
+    //     suppressing the read → tone "up" (green).
+    //   • DOWN = exclusion erased real-looking performance → tone "down" (red).
+    //   • Counts and Median Time are neutral — show delta in gray.
+    function deltaInfo(before, after, idx){
+      if(before.raw===null || after.raw===null) return {text:null};
+      const d=after.raw-before.raw;
+      if(d===0) return {text:'no change', tone:'neutral'};
+      let text;
+      if(idx===0||idx===1) text=`${d>0?'+':''}${d}`;
+      else if(idx===4)     text=`${d>0?'+':''}${d}m`;
+      else                 text=`${d>0?'+':''}${d} pts`;
+      let tone='neutral';
+      if(idx===2||idx===3) tone= d>0 ? 'up' : 'down';
+      return {text, tone};
+    }
+
+    left.forEach((k,i)=>{
+      const y=tilesY+i*(tileH+tileGap);
+      tile(sl, 0.4,            y, k,        false, null, null);
+      const di=deltaInfo(k, right[i], i);
+      tile(sl, 0.4+colW+colGap, y, right[i], true,  di.text, di.tone);
+    });
+
+    // ── KEY TAKEAWAY band ──
+    // Pick the most informative delta to summarize. Median Score and Passing
+    // Rate are the most useful signals; if neither moved meaningfully, fall
+    // back to a population-level summary.
+    let takeaway=null;
+    if(flagged===0){
+      takeaway={stat:`No High-risk candidates in this cohort.`, descriptor:`Integrity exclusions do not change the read.`};
+    } else {
+      const ms=left[2].raw, msAfter=right[2].raw;
+      const pr=left[3].raw, prAfter=right[3].raw;
+      const msD=(ms!==null && msAfter!==null) ? (msAfter-ms) : 0;
+      const prD=(pr!==null && prAfter!==null) ? (prAfter-pr) : 0;
+      if(Math.abs(msD)>=3 || Math.abs(prD)>=3){
+        const parts=[];
+        if(Math.abs(msD)>=3) parts.push(`median score ${msD>0?'rises':'falls'} ${Math.abs(msD)} points to ${msAfter}%`);
+        if(Math.abs(prD)>=3) parts.push(`passing rate ${prD>0?'rises':'falls'} ${Math.abs(prD)} points to ${prAfter}%`);
+        const verdict = (msD>0||prD>0)
+          ? `High-risk attempts were suppressing the genuine performance read.`
+          : `Removing the high-risk cohort lowers the headline numbers, so flagged candidates were contributing real-looking scores.`;
+        takeaway={stat:`Excluding ${flagged} High-risk candidate${flagged===1?'':'s'}, ${parts.join(' and ')}.`, descriptor:verdict};
+      } else {
+        takeaway={stat:`Excluding ${flagged} High-risk candidate${flagged===1?'':'s'}, the headline KPIs barely move.`, descriptor:`Integrity flags aren't materially shifting the read for this cohort.`};
+      }
+    }
+    sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:5.05,w:9.2,h:0.22,fill:{color:C.bgPale},line:{type:'none'}});
+    sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:5.05,w:0.05,h:0.22,fill:{color:C.bg},line:{type:'none'}});
+    const tTxt=[];
+    tTxt.push({text:takeaway.stat,options:{bold:true,color:C.inkDark}});
+    if(takeaway.descriptor){
+      tTxt.push({text:'  ',options:{}});
+      tTxt.push({text:takeaway.descriptor,options:{color:C.mutedLight}});
+    }
+    sl.addText(tTxt,{x:0.6,y:5.05,w:8.9,h:0.22,fontFace:FONT,fontSize:9,margin:0,valign:'middle',wrap:false,shrinkText:true});
+
+    footer(sl,'INTEGRITY IMPACT');
     return sl;
   }
 
@@ -2395,8 +2577,8 @@ async function downloadPPTX(){
     sl.addText(`Test Health · ${label}`,{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
     // Right side — test name on top, creator below, attempts/invited below that (only when present)
     sl.addText(testName,{x:6.8,y:0.36,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
-    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.58,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
-    if(s.attempts) sl.addText(`${s.attempts} attempts · ${s.invitations} invited`,{x:6.8,y:0.82,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',valign:'middle',margin:0});
+    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.54,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    if(s.attempts) sl.addText(`${s.attempts} attempts · ${s.invitations} invited`,{x:6.8,y:0.72,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',valign:'middle',margin:0});
 
     // ── 3 stat cards ──
     const cardY=1.2, cardH=1.45, gap=0.18;
@@ -2619,12 +2801,18 @@ async function downloadPPTX(){
 
   // ── Pre-compute slide count so footer page numbers render ──
   // 1 cover + 1 exec summary + 1 TOC + 3 dividers + (1 + years + months) stat slides + 1 methodology
+  // (+ 1 divider + 1 integrity impact slide if the export contains integrity data)
   let monthCount=0;
   years.forEach(y=>{ monthCount += yearMap.get(y).length; });
   const statCount = 1 + years.length + monthCount;
+  // Section 04 (Integrity Impact) is only included when the export has any
+  // Integrity Risk Status data. integrityWithData counts attempted candidates
+  // with a non-blank value; if it's zero the entire section is skipped.
+  const showIntegritySection = _overall.integrityWithData > 0;
   // totalSlides counts only CONTENT slides (those that increment slideNum):
   //   exec summary + TOC + statCount + methodology = 3 + statCount
-  totalSlides = 3 + statCount;
+  // Add 1 more for integrityImpactSlide when present (the divider doesn't increment slideNum).
+  totalSlides = 3 + statCount + (showIntegritySection ? 1 : 0);
 
   // ════════════════════════════════
   // 1. COVER
@@ -2639,7 +2827,7 @@ async function downloadPPTX(){
   // ════════════════════════════════
   // 3. TABLE OF CONTENTS
   // ════════════════════════════════
-  tocSlide(years.length, monthCount);
+  tocSlide(years.length, monthCount, showIntegritySection);
 
   // ════════════════════════════════
   // SECTION 1 — ALL TIME
@@ -2676,6 +2864,17 @@ async function downloadPPTX(){
       statSlide(`${MONTHS[m-1]} ${y}`, computeStats(mRows), false, 'MONTH BY MONTH');
     });
   });
+
+  // ════════════════════════════════
+  // SECTION 4 — INTEGRITY IMPACT (conditional)
+  // ════════════════════════════════
+  // Only rendered when the export has integrity data; otherwise the section
+  // would just show "no data" everywhere. The slide count math above already
+  // accounts for this skip.
+  if(showIntegritySection){
+    sectionDivider('04','Integrity Impact');
+    integrityImpactSlide();
+  }
 
   // ════════════════════════════════
   // CLOSING — METHODOLOGY

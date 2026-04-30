@@ -71,7 +71,9 @@ small set of configuration values (passing score, max time, etc.), and clicks
 3. Renders a single-page dashboard with KPI tiles, a score distribution
    chart, and a three-tab Integrity panel (Integrity Risk, Similarity Check,
    Behavioural Signals).
-4. On click, generates a 16-slide PowerPoint deck and downloads it.
+4. On click, generates a PowerPoint deck and downloads it. Slide count
+   varies with the data — typically 14–20 slides depending on the time
+   range covered and whether the export contains integrity data.
 
 ---
 
@@ -209,23 +211,47 @@ The Integrity tab also lists each individual flagged candidate.
 
 ## Generating the PPTX
 
-`downloadPPTX()` builds a 16-slide deck with PptxGenJS:
+`downloadPPTX()` builds a deck with PptxGenJS. Slide count varies with how
+many years / months the data covers and whether the export contains
+integrity data; the table below shows the structure, not exact numbers:
 
-| #  | Slide                | What's on it                                              |
-| -- | -------------------- | --------------------------------------------------------- |
-| 1  | Cover                | Test name, generation date, dark ultramarine background   |
-| 2  | Executive Summary    | 5 KPI tiles + up to 3 Key Findings                        |
-| 3  | Table of Contents    | Section 01 / 02 / 03                                      |
-| 4  | Section 01 divider   | "ALL TIME"                                                |
-| 5  | All Time stats       | 3 stat cards, score distribution, **Key Takeaway** band   |
-| 6  | Section 02 divider   | "YEAR BY YEAR"                                            |
-| 7… | One slide per year   | Same layout as the All Time slide, no Key Takeaway        |
-| …  | Section 03 divider   | "MONTH BY MONTH"                                          |
-| …  | One slide per month  | Same layout                                               |
-| 16 | Next Steps           | Up to 3 action recommendations                            |
+| #  | Slide                | What's on it                                                     |
+| -- | -------------------- | ---------------------------------------------------------------- |
+| 1  | Cover                | Test name, generation date, dark ultramarine background          |
+| 2  | Executive Summary    | 5 KPI tiles + up to 3 Key Findings                               |
+| 3  | Table of Contents    | Section 01 / 02 / 03 (and 04 if integrity data is present)       |
+| 4  | Section 01 divider   | "ALL TIME"                                                       |
+| 5  | All Time stats       | 3 stat cards, score distribution, **Key Takeaway** band          |
+| 6  | Section 02 divider   | "YEAR BY YEAR"                                                   |
+| 7… | One slide per year   | Same layout as the All Time slide, no Key Takeaway               |
+| …  | Section 03 divider   | "MONTH BY MONTH"                                                 |
+| …  | One slide per month  | Same layout                                                      |
+| …  | Section 04 divider   | "INTEGRITY IMPACT" — only when the export has integrity data     |
+| …  | Integrity Impact     | Side-by-side 5-KPI comparison, all candidates vs. high-risk excluded |
+| …  | Next Steps           | Up to 3 action recommendations                                   |
 
-Slide count varies with how many years / months the data covers; the table
-above shows the structure, not exact slide numbers.
+### Section 04 — Integrity Impact (conditional)
+
+A two-column slide that surfaces how the headline KPIs shift when
+candidates flagged with **High** Integrity Risk Status are removed from the
+cohort. Rendered only when the export contains any non-blank values in the
+`Integrity Risk Status` column; otherwise the entire section (divider +
+slide + TOC entry) is silently skipped so the deck still works for tests
+without integrity signals.
+
+Each KPI tile in the right column gets a delta chip:
+
+- **Green** when Median Score or Passing Rate goes **up** after exclusion
+  (high-risk attempts were suppressing the genuine performance read).
+- **Red** when those same metrics go **down** (the exclusion erased
+  real-looking performance, suggesting flagged candidates were contributing
+  legitimate scores).
+- **Gray (neutral)** for population counts and Median Time, where direction
+  isn't inherently good or bad.
+
+A Key Takeaway band at the bottom interprets the most informative delta in
+plain English. When fewer than 3 points move on either Median Score or
+Passing Rate the takeaway falls back to "the headline KPIs barely move".
 
 ### Copy generation
 
