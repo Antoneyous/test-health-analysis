@@ -2478,15 +2478,21 @@ async function downloadPPTX(){
         takeaway={stat:`Excluding ${flagged} High-risk candidate${flagged===1?'':'s'}, the headline KPIs barely move.`, descriptor:`Integrity flags aren't materially shifting the read for this cohort.`};
       }
     }
-    sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:5.05,w:9.2,h:0.22,fill:{color:C.bgPale},line:{type:'none'}});
-    sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:5.05,w:0.05,h:0.22,fill:{color:C.bg},line:{type:'none'}});
+    // Takeaway band sized to fit two lines at 9pt with breathing room. The
+    // takeaway sentence + descriptor can run long ("Excluding 85 High-risk
+    // candidates, median score falls 13 points to 60%. Removing the high-risk
+    // cohort lowers the headline numbers, so flagged candidates were
+    // contributing real-looking scores.") so wrap is enabled rather than
+    // shrinkText, which would render the text too small to read.
+    sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:4.97,w:9.2,h:0.32,fill:{color:C.bgPale},line:{type:'none'}});
+    sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:4.97,w:0.05,h:0.32,fill:{color:C.bg},line:{type:'none'}});
     const tTxt=[];
     tTxt.push({text:takeaway.stat,options:{bold:true,color:C.inkDark}});
     if(takeaway.descriptor){
       tTxt.push({text:'  ',options:{}});
       tTxt.push({text:takeaway.descriptor,options:{color:C.mutedLight}});
     }
-    sl.addText(tTxt,{x:0.6,y:5.05,w:8.9,h:0.22,fontFace:FONT,fontSize:9,margin:0,valign:'middle',wrap:false,shrinkText:true});
+    sl.addText(tTxt,{x:0.6,y:4.97,w:8.9,h:0.32,fontFace:FONT,fontSize:9,margin:0,valign:'middle',wrap:true});
 
     footer(sl,'INTEGRITY IMPACT');
     return sl;
