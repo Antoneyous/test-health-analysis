@@ -364,10 +364,10 @@
     .dl-btn.accent { background: var(--raspberry); }
     .dl-btn.accent:hover { background: var(--raspberry-hover); }
 
-    .report-body { max-width: 100%; margin: 0 auto; padding: 12px 24px 40px; }
+    .report-body { max-width: 100%; margin: 0 auto; padding: 10px 24px 24px; }
     .report-title-row {
       display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 10px; gap: 16px; flex-wrap: wrap;
+      margin-bottom: 8px; gap: 16px; flex-wrap: wrap;
     }
     .report-title { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
     .report-title h1 {
@@ -393,11 +393,11 @@
       border: 1px solid var(--grey-200);
       border-radius: var(--r-large);
       display: grid; grid-template-columns: repeat(3,1fr);
-      overflow: visible; margin-bottom: 16px;
+      overflow: visible; margin-bottom: 12px;
       box-shadow: var(--shadow-l1);
     }
     .stats-section {
-      padding: 14px 16px;
+      padding: 11px 16px;
       border-right: 1px solid var(--grey-200);
       overflow: visible;
     }
@@ -405,8 +405,8 @@
     .stats-section-title {
       font-size: 10px; font-weight: 700; text-transform: uppercase;
       letter-spacing: .08em; color: var(--grey-500);
-      text-align: center; margin-bottom: 12px;
-      padding-bottom: 10px; border-bottom: 1px solid var(--grey-200);
+      text-align: center; margin-bottom: 9px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--grey-200);
       display: flex; align-items: center; justify-content: center; gap: 4px;
     }
     .stats-cols { display: flex; justify-content: space-around; gap: 6px; }
@@ -449,7 +449,35 @@
     }
 
     /* Layout */
-    .main-grid { display: grid; grid-template-columns: 1.2fr 0.8fr 0.9fr; gap: 16px; margin-bottom: 16px; align-items: start; }
+    /* align-items: stretch (default) so all three panels match the height
+       of the tallest sibling — usually the Integrity card because it has
+       the bar chart, exclusion chips, and disclaimer. The Task Analysis
+       and Insights cards fill any extra height with whitespace below
+       their content, which is preferable to ragged-bottom alignment.
+       NO max-height cap on the row, NO internal scrolling on Integrity:
+       its content is always fully visible. */
+    .main-grid {
+      display: grid; grid-template-columns: 1.2fr 0.8fr 0.9fr;
+      gap: 12px; margin-bottom: 12px;
+      align-items: stretch;
+    }
+    .main-grid > .card { display: flex; flex-direction: column; min-height: 0; }
+    .main-grid > .card > .card-header { flex-shrink: 0; }
+    /* Task Analysis is the only panel that can grow unboundedly when a
+       test has 15+ task variants. Its inner table-wrap scrolls only if
+       its content exceeds the row height set by the Integrity card.
+       For the common 3-5 task case the table fits naturally and no
+       scrollbar appears. */
+    .main-grid > .card > .task-table-wrap {
+      flex: 1 1 auto; overflow-y: auto; min-height: 0;
+    }
+    /* Insights and Integrity grow to fill their share of the row height
+       without scrollbars. They drive the row's height, not the other
+       way around. */
+    .main-grid > .card > .insights-list,
+    .main-grid > .card > #r-integrity-body {
+      flex: 1 1 auto; min-height: 0;
+    }
     .bottom-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; margin-bottom: 16px; align-items: start; }
     .middle-row { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 16px; margin-bottom: 16px; align-items: start; }
     .card {
@@ -460,7 +488,7 @@
       box-shadow: var(--shadow-l1);
     }
     .card-header {
-      padding: 12px 16px;
+      padding: 9px 14px;
       border-bottom: 1px solid var(--grey-200);
       font-size: 13px; font-weight: 700;
       color: var(--navy);
@@ -469,8 +497,11 @@
 
     /* Task table */
     .task-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    /* Sticky thead so the column headers stay visible while the inner
+       scroller handles long task lists (15+ tasks). */
+    .task-table thead { position: sticky; top: 0; z-index: 1; }
     .task-table th {
-      padding: 10px 14px; text-align: left;
+      padding: 7px 12px; text-align: left;
       font-size: 11px; font-weight: 700; color: var(--grey-500);
       text-transform: uppercase; letter-spacing: .06em;
       background: var(--grey-50);
@@ -486,14 +517,14 @@
     /* Slot row (the numbered group header) */
     .slot-row td {
       background: var(--blue-pale);
-      padding: 8px 14px;
+      padding: 6px 12px;
       font-weight: 700; font-size: 12px;
       color: var(--blue-deep);
       border-bottom: 1px solid var(--grey-200);
     }
 
     /* Task variant row */
-    .variant-row td { padding: 10px 14px; border-bottom: 1px solid var(--grey-100); }
+    .variant-row td { padding: 7px 12px; border-bottom: 1px solid var(--grey-100); }
     .variant-row:last-of-type td { border-bottom: none; }
 
     .task-name-chip {
@@ -501,18 +532,20 @@
       border-radius: var(--r-small);
       font-size: 12px; font-weight: 600;
     }
-    /* Difficulty chips are descriptive, not status — keep them neutral */
-    .chip-easy,
-    .chip-medium,
-    .chip-hard { background: var(--grey-100); color: var(--grey-700); border: 1px solid var(--grey-200); }
+    /* Difficulty chips — color-coded so a quick scan of the task table shows
+       the mix of easy / medium / hard variants at a glance. Greens for easy,
+       amber for medium, raspberry for hard. Tints match the brand palette. */
+    .chip-easy   { background: var(--green-bg);     color: var(--green);     border: 1px solid #b7e8d3; }
+    .chip-medium { background: var(--amber-bg);     color: var(--amber);     border: 1px solid var(--yellow-light); }
+    .chip-hard   { background: var(--raspberry-tint); color: var(--raspberry); border: 1px solid #f4c0d6; }
     .avg-score   { font-weight: 700; font-size: 14px; color: var(--navy); }
     .disc-value  { font-weight: 700; font-size: 13px; }
 
     /* Insights */
     .insights-list { padding: 0; }
     .insight-item {
-      display: flex; align-items: flex-start; gap: 10px;
-      padding: 10px 14px;
+      display: flex; align-items: flex-start; gap: 9px;
+      padding: 7px 12px;
       border-bottom: 1px solid var(--grey-200);
     }
     .insight-item:last-child { border-bottom: none; }
@@ -535,8 +568,8 @@
     /* Filter chips */
     .filter-chip {
       display: inline-flex; align-items: center;
-      padding: 5px 13px; border-radius: 99px;
-      font-size: 12px; font-weight: 600;
+      padding: 3px 11px; border-radius: 99px;
+      font-size: 11px; font-weight: 600;
       cursor: pointer;
       border: 1px solid var(--grey-300);
       background: var(--card); color: var(--grey-600);
@@ -553,9 +586,22 @@
     }
 
     /* Chart */
-    .chart-wrapper { padding: 14px 16px; }
+    .chart-wrapper { padding: 10px 14px; }
     .chart-meta { font-size: 12px; color: var(--grey-500); margin-bottom: 10px; }
-    #scoreChart { max-height: 200px; }
+    /* Inline shape badge for the chart-meta line. Reuses the badge color
+       palette but drops the .badge default margin-top:6px so it sits
+       inline next to the "Solutions evaluated = N" text instead of
+       breaking onto its own line. */
+    .chart-meta .shape-badge {
+      display: inline-block; vertical-align: middle; margin-left: 8px;
+      padding: 2px 9px; border-radius: 99px;
+      font-size: 11px; font-weight: 600;
+      background: var(--grey-100); border: 1px solid var(--grey-300); color: var(--grey-600);
+    }
+    .chart-meta .shape-badge.green { background: var(--green-bg);     border-color:#b7e8d3;            color: var(--green); }
+    .chart-meta .shape-badge.amber { background: var(--amber-bg);     border-color: var(--yellow-light); color: var(--amber); }
+    .chart-meta .shape-badge.red   { background: var(--raspberry-tint); border-color:#f4c0d6;            color: var(--raspberry); }
+    #scoreChart { max-height: 170px; }
 
     @media (max-width: 760px) {
       .stats-bar { grid-template-columns: 1fr; }
@@ -675,7 +721,7 @@
       <span class="topbar-divider"></span>
       <span style="color:var(--navy);font-weight:600;">Test Health Analysis</span>
     </div>
-    <button class="back-btn" onclick="showUpload()">← New report</button>
+    <button class="back-btn" onclick="showUpload()">← Go back</button>
     <span style="font-size:12px;color:var(--grey-500)" id="report-filename"></span>
     <button class="dl-btn accent" onclick="safeRun(downloadPPTX, this)" style="margin-left:auto">⬇ Download PPTX</button>
   </div>
@@ -690,28 +736,26 @@
       <div class="report-meta-badge" id="r-meta-badge"></div>
     </div>
 
-    <!-- Date filter -->
-    <div class="card" style="margin-bottom:16px;">
+    <!-- Date filter — laid out as two inline rows (Year, Month) with the
+         label sitting flush-left of the chips so the whole card is short
+         enough that the score chart stays in viewport. -->
+    <div class="card" style="margin-bottom:10px;">
       <div class="card-header">
         Filter by Date
         <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Filter the cohort by invitation date (Create date). Select which years and months to include — all invitations sent in that window are kept, including those that never converted. Statistics update immediately.</span></span>
         <span id="r-filter-active" style="display:none;margin-left:auto;font-size:11px;font-weight:600;color:var(--blue);background:var(--blue-bg);padding:2px 10px;border-radius:99px;border:1px solid #c2cdf7;">Filtered</span>
+        <button onclick="clearDateFilter()" style="margin-left:auto;font-size:11px;font-weight:600;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:3px 10px;cursor:pointer;">Clear filter</button>
       </div>
-      <div style="padding:14px 16px;">
-        <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;">
-          <div>
-            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Year</div>
-            <div id="filter-years" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
-          </div>
-          <div>
-            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Month</div>
-            <div id="filter-months" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
-          </div>
-          <div style="margin-left:auto;align-self:flex-end;">
-            <button onclick="clearDateFilter()" style="font-size:12px;font-weight:600;color:var(--muted);background:none;border:1px solid var(--border);border-radius:8px;padding:5px 12px;cursor:pointer;">Clear filter</button>
-          </div>
+      <div style="padding:8px 14px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
+          <span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;width:46px;flex-shrink:0;">Year</span>
+          <div id="filter-years" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
         </div>
-        <div id="filter-summary" style="margin-top:10px;font-size:12px;color:var(--muted);"></div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;width:46px;flex-shrink:0;">Month</span>
+          <div id="filter-months" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
+        </div>
+        <div id="filter-summary" style="margin-top:6px;font-size:11px;color:var(--muted);"></div>
       </div>
     </div>
 
@@ -808,12 +852,13 @@
 
           <div class="stat-item">
             <div class="stat-label">Score SD
-              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Standard deviation of all attempt scores (including zeros). Measures spread — a low SD means candidates clustered around the median; a high SD means scores were spread across the range.</span></span>
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Standard deviation of all attempt scores (including zeros). Measures spread. Under 10% is a tight cluster, 10–20% is a healthy spread, 20–35% is wide, over 35% suggests a bimodal or uneven distribution.</span></span>
             </div>
             <div class="calc-wrap">
               <div class="stat-value" id="r-score-sd">—</div>
               <div class="calc-box" id="calc-score-sd"></div>
             </div>
+            <div class="badge" id="r-sd-badge" style="display:none"></div>
           </div>
 
         </div>
@@ -859,35 +904,37 @@
           Task Analysis
           <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Per-task stats across ALL attempts that have a score for that task. When task rotation is on, tasks are grouped by slot — each slot is one position in the test, served as one of several random variants.</span></span>
         </div>
-        <table class="task-table">
-          <thead>
-            <tr>
-              <th><div class="th-inner">#</div></th>
-              <th><div class="th-inner">Task / Difficulty</div></th>
-              <th>
-                <div class="th-inner">Avg. Score
-                  <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Mean of Task N score % across all attempts that have a score for this task (including zeros). High (>85%) or very low (<15%) may indicate calibration issues.</span></span>
-                </div>
-              </th>
-              <th>
-                <div class="th-inner">Discrimination
-                  <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Pearson r between this task's score and the candidate's total score. Higher is better — it means the task reliably separates strong from weak candidates. Values below 0.2 may indicate a poor discriminator.</span></span>
-                </div>
-              </th>
-              <th>
-                <div class="th-inner">N
-                  <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Number of attempts that received this specific task variant.</span></span>
-                </div>
-              </th>
-              <th id="th-weight" style="display:none">
-                <div class="th-inner">Weight
-                  <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">The percentage weight assigned to this task slot. All slot weights should sum to 100%.</span></span>
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody id="r-task-tbody"></tbody>
-        </table>
+        <div class="task-table-wrap">
+          <table class="task-table">
+            <thead>
+              <tr>
+                <th><div class="th-inner">#</div></th>
+                <th><div class="th-inner">Task / Difficulty</div></th>
+                <th>
+                  <div class="th-inner">Avg. Score
+                    <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Mean of Task N score % across all attempts that have a score for this task (including zeros). High (>85%) or very low (<15%) may indicate calibration issues.</span></span>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-inner">Discrimination
+                    <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Pearson r between this task's score and the candidate's total score. Higher is better. Values at or above 0.75 are highlighted green as strong discriminators; values between 0 and 0.75 are normal but not exceptional; negative values mean the task is working against the total score signal.</span></span>
+                  </div>
+                </th>
+                <th>
+                  <div class="th-inner">N
+                    <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Number of attempts that received this specific task variant.</span></span>
+                  </div>
+                </th>
+                <th id="th-weight" style="display:none">
+                  <div class="th-inner">Weight
+                    <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">The percentage weight assigned to this task slot. All slot weights should sum to 100%.</span></span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="r-task-tbody"></tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Insights -->
@@ -1674,6 +1721,7 @@ function buildReport(rows, cfg, skipFilterRebuild=false){
     const nameKey=`Task ${n} name`;
     const scoreKey=`Task ${n} score %`;
     const diffKey=`Task ${n} difficulty`;
+    const langKey=`Task ${n} language used`;
 
     // Find all unique task names that appeared in this slot
     const nameFreq={};
@@ -1699,11 +1747,16 @@ function buildReport(rows, cfg, skipFilterRebuild=false){
       const diffs=withTask.map(r=>r[diffKey]).filter(v=>!isNA(v));
       const diff=diffs.length?mode(diffs):'';
 
+      // Most common language used on this task — surfaced on the PPTX Task
+      // Analysis slide. Falls back to '' (empty) when nothing was recorded.
+      const langs=withTask.map(r=>r[langKey]).filter(v=>!isNA(v));
+      const lang=langs.length?mode(langs):'';
+
       const avg=mean(taskScores);
       const disc=pearson(taskScores,totalScoresForTask);
 
       return {
-        name:taskName, diff, avg, disc,
+        name:taskName, diff, lang, avg, disc,
         n:withTask.length,
         taskScores, totalScoresForTask,
       };
@@ -1806,6 +1859,20 @@ function render(d){
     isFinite(d.scoreSD)?`SD = ${fmt(d.scoreSD,0)}%`:''
   );
 
+  // SD interpretation badge.
+  //   <10%  : Tight cluster — very low spread, scores hugging the median.
+  //   10-20%: Healthy spread — scores meaningfully distributed but not split.
+  //   20-35%: Wide spread — scores spread across the range, may be hard to set a cut.
+  //   >=35% : Bimodal / uneven — clusters at both ends suggest two populations.
+  // Per Tony's heuristic: anything under 20% is fair, 10% is great, the closer it gets
+  // to 50% the more bimodal/uneven the distribution.
+  if(isFinite(d.scoreSD)){
+    if(d.scoreSD<10)        setBadge('r-sd-badge','Tight Cluster','green');
+    else if(d.scoreSD<20)   setBadge('r-sd-badge','Healthy Spread','green');
+    else if(d.scoreSD<35)   setBadge('r-sd-badge','Wide Spread','amber');
+    else                    setBadge('r-sd-badge','Bimodal / Uneven','red');
+  } else hideBadge('r-sd-badge');
+
   if(isFinite(d.medScore)){
     if(d.medScore<20)                        setBadge('r-difficulty-badge','High Difficulty','red');
     else if(d.medScore>85)                   setBadge('r-difficulty-badge','Low Difficulty','red');
@@ -1820,10 +1887,11 @@ function render(d){
     setCalc('calc-median-time',`Median of ${d.times.length} recorded Time Used (minutes) values`,`Median = ${fmt(d.medTime,1)} min`);
     if(maxTime){
       const minsLeft=maxTime-d.medTime;
-      // ≤5 min remaining = High Time Pressure (red), ≤10 min = Fine (green), >10 min = Too Much Time (amber)
+      // ≤5 min remaining = High Time Pressure (red), ≤10 min = Fine (green), >10 min = Too Much Time (amber).
+      // Amber here matches the semantic intent: "watch this" — the time limit isn't doing any work.
       if(minsLeft<=5)       setBadge('r-time-badge','High Time Pressure','red');
       else if(minsLeft<=10) setBadge('r-time-badge','Fine Time Pressure','green');
-      else                  setBadge('r-time-badge','Too Much Time','');
+      else                  setBadge('r-time-badge','Too Much Time','amber');
     } else hideBadge('r-time-badge');
   } else {
     $('r-median-time').textContent='N/A';
@@ -1855,15 +1923,20 @@ function render(d){
     const isRotated=slot.variants.length>1;
     const slotWeight=showWeight?d.cfg.slotWeights[slot.num]:null;
     const weightDisp=isFinite(slotWeight)?`${slotWeight}%`:'—';
-    // Slot header row — show weight badge here
-    tableHtml+=`<tr class="slot-row">
-      <td>${slot.num}</td>
-      <td colspan="3" style="color:var(--ink)">
-        ${isRotated?`Slot ${slot.num} — ${slot.variants.length} task variants (rotation on)`:`Slot ${slot.num}`}
-      </td>
-      ${showWeight?`<td></td><td style="font-size:12px;font-weight:700;color:var(--blue)">${weightDisp}</td>`:'<td></td>'}
-    </tr>`;
-    slot.variants.forEach(v=>{
+    // Slot divider row — only rendered when rotation is on (2+ variants).
+    // For single-variant slots the slot number is shown in the variant
+    // row's # column instead, which saves a row of vertical space and
+    // removes a redundant header that just repeats "Slot N".
+    if(isRotated){
+      tableHtml+=`<tr class="slot-row">
+        <td>${slot.num}</td>
+        <td colspan="3" style="color:var(--ink)">
+          Slot ${slot.num} — ${slot.variants.length} task variants (rotation on)
+        </td>
+        ${showWeight?`<td></td><td style="font-size:12px;font-weight:700;color:var(--blue)">${weightDisp}</td>`:'<td></td>'}
+      </tr>`;
+    }
+    slot.variants.forEach((v,vi)=>{
       const chipCls=diffChipClass(v.diff);
       const avgDisp=isFinite(v.avg)?`${fmt(v.avg,0)}%`:'N/A';
       const discDisp=isFinite(v.disc)?v.disc.toFixed(2):'N/A';
@@ -1878,8 +1951,12 @@ function render(d){
         else if(v.avg<15) avgBadge=`<span class="badge amber" style="font-size:10px;padding:1px 6px;margin-left:4px">Very Hard</span>`;
       }
 
+      // # cell shows the slot number on single-variant slots (where the
+      // slot-divider row was suppressed); on rotation slots it stays empty
+      // because the divider row already shows the slot number.
+      const numCell = isRotated ? '' : String(slot.num);
       tableHtml+=`<tr class="variant-row">
-        <td></td>
+        <td style="color:var(--grey-500);font-weight:600;">${numCell}</td>
         <td><span class="task-name-chip ${chipCls}">${esc(v.name)}</span></td>
         <td>
           <div class="calc-wrap" style="display:inline-block">
@@ -1911,7 +1988,18 @@ function render(d){
 
   // ── Chart ──
   renderChart(d.allScores);
-  $('r-chart-meta').textContent=`Solutions evaluated = ${d.allScores.length} (all attempts including zeros)`;
+  // Distribution shape indicator. We compute two signals:
+  //   1. Score SD bucket (the same buckets as the SD pill above).
+  //   2. A "bimodality" check — if both the 0% bucket and the 91-100% bucket
+  //      each hold >=20% of attempts, the distribution is visibly polarized.
+  // The chart-meta line surfaces whichever is more concerning so a glance at
+  // the chart tells the reader the shape, not just the count.
+  const shape=describeDistribution(d.allScores, d.scoreSD);
+  const meta=$('r-chart-meta');
+  meta.innerHTML=`Solutions evaluated = ${d.allScores.length} (all attempts including zeros).` +
+    (shape.label
+      ? ` <span class="shape-badge ${shape.cls}">${esc(shape.label)}</span>`
+      : '');
 
   // Weighted scoring notice
   const wNotice=$('r-weighted-notice');
@@ -2202,44 +2290,44 @@ async function downloadPPTX(){
     const tUsed = isFinite(s.medTime) ? Math.round(s.medTime) : null;
     const tLeft = (isFinite(s.medTime) && maxTime) ? Math.round(maxTime-s.medTime) : null;
 
-    // Finding 1 — engagement (drop-off)
+    // Finding 1 — engagement (drop-off). Voice: third person, non-contracted.
     if(dropoff>=50){
-      findings.push({stat:`Given a drop-off of ${dropoff}%, most invited candidates aren't taking the test.`, insight:`The invitation experience is the bottleneck — candidates are receiving the invite but not starting the assessment.`});
+      findings.push({stat:`Drop-off is ${dropoff}%. Most invited candidates are not taking the test.`, insight:`The invite is where the funnel is leaking. Candidates are receiving the link but are not clicking through to start.`});
     } else if(dropoff>=25){
-      findings.push({stat:`Given a drop-off of ${dropoff}%, drop-off is too high.`, insight:`A meaningful share of invited candidates never starts the test, costing the funnel signal it should be capturing.`});
+      findings.push({stat:`Drop-off is ${dropoff}%. The invite is leaking candidates.`, insight:`A meaningful share of invited candidates never starts the test. The funnel is losing signal it should be capturing.`});
     } else {
-      findings.push({stat:`Given a drop-off of ${dropoff}%, engagement is healthy.`, insight:`Most invited candidates are reaching the test, so the invitation experience is working.`});
+      findings.push({stat:`Drop-off is ${dropoff}%. Engagement is healthy.`, insight:`Most invited candidates are reaching the test, so the invite experience is doing its job.`});
     }
 
     // Finding 2 — median score
     if(m!==null){
       if(m>=80){
-        findings.push({stat:`Given a median score of ${m}%, the assessment is too easy.`, insight:`Most candidates are scoring near the top, so the test isn't differentiating skill levels.`});
+        findings.push({stat:`Median score is ${m}%. The assessment is too easy.`, insight:`Most candidates are scoring near the top, so the test is not differentiating between skill levels.`});
       } else if(m<=20){
-        findings.push({stat:`Given a median score of ${m}%, the assessment is too hard.`, insight:`Most candidates are scoring near the bottom, so the test isn't giving them room to show what they can do.`});
+        findings.push({stat:`Median score is ${m}%. The assessment is too hard.`, insight:`Most candidates are scoring near the bottom, so the test is not giving them room to show what they can do.`});
       } else if(m>=40 && m<=60){
-        findings.push({stat:`Given a median score of ${m}%, difficulty is well-calibrated.`, insight:`Scores are spread across the range, so the test is separating stronger and weaker candidates.`});
+        findings.push({stat:`Median score is ${m}%. Difficulty is well-calibrated.`, insight:`Scores are spread across the range, so the test is separating stronger and weaker candidates.`});
       } else {
-        findings.push({stat:`Given a median score of ${m}%, difficulty is slightly off-center.`, insight:`Scores skew to one side of the range, leaving less room to differentiate candidates on the other side.`});
+        findings.push({stat:`Median score is ${m}%. Difficulty is slightly off-center.`, insight:`Scores skew to one side of the range. There is less room to differentiate candidates on the other side.`});
       }
     }
 
     // Finding 3 — time pressure (preferred), else passing rate
     if(tLeft!==null && tLeft<=5){
-      findings.push({stat:`Given a median time of ${tUsed} of ${maxTime} minutes, the time limit is too tight.`, insight:`Candidates are running to the wire, so results reflect speed as much as skill.`});
+      findings.push({stat:`Median time is ${tUsed} of ${maxTime} minutes. The time limit is too tight.`, insight:`Candidates are running to the wire, so results are reflecting speed as much as skill.`});
     } else if(tLeft!==null && tLeft>=10){
-      findings.push({stat:`Given a median time of ${tUsed} of ${maxTime} minutes, the time limit is too loose.`, insight:`Candidates are finishing well before the limit, so the time window isn't doing any work.`});
+      findings.push({stat:`Median time is ${tUsed} of ${maxTime} minutes. The time limit is too loose.`, insight:`Candidates are finishing well before the limit, so the time window is not doing any work.`});
     } else if(tLeft!==null){
-      findings.push({stat:`Given a median time of ${tUsed} of ${maxTime} minutes, the time limit is well-calibrated.`, insight:`Candidates are using most of the allotted time without rushing the finish.`});
+      findings.push({stat:`Median time is ${tUsed} of ${maxTime} minutes. The time limit is well-calibrated.`, insight:`Candidates are using most of the allotted time without rushing the finish.`});
     } else if(pr!==null){
       if(pr>=80){
-        findings.push({stat:`Given a passing rate of ${pr}%, the passing bar is too low.`, insight:`Most candidates are clearing the bar, so the threshold isn't filtering meaningfully.`});
+        findings.push({stat:`Passing rate is ${pr}%. The passing bar is too low.`, insight:`Most candidates are clearing the bar, so the threshold is not filtering meaningfully.`});
       } else if(pr<=20){
-        findings.push({stat:`Given a passing rate of ${pr}%, the passing bar is too high.`, insight:`Few candidates are clearing the bar, so qualified candidates are likely being filtered out.`});
+        findings.push({stat:`Passing rate is ${pr}%. The passing bar is too high.`, insight:`Few candidates are clearing the bar, so qualified candidates are likely being filtered out.`});
       } else if(pr>=40 && pr<=60){
-        findings.push({stat:`Given a passing rate of ${pr}%, the passing bar is well-calibrated.`, insight:`The threshold is splitting the candidate pool roughly down the middle, which is a strong filter.`});
+        findings.push({stat:`Passing rate is ${pr}%. The passing bar is well-calibrated.`, insight:`The threshold is splitting the candidate pool roughly down the middle, which is a strong filter.`});
       } else {
-        findings.push({stat:`Given a passing rate of ${pr}%, the passing bar is slightly off-center.`, insight:`The filter is workable but leaning toward one side of the candidate pool.`});
+        findings.push({stat:`Passing rate is ${pr}%. The passing bar is slightly off-center.`, insight:`The filter is workable but is leaning toward one side of the candidate pool.`});
       }
     }
 
@@ -2457,10 +2545,10 @@ async function downloadPPTX(){
     // ── KEY TAKEAWAY band ──
     // Pick the most informative delta to summarize. Median Score and Passing
     // Rate are the most useful signals; if neither moved meaningfully, fall
-    // back to a population-level summary.
+    // back to a population-level summary. Voice: third person, no contractions.
     let takeaway=null;
     if(flagged===0){
-      takeaway={stat:`No High-risk candidates in this cohort.`, descriptor:`Integrity exclusions do not change the read.`};
+      takeaway={stat:`No high-risk candidates in this batch.`, descriptor:`Integrity flags are not changing the read.`};
     } else {
       const ms=left[2].raw, msAfter=right[2].raw;
       const pr=left[3].raw, prAfter=right[3].raw;
@@ -2468,14 +2556,14 @@ async function downloadPPTX(){
       const prD=(pr!==null && prAfter!==null) ? (prAfter-pr) : 0;
       if(Math.abs(msD)>=3 || Math.abs(prD)>=3){
         const parts=[];
-        if(Math.abs(msD)>=3) parts.push(`median score ${msD>0?'rises':'falls'} ${Math.abs(msD)} points to ${msAfter}%`);
-        if(Math.abs(prD)>=3) parts.push(`passing rate ${prD>0?'rises':'falls'} ${Math.abs(prD)} points to ${prAfter}%`);
+        if(Math.abs(msD)>=3) parts.push(`the median ${msD>0?'rises':'drops'} ${Math.abs(msD)} points to ${msAfter}%`);
+        if(Math.abs(prD)>=3) parts.push(`passing rate ${prD>0?'rises':'drops'} ${Math.abs(prD)} points to ${prAfter}%`);
         const verdict = (msD>0||prD>0)
-          ? `High-risk attempts were suppressing the genuine performance read.`
-          : `Removing the high-risk cohort lowers the headline numbers, so flagged candidates were contributing real-looking scores.`;
-        takeaway={stat:`Excluding ${flagged} High-risk candidate${flagged===1?'':'s'}, ${parts.join(' and ')}.`, descriptor:verdict};
+          ? `The flagged candidates were dragging the headline numbers down. Removing them gives a cleaner read of the rest of the pool.`
+          : `The flagged candidates were posting competitive scores, which means they were inflating the read on the rest of the pool.`;
+        takeaway={stat:`Removing the ${flagged} high-risk candidate${flagged===1?'':'s'} from the pool, ${parts.join(' and ')}.`, descriptor:verdict};
       } else {
-        takeaway={stat:`Excluding ${flagged} High-risk candidate${flagged===1?'':'s'}, the headline KPIs barely move.`, descriptor:`Integrity flags aren't materially shifting the read for this cohort.`};
+        takeaway={stat:`Removing the ${flagged} high-risk candidate${flagged===1?'':'s'} barely moves the numbers.`, descriptor:`Integrity flags are not shifting how this assessment looks for this batch.`};
       }
     }
     // Takeaway band sized to fit two lines at 9pt with breathing room. The
@@ -2498,6 +2586,202 @@ async function downloadPPTX(){
     return sl;
   }
 
+  // ── TASK ANALYSIS ──
+  // A table-style slide that surfaces per-task performance: name, difficulty,
+  // most common language used, average score, discrimination (Pearson r vs.
+  // total), and N. Tasks are grouped by slot, mirroring the dashboard's task
+  // table. When task rotation is enabled, multiple variants per slot are
+  // listed beneath a slot header row.
+  //
+  // Slot data is read from the dashboard's _lastRenderData closure variable,
+  // which buildReport populated when render() ran. The calling code already
+  // gates this slide on showTaskAnalysis === true, so taskSlots is non-empty.
+  //
+  // ── Sizing for many tasks ──
+  // Tests can have anywhere from 3 to 15+ task variants. Strategy:
+  //   1. Build the flat row list once (slot headers + variants).
+  //   2. Try the most comfortable density first; if rows don't fit on one
+  //      slide, step down through medium and tight; if still too many,
+  //      paginate (keep the same density, split rows across multiple slides).
+  //   3. Each slide repeats the column header. Slot headers are repeated
+  //      with "(continued)" when their variants spill onto the next slide.
+
+  // Build a flat row list once. Used by both the page-count helper and the
+  // actual slide builder. Each row is either {type:'slot', text} or
+  // {type:'variant', v} where v is the per-variant stats object.
+  //
+  // Slot divider rows are emitted only for rotation slots (>=2 variants).
+  // Single-variant slots show the slot number on the variant row's `#`
+  // column instead, which avoids orphan-looking "Slot N" rows above each
+  // task and saves vertical space — important when tests have many slots.
+  function buildTaskRows(){
+    const rows=[];
+    taskSlots.forEach(slot=>{
+      const isRotated=slot.variants.length>1;
+      if(isRotated){
+        rows.push({
+          type:'slot',
+          slotNum:slot.num,
+          variantCount:slot.variants.length,
+          text:`Slot ${slot.num} — ${slot.variants.length} task variants (rotation on)`
+        });
+      }
+      slot.variants.forEach(v=>{
+        rows.push({type:'variant', slotNum:slot.num, slotInline:!isRotated, v});
+      });
+    });
+    return rows;
+  }
+
+  // Pick a density level (comfortable / medium / tight) based on row count.
+  // Returns {variantH, slotH, fontVariant, fontSlot, chipH, chipFont}.
+  // Available vertical space inside the slide body is ~4.0" (table top y=1.15
+  // → footer hairline at y=5.32, less the 0.32" header row = 3.85" usable).
+  function pickTaskDensity(totalRows){
+    // Try comfortable; if it fits, use it. Otherwise medium, then tight.
+    // The slot rows are always shorter than variant rows. Conservative
+    // estimate: half slot, half variant (real ratios usually favor variants).
+    const usable = 5.32 - 1.15 - 0.32;     // ≈ 3.85"
+    const candidates = [
+      {label:'comfortable', variantH:0.34, slotH:0.24, fontVariant:10, fontSlot:9, chipH:0.18, chipFont:7,  numFont:11},
+      {label:'medium',      variantH:0.28, slotH:0.20, fontVariant:9,  fontSlot:8, chipH:0.16, chipFont:6.5,numFont:10},
+      {label:'tight',       variantH:0.24, slotH:0.18, fontVariant:8,  fontSlot:8, chipH:0.14, chipFont:6,  numFont:9},
+    ];
+    for(const c of candidates){
+      // Worst case: all rows are variants (max height per row).
+      if(totalRows * c.variantH <= usable) return c;
+    }
+    return candidates[candidates.length-1]; // tight, paginate
+  }
+
+  // How many rows can a single slide hold at the chosen density? Used by
+  // both the slide-count predictor and the pagination loop. Slot rows take
+  // less vertical space than variants, so we use the variant height as a
+  // conservative upper bound — guarantees we never write past the footer.
+  function rowsPerSlide(density){
+    const usable = 5.32 - 1.15 - 0.32;
+    return Math.max(1, Math.floor(usable / density.variantH));
+  }
+
+  // How many slides will Task Analysis take? Calculated up front so
+  // totalSlides (used by footer page numbers) is right.
+  function taskAnalysisSlideCount(){
+    if(!showTaskAnalysis) return 0;
+    const rows=buildTaskRows();
+    const density=pickTaskDensity(rows.length);
+    const perSlide=rowsPerSlide(density);
+    return Math.max(1, Math.ceil(rows.length / perSlide));
+  }
+
+  // Render the Task Analysis section — one or more slides depending on row
+  // count. Each call increments slideNum exactly once per slide. The header
+  // row is repeated per slide, with a "(2 of 3)" suffix when paginated.
+  function taskAnalysisSlides(){
+    const allRows=buildTaskRows();
+    const density=pickTaskDensity(allRows.length);
+    const perSlide=rowsPerSlide(density);
+    const totalPages=Math.max(1, Math.ceil(allRows.length / perSlide));
+    for(let page=0; page<totalPages; page++){
+      const start=page*perSlide;
+      const chunk=allRows.slice(start, start+perSlide);
+      // If the first row of a chunk is a variant whose slot header was on
+      // the previous page, prepend a "(continued)" pseudo-header so the
+      // reader isn't dropped into a list with no context.
+      if(page>0 && chunk[0] && chunk[0].type==='variant'){
+        chunk.unshift({
+          type:'slot',
+          slotNum:chunk[0].slotNum,
+          continued:true,
+          text:`Slot ${chunk[0].slotNum} (continued)`
+        });
+      }
+      taskAnalysisRenderOne(chunk, page+1, totalPages, density);
+    }
+  }
+
+  // Render a single Task Analysis slide. `chunk` is the subset of rows that
+  // fits on this page; `page`/`totalPages` drive the "(2 of 3)" header tag.
+  function taskAnalysisRenderOne(chunk, page, totalPages, density){
+    slideNum++;
+    const sl=pres.addSlide();
+    sl.background={color:C.bgLight};
+    // Header — same eyebrow + title pattern as the other content slides
+    const titleSuffix = totalPages>1 ? ` (${page} of ${totalPages})` : '';
+    sl.addText('ALL TIME',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
+    sl.addText(`Task Analysis${titleSuffix}`,{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+    sl.addText(testName,{x:6.8,y:0.36,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.54,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    sl.addText(generatedOn,{x:6.8,y:0.72,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+
+    // ── Table layout ──
+    // 6 columns: # | Task / Difficulty | Language | Avg | Discrimination | N
+    const tableX=0.4, tableY=1.15, tableW=9.2;
+    const colWidths=[0.4, 3.4, 1.6, 1.4, 1.6, 0.8];      // sums to 9.2
+    const colXs=[];
+    let acc=tableX; colWidths.forEach(w=>{colXs.push(acc); acc+=w;});
+
+    // Header row (always 0.32" tall, regardless of body density)
+    const headH=0.32;
+    sl.addShape(pres.shapes.RECTANGLE,{x:tableX,y:tableY,w:tableW,h:headH,fill:{color:C.gray},line:{color:C.borderLight,pt:0.5}});
+    const headers=['#','TASK / DIFFICULTY','LANGUAGE','AVG. SCORE','DISCRIMINATION','N'];
+    headers.forEach((h,i)=>{
+      sl.addText(h,{x:colXs[i]+0.08,y:tableY,w:colWidths[i]-0.16,h:headH,fontFace:FONT,fontSize:8,bold:true,color:C.mutedLight,charSpacing:2,margin:0,valign:'middle'});
+    });
+
+    // Body rows
+    let curY=tableY+headH;
+    chunk.forEach(r=>{
+      if(r.type==='slot'){
+        const rowH=density.slotH;
+        sl.addShape(pres.shapes.RECTANGLE,{x:tableX,y:curY,w:tableW,h:rowH,fill:{color:C.bgPale},line:{color:C.borderLight,pt:0.5}});
+        sl.addText(r.text,{x:tableX+0.12,y:curY,w:tableW-0.24,h:rowH,fontFace:FONT,fontSize:density.fontSlot,bold:true,color:C.inkAccent,margin:0,valign:'middle'});
+        curY+=rowH;
+        return;
+      }
+      const v=r.v;
+      const rowH=density.variantH;
+      sl.addShape(pres.shapes.RECTANGLE,{x:tableX,y:curY,w:tableW,h:rowH,fill:{color:C.card},line:{color:C.borderLight,pt:0.5}});
+      // # column — show slot number when no rotation (single-variant slot,
+      // no slot-divider row above this one). Rotation slots leave the cell
+      // empty since the divider row already labels the slot.
+      if(r.slotInline){
+        sl.addText(String(r.slotNum),{x:colXs[0]+0.08,y:curY,w:colWidths[0]-0.16,h:rowH,fontFace:FONT,fontSize:density.fontVariant,color:C.mutedLight,align:'left',margin:0,valign:'middle'});
+      }
+      // Task name in the "TASK / DIFFICULTY" cell. We reserve room on the
+      // right of the cell for the difficulty chip so the chip never
+      // overlaps the name. shrinkText handles long task titles.
+      const chipW=0.55;
+      sl.addText(v.name,{x:colXs[1]+0.08,y:curY,w:colWidths[1]-0.16-chipW-0.05,h:rowH,fontFace:FONT,fontSize:density.fontVariant,bold:true,color:C.inkDark,margin:0,valign:'middle',shrinkText:true,wrap:false});
+      if(v.diff){
+        const dl=String(v.diff).toLowerCase();
+        const chipTone= dl==='easy'   ? {bg:C.greenBg, fg:C.green}
+                      : dl==='medium' ? {bg:C.amberBg, fg:C.amber}
+                      : dl==='hard'   ? {bg:C.accent2Tint, fg:C.accent2}
+                      :                  {bg:C.gray,    fg:C.grayFg};
+        const chipH=density.chipH;
+        const chipX=colXs[1]+colWidths[1]-chipW-0.12;
+        const chipY=curY+(rowH-chipH)/2;
+        sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:chipX,y:chipY,w:chipW,h:chipH,fill:{color:chipTone.bg},line:{type:'none'},rectRadius:0.05});
+        sl.addText(String(v.diff),{x:chipX,y:chipY,w:chipW,h:chipH,fontFace:FONT,fontSize:density.chipFont,bold:true,color:chipTone.fg,align:'center',valign:'middle',margin:0});
+      }
+      // Language
+      sl.addText(v.lang||'—',{x:colXs[2]+0.08,y:curY,w:colWidths[2]-0.16,h:rowH,fontFace:FONT,fontSize:density.fontVariant-1,color:C.inkDark,margin:0,valign:'middle'});
+      // Avg score
+      const avgDisp=isFinite(v.avg)?`${Math.round(v.avg)}%`:'N/A';
+      sl.addText(avgDisp,{x:colXs[3]+0.08,y:curY,w:colWidths[3]-0.16,h:rowH,fontFace:FONT,fontSize:density.numFont,bold:true,color:C.inkAccent,align:'center',margin:0,valign:'middle'});
+      // Discrimination — color by quality (>=0.75 green, >=0 ink, <0 red).
+      const discDisp=isFinite(v.disc)?v.disc.toFixed(2):'N/A';
+      const discColor=isFinite(v.disc)?(v.disc>=0.75?C.green:v.disc>=0?C.inkDark:C.red):C.mutedLight;
+      sl.addText(discDisp,{x:colXs[4]+0.08,y:curY,w:colWidths[4]-0.16,h:rowH,fontFace:FONT,fontSize:density.numFont,bold:true,color:discColor,align:'center',margin:0,valign:'middle'});
+      // N
+      sl.addText(String(v.n),{x:colXs[5]+0.08,y:curY,w:colWidths[5]-0.16,h:rowH,fontFace:FONT,fontSize:density.fontVariant,color:C.mutedLight,align:'center',margin:0,valign:'middle'});
+      curY+=rowH;
+    });
+
+    footer(sl,'TASK ANALYSIS');
+    return sl;
+  }
+
   // Build up to 3 recommendations for the closing Next Steps slide. Each
   // candidate is an {action, plan, topic, priority}. `action` is a direct
   // imperative ("Increase assessment difficulty."). `plan` is "Given [data],
@@ -2513,53 +2797,53 @@ async function downloadPPTX(){
     // ── 1. Difficulty — driven by median score ──
     if(m!==null){
       if(m>=80){
-        candidates.push({priority:1, topic:'difficulty', action:'Increase assessment difficulty.', plan:`Given the median score of ${m}%, swap an easier task for a harder one or tighten the time limit so stronger candidates can be identified.`});
+        candidates.push({priority:1, topic:'difficulty', action:'Make the assessment harder.', plan:`The median is ${m}%, which means the test is too easy. Swap an easier task for a harder one or tighten the clock so stronger candidates have somewhere to stand out.`});
       } else if(m<=20){
-        candidates.push({priority:1, topic:'difficulty', action:'Decrease assessment difficulty.', plan:`Given the median score of ${m}%, swap a harder task for a mid-difficulty one or extend the time limit so candidates can demonstrate their skills.`});
+        candidates.push({priority:1, topic:'difficulty', action:'Make the assessment easier.', plan:`The median is ${m}%, which means the test is too hard. Swap a hard task for a mid-difficulty one or extend the time so candidates have room to show what they can do.`});
       } else if(m<40 || m>60){
-        candidates.push({priority:3, topic:'difficulty', action:'Recalibrate task difficulty.', plan:`Given the median score of ${m}%, adjust the task mix to bring the median closer to 50%.`});
+        candidates.push({priority:3, topic:'difficulty', action:'Recalibrate task difficulty.', plan:`The median is ${m}%, slightly off-center. Adjust the task mix so the median lands closer to the middle of the range.`});
       }
     }
 
     // ── 2. Passing threshold ──
     if(pr!==null){
       if(pr>=80){
-        candidates.push({priority:1, topic:'passing', action:'Raise the passing threshold.', plan:`Given the passing rate of ${pr}%, the bar is too low — set a higher passing score so the filter does real work.`});
+        candidates.push({priority:1, topic:'passing', action:'Raise the passing threshold.', plan:`The passing rate is ${pr}%, which is too low a bar. Set a higher passing score so the threshold is actually filtering candidates.`});
       } else if(pr<=20){
-        candidates.push({priority:1, topic:'passing', action:'Lower the passing threshold.', plan:`Given the passing rate of ${pr}%, the bar is too high — set a lower passing score so qualified candidates aren't filtered out.`});
+        candidates.push({priority:1, topic:'passing', action:'Lower the passing threshold.', plan:`The passing rate is ${pr}%, which is too high a bar. Set a lower passing score so qualified candidates are not getting filtered out.`});
       } else if(pr<40 || pr>60){
-        candidates.push({priority:2, topic:'passing', action:'Adjust the passing threshold.', plan:`Given the passing rate of ${pr}%, nudge the threshold so the pass/fail split lands closer to the middle of the pool.`});
+        candidates.push({priority:2, topic:'passing', action:'Adjust the passing threshold.', plan:`The passing rate is ${pr}%, which is leaning to one side. Nudge the threshold so the pass/fail split lands closer to the middle of the pool.`});
       }
     }
 
     // ── 3. Time pressure ──
     if(tLeft!==null){
       if(tLeft<=5){
-        candidates.push({priority:1, topic:'time', action:'Loosen the time limit.', plan:`Given the median time of ${tUsed} of ${maxTime} minutes, raise the time limit or trim a task so results reflect skill rather than speed.`});
+        candidates.push({priority:1, topic:'time', action:'Loosen the time limit.', plan:`The median is ${tUsed} of ${maxTime} minutes. Raise the time limit or trim a task so results are reflecting skill rather than speed.`});
       } else if(tLeft>=10){
-        candidates.push({priority:2, topic:'time', action:'Tighten the time limit.', plan:`Given the median time of ${tUsed} of ${maxTime} minutes, shorten the window closer to where candidates actually finish so the assessment runs leaner.`});
+        candidates.push({priority:2, topic:'time', action:'Tighten the time limit.', plan:`The median is ${tUsed} of ${maxTime} minutes. Shorten the window closer to where candidates actually finish so the assessment is leaner.`});
       }
     }
 
     // ── 4. Drop-off ──
     if(dropoff>=50){
-      candidates.push({priority:1, topic:'dropoff', action:'Fix the invitation experience.', plan:`Given the drop-off of ${dropoff}%, rewrite the invitation copy, set clearer expectations on test length, and add reminders so more candidates start the test.`});
+      candidates.push({priority:1, topic:'dropoff', action:'Fix the invite experience.', plan:`Drop-off is ${dropoff}%, which means the invite is the bottleneck. Rewrite the copy, set clearer expectations on test length, and add reminders so more candidates start the test.`});
     } else if(dropoff>=25){
-      candidates.push({priority:2, topic:'dropoff', action:'Improve the invitation experience.', plan:`Given the drop-off of ${dropoff}%, refresh invitation copy and add a reminder cadence so more invited candidates take the test.`});
+      candidates.push({priority:2, topic:'dropoff', action:'Improve the invite experience.', plan:`Drop-off is ${dropoff}%, which is leaking candidates before they even attempt. Refresh the invite copy and add a reminder cadence so more invited candidates take the test.`});
     }
 
     // Recommendations only reference the five KPIs surfaced in the deck —
     // INVITATIONS / ATTEMPTS / MEDIAN SCORE / PASSING RATE / MEDIAN TIME.
     // Integrity, proctoring, rotation, and other config-only signals are
-    // intentionally excluded so the slide doesn't introduce data points the
-    // reader hasn't already seen.
+    // intentionally excluded so the slide does not introduce data points
+    // the reader has not already seen.
 
     // ── Fallbacks ──
     if(pr===null && candidates.length<3){
-      candidates.push({priority:4, topic:'config', action:'Set a passing threshold.', plan:'No passing score is configured, so passing-rate analysis is unavailable. Set a threshold to surface a sharper read on filtering.'});
+      candidates.push({priority:4, topic:'config', action:'Set a passing threshold.', plan:'No passing score is configured, so passing-rate analysis is unavailable. Set a threshold to get a sharper read on filtering.'});
     }
     if(candidates.length<3){
-      candidates.push({priority:5, topic:'monitor', action:'Keep the assessment as-is.', plan:'No flags surfaced. The current setup is producing workable signals — revisit after the next batch to confirm the trend holds.'});
+      candidates.push({priority:5, topic:'monitor', action:'Keep the assessment as it is.', plan:'No flags surfaced. The current setup is producing workable signals. Revisit after the next batch to confirm the trend holds.'});
     }
 
     // Sort by priority (lowest = most important), dedupe by topic, take 3.
@@ -2707,14 +2991,13 @@ async function downloadPPTX(){
   }
 
   // Build a single-sentence "key takeaway" interpreting the stats visible on
-  // the slide. Data-led, hedged, no em dashes. The takeaway must reference
-  // only metrics shown on the stat slide itself (engagement, scoring, time,
-  // fairness when present). Integrity is intentionally excluded since it is
-  // not surfaced on these slides.
-  // Returns a {stat, descriptor} pair. The takeaway names the single most
-  // prominent signal on the slide and labels it directly — "too easy", "too
-  // hard", "too tight" — not "toward the top of the range". Findings explain
-  // why; Next Steps act on it.
+  // the slide. Voice: third person, non-contracted, same length as before.
+  // The takeaway references only metrics shown on the stat slide itself
+  // (engagement, scoring, time, fairness). Integrity is intentionally
+  // excluded since it is not surfaced on these slides.
+  // Returns a {stat, descriptor} pair. Stat names the headline number;
+  // descriptor labels the verdict directly. Findings explain why on the
+  // Executive Summary slide; Next Steps act on it on the closing slide.
   function buildTakeaway(s, showFairness, cfg, maxTime){
     if(!s.attempts) return null;
     const dropoff=Math.round((1-s.attempts/Math.max(s.invitations,1))*100);
@@ -2726,33 +3009,33 @@ async function downloadPPTX(){
     // Pick the strongest signal among metrics actually shown on the slide.
     // Order: extreme median score, time pressure, drop-off, passing rate, fallback.
     if(m!==null && m>=85){
-      return {stat:`Median score is ${m}%.`, descriptor:`The assessment is too easy.`};
+      return {stat:`Median score is ${m}%.`, descriptor:`The assessment is too easy. Most candidates are clearing the top of the range, so the test is not separating strong from weak.`};
     }
     if(m!==null && m<=20){
-      return {stat:`Median score is ${m}%.`, descriptor:`The assessment is too hard.`};
+      return {stat:`Median score is ${m}%.`, descriptor:`The assessment is too hard. Most candidates are scoring near the floor and are not getting room to show what they can do.`};
     }
     if(tLeft!==null && tLeft<=5){
-      return {stat:`Median time used is ${tUsed} of ${maxTime} minutes.`, descriptor:`The time limit is too tight.`};
+      return {stat:`Median time used is ${tUsed} of ${maxTime} minutes.`, descriptor:`The time limit is too tight. Candidates are running to the wire, so results are reflecting speed as much as skill.`};
     }
     if(tLeft!==null && tLeft>=10){
-      return {stat:`Median time used is ${tUsed} of ${maxTime} minutes.`, descriptor:`The time limit is too loose.`};
+      return {stat:`Median time used is ${tUsed} of ${maxTime} minutes.`, descriptor:`The time limit is too loose. Candidates are finishing well before the limit, so the time window is not doing any work.`};
     }
     if(dropoff>=50){
-      return {stat:`Drop-off is ${dropoff}%.`, descriptor:`Most invited candidates aren't taking the test.`};
+      return {stat:`Drop-off is ${dropoff}%.`, descriptor:`More than half of invited candidates are not taking the test. The invite is the bottleneck, not the assessment itself.`};
     }
     if(dropoff>=25){
-      return {stat:`Drop-off is ${dropoff}%.`, descriptor:`Drop-off is too high.`};
+      return {stat:`Drop-off is ${dropoff}%.`, descriptor:`A meaningful chunk of the funnel is dropping out before attempting the assessment. The invite experience is leaking candidates.`};
     }
     if(pr!==null && pr>=80){
-      return {stat:`Passing rate is ${pr}%.`, descriptor:`The passing bar is too low.`};
+      return {stat:`Passing rate is ${pr}%.`, descriptor:`The passing bar is too low. Most candidates are clearing it, so the threshold is not filtering anyone meaningfully.`};
     }
     if(pr!==null && pr<=20){
-      return {stat:`Passing rate is ${pr}%.`, descriptor:`The passing bar is too high.`};
+      return {stat:`Passing rate is ${pr}%.`, descriptor:`The passing bar is too high. Few candidates are clearing it, which means qualified people are likely getting filtered out.`};
     }
     if(m!==null && m>=40 && m<=60){
-      return {stat:`Median score is ${m}%.`, descriptor:`Difficulty is well-calibrated.`};
+      return {stat:`Median score is ${m}%.`, descriptor:`Difficulty is well-calibrated. Scores are spread across the range, so the test is separating stronger and weaker candidates.`};
     }
-    return {stat:`${s.attempts} attempts across ${s.invitations} invitations.`, descriptor:`No flags this period.`};
+    return {stat:`${s.attempts} attempts across ${s.invitations} invitations.`, descriptor:`Nothing concerning this period. Engagement, scoring, and time are all in healthy ranges.`};
   }
 
   // ── Compute stats helper ──
@@ -2815,10 +3098,22 @@ async function downloadPPTX(){
   // Integrity Risk Status data. integrityWithData counts attempted candidates
   // with a non-blank value; if it's zero the entire section is skipped.
   const showIntegritySection = _overall.integrityWithData > 0;
+  // Task Analysis slide(s) are rendered inside Section 01 (ALL TIME) when
+  // the dashboard captured slot data. _lastRenderData is set by render()
+  // before the user clicks Download, so it should always be present here;
+  // fall back to false if the user somehow bypasses that path.
+  const taskSlots = (window._lastRenderData && window._lastRenderData.slots) || [];
+  const showTaskAnalysis = taskSlots.length > 0;
+  // Tests with many task variants (15+) overflow a single slide. The Task
+  // Analysis section paginates automatically — count those pages here so
+  // footer "X / Y" page numbers stay correct.
+  const taskAnalysisPages = showTaskAnalysis ? taskAnalysisSlideCount() : 0;
+
   // totalSlides counts only CONTENT slides (those that increment slideNum):
   //   exec summary + TOC + statCount + methodology = 3 + statCount
-  // Add 1 more for integrityImpactSlide when present (the divider doesn't increment slideNum).
-  totalSlides = 3 + statCount + (showIntegritySection ? 1 : 0);
+  // Add 1 for integrityImpactSlide when present, plus N for the
+  // taskAnalysis pages (1 in the common case, more for big assessments).
+  totalSlides = 3 + statCount + (showIntegritySection ? 1 : 0) + taskAnalysisPages;
 
   // ════════════════════════════════
   // 1. COVER
@@ -2840,6 +3135,13 @@ async function downloadPPTX(){
   // ════════════════════════════════
   sectionDivider('01','All Time Overview');
   statSlide('All Time', _overall, /*showFairness=*/true, 'ALL TIME');
+  // Task Analysis slide(s) are rendered inside Section 01 (ALL TIME) so
+  // the task-level deep-dive lives next to the all-time KPIs that
+  // summarize it. taskAnalysisSlides() emits 1 or more pages depending on
+  // task count.
+  if(showTaskAnalysis){
+    taskAnalysisSlides();
+  }
 
   // ════════════════════════════════
   // SECTION 2 — BY YEAR
@@ -2893,42 +3195,98 @@ async function downloadPPTX(){
 
 // ── old per-slide helpers kept for reference (not called) ──
 
-// Shared insights builder (used by both render + PPTX)
+// Shared insights builder. Produces the data the dashboard's "Assessment
+// Health Insights" card renders. Voice: third person, non-contracted, no
+// em-dashes, same length as the previous templated copy.
 function buildInsightsData(d){
   const ins=[];
   const maxTime=isFinite(d.cfg.maxTime)?d.cfg.maxTime:null;
+
+  // ── 1. Time Pressure ──
   if(isFinite(d.medTime)&&maxTime){
     const minsLeft=maxTime-d.medTime;
     const ok=minsLeft>5&&minsLeft<=10;
     const desc=minsLeft<=5
-      ?`High time pressure — only ${Math.round(minsLeft)} min left (median ${Math.round(d.medTime)} of ${maxTime} min)`
+      ?`Time is too tight. Candidates have only ${Math.round(minsLeft)} minutes left at the median (${Math.round(d.medTime)} of ${maxTime}).`
       :minsLeft<=10
-      ?`Fine — ${Math.round(minsLeft)} min remaining (median ${Math.round(d.medTime)} of ${maxTime} min)`
-      :`Too much time — ${Math.round(minsLeft)} min remaining (median ${Math.round(d.medTime)} of ${maxTime} min)`;
+      ?`Time is well-calibrated. Candidates have ${Math.round(minsLeft)} minutes remaining at the median (${Math.round(d.medTime)} of ${maxTime}).`
+      :`Time is too loose. Candidates have ${Math.round(minsLeft)} minutes remaining at the median (${Math.round(d.medTime)} of ${maxTime}).`;
     ins.push({icon:ok?'✓':'⚠',cls:ok?'ok':'warn',title:'Time Pressure',desc});
   } else if(isFinite(d.medTime)){
-    ins.push({icon:'✓',cls:'ok',title:'Time Pressure',desc:`Median attempt time of ${Math.round(d.medTime)} min (no max duration set)`});
+    ins.push({icon:'✓',cls:'ok',title:'Time Pressure',desc:`Median attempt time is ${Math.round(d.medTime)} minutes. No max duration is set.`});
   }
+
+  // ── 2. Completion Rate (attempts ÷ invitations) ──
+  // Heuristic: <75% concerning, 75-80% borderline, 80-90% good, >=90% great.
+  if(d.totalInvitations>0){
+    const compRate=Math.round((d.numAttempts/d.totalInvitations)*100);
+    let cls,icon,desc;
+    if(compRate>=90){
+      cls='ok'; icon='✓';
+      desc=`Engagement looks great. ${compRate}% of invited candidates attempted the test (${d.numAttempts} of ${d.totalInvitations}).`;
+    } else if(compRate>=80){
+      cls='ok'; icon='✓';
+      desc=`Engagement looks good. ${compRate}% of invited candidates attempted the test (${d.numAttempts} of ${d.totalInvitations}).`;
+    } else if(compRate>=75){
+      cls='warn'; icon='⚠';
+      desc=`Engagement is borderline. ${compRate}% of invited candidates attempted the test (${d.numAttempts} of ${d.totalInvitations}).`;
+    } else {
+      cls='warn'; icon='⚠';
+      desc=`Engagement is concerning. Only ${compRate}% of invited candidates even started the test (${d.numAttempts} of ${d.totalInvitations}).`;
+    }
+    ins.push({icon,cls,title:'Completion Rate',desc});
+  }
+
+  // ── 3. Configuration (rotation + proctoring) ──
   const cfgNotes=[];
-  if(!d.cfg.rotation)   cfgNotes.push('No task rotation');
-  if(!d.cfg.proctoring) cfgNotes.push('No proctoring');
-  ins.push({icon:cfgNotes.length?'⚠':'✓',cls:cfgNotes.length?'warn':'ok',title:'Configuration',desc:cfgNotes.length?cfgNotes.join('; '):'Task rotation: ON; Proctoring: ON'});
+  if(!d.cfg.rotation)   cfgNotes.push('Task rotation is off');
+  if(!d.cfg.proctoring) cfgNotes.push('Proctoring is off');
+  ins.push({
+    icon:cfgNotes.length?'⚠':'✓',
+    cls:cfgNotes.length?'warn':'ok',
+    title:'Configuration',
+    desc:cfgNotes.length?(cfgNotes.join('. ')+'.'):'Task rotation and proctoring are both on.'
+  });
+
+  // ── 4. Difficulty (median score) ──
   if(isFinite(d.medScore)){
     const tooEasy=d.medScore>85,tooHard=d.medScore<20;
-    ins.push({icon:(tooEasy||tooHard)?'⚠':'✓',cls:(tooEasy||tooHard)?'warn':'ok',title:'Difficulty',
-      desc:tooEasy?`Very high median score of ${Math.round(d.medScore)}% (may be too easy)`:tooHard?`Very low median score of ${Math.round(d.medScore)}% (may be too hard)`:`Moderate median score of ${Math.round(d.medScore)}%`});
+    ins.push({
+      icon:(tooEasy||tooHard)?'⚠':'✓',
+      cls:(tooEasy||tooHard)?'warn':'ok',
+      title:'Difficulty',
+      desc:tooEasy?`The test looks too easy. Median score is ${Math.round(d.medScore)}%, with most candidates clustering near the top.`
+          :tooHard?`The test looks too hard. Median score is ${Math.round(d.medScore)}%, with most candidates clustering near the bottom.`
+          :`Difficulty looks good. Median is ${Math.round(d.medScore)}%, in the healthy range.`
+    });
   }
+
+  // ── 5. Question Quality (leaked items + low-scoring tasks) ──
   const lowAvgTasks=d.slots.flatMap(s=>s.variants).filter(v=>isFinite(v.avg)&&v.avg<15);
   const qIssues=[];
-  if(d.cfg.leaked) qIssues.push('Leaked items flagged');
-  if(lowAvgTasks.length) qIssues.push(`${lowAvgTasks.length} task(s) with very low scores`);
-  ins.push({icon:qIssues.length?'⚠':'✓',cls:qIssues.length?'warn':'ok',title:'Question Quality',desc:qIssues.length?qIssues.join('; '):'No leaked items; task scores look reasonable'});
+  if(d.cfg.leaked) qIssues.push('Leaked items have been flagged');
+  if(lowAvgTasks.length) qIssues.push(`${lowAvgTasks.length} task${lowAvgTasks.length===1?' is':'s are'} averaging under 15%`);
+  ins.push({
+    icon:qIssues.length?'⚠':'✓',
+    cls:qIssues.length?'warn':'ok',
+    title:'Question Quality',
+    desc:qIssues.length?(qIssues.join('. ')+'.'):'No leaked items have been flagged. Task scores look reasonable.'
+  });
+
+  // ── 6. Candidate Feedback (fairness rating) ──
   if(isFinite(d.cfg.fairness)){
     const low=d.cfg.fairness<70,rel=d.cfg.fairnessRel;
-    ins.push({icon:low?'⚠':'✓',cls:low?'warn':'ok',title:'Candidate Feedback',
-      desc:low?`Low fairness rating of ${Math.round(d.cfg.fairness)}%`:rel==='above'?`Fairness ${Math.round(d.cfg.fairness)}% — above global avg`:rel==='below'?`Fairness ${Math.round(d.cfg.fairness)}% — below global avg`:`Fairness rating of ${Math.round(d.cfg.fairness)}%`});
+    ins.push({
+      icon:low?'⚠':'✓',
+      cls:low?'warn':'ok',
+      title:'Candidate Feedback',
+      desc:low?`Fairness rating is low at ${Math.round(d.cfg.fairness)}%. Candidates are flagging a problem.`
+          :rel==='above'?`Fairness rating is ${Math.round(d.cfg.fairness)}%, above the global average.`
+          :rel==='below'?`Fairness rating is ${Math.round(d.cfg.fairness)}%, below the global average.`
+          :`Fairness rating is ${Math.round(d.cfg.fairness)}%.`
+    });
   } else {
-    ins.push({icon:'○',cls:'neutral',title:'Candidate Feedback',desc:'No fairness rating entered'});
+    ins.push({icon:'○',cls:'neutral',title:'Candidate Feedback',desc:'No fairness rating has been entered.'});
   }
   return ins;
 }
@@ -2936,15 +3294,66 @@ function buildInsightsData(d){
 // ══════════════════════════════════
 // HELPERS
 // ══════════════════════════════════
+
+// Describe the score distribution's shape in one short phrase, with a badge
+// class so the chart-meta line color-codes consistently with the SD pill in
+// the stats bar. Returns {label, cls}; label may be '' (no badge).
+//
+// Most assessments skew toward one end rather than being truly bimodal — the
+// detector's primary job is to flag those skews. The order below matters:
+// stronger signals are checked first so a U-shape isn't mislabeled as a
+// top-heavy skew on its way through.
+//
+//   1. U-shaped         — both tails >=20% (rare, polarized)
+//   2. Top-heavy        — top tail (91-100%) >=30%, bottom <20% (too easy)
+//   3. Bottom-heavy     — bottom tail (0%) >=30%, top <20% (too hard)
+//   4. SD bucket        — <10 tight, <20 healthy, <35 wide, >=35 uneven
+//
+// The 30% threshold on single-tail skews is intentionally lower than the
+// "polarized" feel of a true U-shape, because piling 30%+ at one extreme is
+// already a strong calibration signal worth surfacing.
+function describeDistribution(scores, scoreSD){
+  if(!scores||!scores.length) return {label:'', cls:''};
+  const total=scores.length;
+  const zeros=scores.filter(s=>s===0).length;
+  const tops =scores.filter(s=>s>90).length;
+  const zeroPct=(zeros/total)*100;
+  const topPct =(tops /total)*100;
+  // 1. Polarized — both tails heavy
+  if(zeroPct>=20 && topPct>=20){
+    return {label:`U-shaped (${Math.round(zeroPct)}% at 0, ${Math.round(topPct)}% at 91-100)`, cls:'red'};
+  }
+  // 2. Top-heavy skew — too easy
+  if(topPct>=30 && zeroPct<20){
+    return {label:`Top-heavy (${Math.round(topPct)}% at 91-100)`, cls:'amber'};
+  }
+  // 3. Bottom-heavy skew — too hard
+  if(zeroPct>=30 && topPct<20){
+    return {label:`Bottom-heavy (${Math.round(zeroPct)}% at 0)`, cls:'amber'};
+  }
+  // 4. Fall back to SD bucket for the broad shape
+  if(!isFinite(scoreSD)) return {label:'', cls:''};
+  if(scoreSD<10)  return {label:'Tight cluster',   cls:'green'};
+  if(scoreSD<20)  return {label:'Healthy spread',  cls:'green'};
+  if(scoreSD<35)  return {label:'Wide spread',     cls:'amber'};
+  return            {label:'Uneven distribution', cls:'red'};
+}
+
 function diffChipClass(diff){
   if(!diff)return'';
   const d=diff.toLowerCase();
   return d==='easy'?'chip-easy':d==='medium'?'chip-medium':d==='hard'?'chip-hard':'';
 }
+// Discrimination color rule. Most assessments only have 3-5 tasks so a "good"
+// threshold has to be set conservatively — pulling green back to >=0.75
+// reserves the green color for tasks that are genuinely doing strong work.
+// Anything between 0 and 0.75 stays in neutral ink (not bad, just not great).
+// Negative correlations stay red since they indicate the task is reverse of
+// the total score signal.
 function discColour(r){
   if(!isFinite(r))return'inherit';
-  if(r>=0.3)return'var(--green)';
-  if(r>=0)return'var(--grey-700)';
+  if(r>=0.75)return'var(--green)';
+  if(r>=0)   return'var(--grey-700)';
   return'var(--red)';
 }
 </script>
