@@ -121,14 +121,17 @@
     .calc-formula { font-family: monospace; font-size: 11px; background: rgba(255,255,255,.1); padding: 2px 5px; border-radius: 4px; display: block; margin-top: 3px; }
 
     /* ── Upload screen ── */
-    #upload-screen { display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 0 0 56px; gap: 0; }
+    /* Sized to fit a typical desktop viewport (~900px tall) without
+       scrolling. Hero, drop zone, two config panels, and the run button
+       all live inside the visible area. */
+    #upload-screen { display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 0 0 16px; gap: 0; }
 
     /* Hero — full-bleed brand gradient */
     .upload-hero {
       width: 100%;
       background: var(--hero-gradient);
       color: #fff;
-      padding: 64px 24px 56px;
+      padding: 28px 24px 36px;
       display: flex; flex-direction: column; align-items: center;
     }
     .upload-hero .eyebrow {
@@ -136,21 +139,31 @@
       text-transform: uppercase; color: rgba(255,255,255,.78); margin-bottom: 8px;
     }
     .upload-hero h1 {
-      font-size: 48px; font-weight: 700; line-height: 1.15;
-      text-align: center; margin-bottom: 12px; letter-spacing: -.01em;
+      font-size: 32px; font-weight: 700; line-height: 1.15;
+      text-align: center; margin-bottom: 8px; letter-spacing: -.01em;
     }
     .upload-hero p {
       color: rgba(255,255,255,.85);
-      text-align: center; font-size: 16px; line-height: 1.5;
-      max-width: 520px;
+      text-align: center; font-size: 14px; line-height: 1.45;
+      max-width: 560px;
     }
+    .codility-logo.welcome { height: 32px; margin-bottom: 12px; }
 
-    /* Content stack sits over a soft tint band that lifts the cards off the gradient */
+    /* Content stack — two-column grid below the drop zone so the two
+       config panels sit side by side. Keeps the page short enough to fit
+       in one viewport. */
     .upload-stack {
-      width: 100%; max-width: 600px;
-      display: flex; flex-direction: column; gap: 16px;
+      width: 100%; max-width: 880px;
+      display: flex; flex-direction: column; gap: 12px;
       padding: 0 20px;
-      margin-top: -28px; /* overlap the hero a touch */
+      margin-top: -22px; /* overlap the hero a touch */
+    }
+    .upload-config-row {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 760px) {
+      .upload-config-row { grid-template-columns: 1fr; }
     }
 
     .upload-box {
@@ -158,24 +171,27 @@
       border: 2px dashed var(--grey-300);
       border-radius: var(--r-large);
       background: var(--card);
-      padding: 36px 24px; text-align: center; cursor: pointer;
+      padding: 18px 24px; text-align: center; cursor: pointer;
       transition: border-color .15s, background .15s, transform .15s;
       box-shadow: var(--shadow-l1);
+      display: flex; align-items: center; justify-content: center; gap: 16px;
     }
     .upload-box:hover, .upload-box.dragover {
       border-color: var(--blue);
       background: var(--blue-pale);
     }
-    .upload-box svg { margin-bottom: 12px; color: var(--blue); opacity: 1; }
-    .upload-box p { color: var(--grey-600); font-size: 14px; margin-top: 4px; }
+    .upload-box svg { color: var(--blue); flex-shrink: 0; }
+    .upload-box p { color: var(--grey-600); font-size: 13px; margin: 0; }
     .upload-box input { display: none; }
+    .upload-box .drop-text { text-align: left; }
     .upload-btn {
-      display: inline-block; margin-top: 16px;
+      display: inline-block;
       background: var(--blue); color: #fff;
       border: none; border-radius: var(--r-med);
-      padding: 10px 24px; font-size: 14px; font-weight: 600;
+      padding: 9px 22px; font-size: 14px; font-weight: 600;
       cursor: pointer; font-family: inherit;
       transition: background .15s;
+      flex-shrink: 0;
     }
     .upload-btn:hover { background: var(--blue-hover); }
 
@@ -184,24 +200,24 @@
       background: var(--card);
       border: 1px solid var(--grey-200);
       border-radius: var(--r-large);
-      padding: 22px 24px;
+      padding: 14px 16px;
       box-shadow: var(--shadow-l1);
     }
     .config-panel h3 {
       font-size: 11px; font-weight: 700; text-transform: uppercase;
       letter-spacing: .08em; color: var(--grey-500);
-      margin-bottom: 16px;
+      margin-bottom: 10px;
     }
-    .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .config-field label {
       display: block; font-size: 12px; font-weight: 600;
-      color: var(--grey-700); margin-bottom: 6px;
+      color: var(--grey-700); margin-bottom: 4px;
     }
     .config-field input, .config-field select {
-      width: 100%; padding: 9px 11px;
+      width: 100%; padding: 7px 10px;
       border: 1px solid var(--grey-300);
       border-radius: var(--r-med);
-      font-size: 14px; background: #fff; color: var(--grey-700);
+      font-size: 13px; background: #fff; color: var(--grey-700);
       font-family: inherit;
       transition: border-color .12s, box-shadow .12s;
     }
@@ -212,12 +228,62 @@
     }
     .config-field.full { grid-column: 1 / -1; }
 
+    /* Segmented two-button radio (e.g. Above / Below). Native radio is
+       fully neutralized; the entire label is the clickable target. The
+       container itself draws no border/background — each label draws its
+       own — so there is no rounded-clip seam where the active fill could
+       leave a hairline at the bottom edge. */
+    .segmented {
+      display: flex; gap: 0;
+      width: 100%;
+    }
+    .segmented label {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      height: 36px;
+      font-size: 12px; font-weight: 600;
+      color: var(--grey-600); cursor: pointer;
+      background: #fff;
+      border: 1px solid var(--grey-300);
+      transition: background .12s, color .12s, border-color .12s;
+      box-sizing: border-box;
+    }
+    /* Join the two segments: round only the outer corners, overlap the
+       middle border by 1px so neither segment is missing a side when its
+       neighbour is active. */
+    .segmented label:first-of-type {
+      border-radius: var(--r-med) 0 0 var(--r-med);
+      margin-right: -1px;
+    }
+    .segmented label:last-of-type {
+      border-radius: 0 var(--r-med) var(--r-med) 0;
+    }
+    /* Hidden native radio. Higher-specificity overrides cancel the
+       .config-field input rule (width:100%, padding, border, background). */
+    .segmented input[type="radio"] {
+      position: absolute !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      width: 0 !important; height: 0 !important;
+      padding: 0 !important; margin: 0 !important;
+      border: none !important; background: transparent !important;
+    }
+    /* Active segment — filled blue-tint with a deeper border. */
+    .segmented label:has(input:checked) {
+      background: var(--blue-tint);
+      border-color: var(--blue);
+      z-index: 1; /* keep the active border on top of its neighbour */
+    }
+    .segmented label:has(input:checked) .seg-text {
+      color: var(--blue-deep);
+    }
+    .segmented label:hover { background: var(--blue-pale); }
+
     .toggle-row {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 0; border-bottom: 1px solid var(--grey-200);
+      padding: 6px 0; border-bottom: 1px solid var(--grey-200);
     }
     .toggle-row:last-child { border-bottom: none; }
-    .toggle-row span { font-size: 14px; color: var(--grey-700); }
+    .toggle-row span { font-size: 13px; color: var(--grey-700); }
     .toggle { position: relative; width: 38px; height: 22px; }
     .toggle input { opacity: 0; width: 0; height: 0; }
     .toggle-slider {
@@ -298,7 +364,7 @@
       width: 100%;
       background: var(--blue); color: #fff;
       border: none; border-radius: var(--r-med);
-      padding: 14px; font-size: 15px; font-weight: 600;
+      padding: 11px; font-size: 14px; font-weight: 600;
       cursor: pointer;
       font-family: inherit;
       transition: background .15s;
@@ -337,7 +403,7 @@
        (navy on light bg) and light (white on dark bg). */
     .codility-logo { display: inline-block; height: 28px; width: auto; user-select: none; }
     .codility-logo.dashboard { height: 24px; }
-    .codility-logo.welcome   { height: 44px; margin-bottom: 18px; }
+    /* .codility-logo.welcome height is set in the upload-screen block above. */
     .back-btn {
       background: transparent;
       border: 1px solid var(--grey-300);
@@ -632,78 +698,89 @@
 
   <div class="upload-stack">
 
+  <!-- Drop zone is laid out horizontally so it does not eat vertical space:
+       icon, two lines of text, and the Choose file button all on one row. -->
   <div class="upload-box" id="drop-zone">
-    <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+    <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"/>
     </svg>
-    <p id="drop-label" style="font-size:15px;font-weight:600;color:var(--navy);margin-top:0;">Drag &amp; drop your CSV here</p>
-    <p style="font-size:12px;color:var(--grey-500);margin-top:4px;">CSV, XLS, or XLSX — analysed entirely in your browser</p>
+    <div class="drop-text">
+      <p id="drop-label" style="font-size:14px;font-weight:600;color:var(--navy);">Drag &amp; drop your data here</p>
+      <p style="font-size:12px;color:var(--grey-500);margin-top:2px;">CSV, XLS, or XLSX — analysed entirely in your browser</p>
+    </div>
     <button class="upload-btn" onclick="document.getElementById('file-input').click()">Choose file</button>
     <input type="file" id="file-input" accept=".csv,.xls,.xlsx" />
   </div>
 
-  <div class="config-panel">
-    <h3>Test Details</h3>
-    <div class="config-grid">
-      <div class="config-field full">
-        <label>Test Creator Name</label>
-        <input type="text" id="cfg-creator" placeholder="e.g. Dylan Caldeira" />
-      </div>
-      <div class="config-field">
-        <label>Fairness Rating (%)</label>
-        <input type="number" id="cfg-fairness" placeholder="e.g. 90" min="0" max="100" />
-      </div>
-      <div class="config-field" style="display:flex;flex-direction:column;justify-content:flex-end;">
-        <label style="margin-bottom:8px;">Fairness vs Global Avg</label>
-        <div style="display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
-          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 6px;font-size:12px;font-weight:600;cursor:pointer;background:var(--light);">
-            <input type="radio" name="fairness-rel" value="above" id="fair-above" style="accent-color:var(--green);" /> Above
-          </label>
-          <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 6px;font-size:12px;font-weight:600;cursor:pointer;background:var(--light);border-left:1px solid var(--border);">
-            <input type="radio" name="fairness-rel" value="below" id="fair-below" style="accent-color:var(--red);" /> Below
-          </label>
+  <!-- Two config panels side by side so the page fits in one viewport. -->
+  <div class="upload-config-row">
+
+    <div class="config-panel">
+      <h3>Test Details</h3>
+      <div class="config-grid">
+        <div class="config-field full">
+          <label>Test Creator Name</label>
+          <input type="text" id="cfg-creator" placeholder="e.g. Dylan Caldeira" />
+        </div>
+        <div class="config-field">
+          <label>Fairness Rating (%)</label>
+          <input type="number" id="cfg-fairness" placeholder="e.g. 90" min="0" max="100" />
+        </div>
+        <div class="config-field" style="display:flex;flex-direction:column;justify-content:flex-end;">
+          <label>Fairness vs Global Avg</label>
+          <div class="segmented">
+            <label>
+              <input type="radio" name="fairness-rel" value="above" id="fair-above" />
+              <span class="seg-text">Above</span>
+            </label>
+            <label>
+              <input type="radio" name="fairness-rel" value="below" id="fair-below" />
+              <span class="seg-text">Below</span>
+            </label>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="config-panel">
-    <h3>Assessment Configuration</h3>
-    <div class="config-grid">
-      <div class="config-field">
-        <label>Passing Score (%)</label>
-        <input type="number" id="cfg-passing" placeholder="e.g. 75" min="0" max="100" />
+    <div class="config-panel">
+      <h3>Assessment Configuration</h3>
+      <div class="config-grid">
+        <div class="config-field">
+          <label>Passing Score (%)</label>
+          <input type="number" id="cfg-passing" placeholder="e.g. 75" min="0" max="100" />
+        </div>
+        <div class="config-field">
+          <label>Max Test Duration (min)</label>
+          <input type="number" id="cfg-maxtime" placeholder="e.g. 60" min="1" />
+        </div>
       </div>
-      <div class="config-field">
-        <label>Max Test Duration (min)</label>
-        <input type="number" id="cfg-maxtime" placeholder="e.g. 60" min="1" />
+      <div style="margin-top:8px;">
+        <div class="toggle-row">
+          <span>Task rotation enabled</span>
+          <label class="toggle"><input type="checkbox" id="cfg-rotation"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span>Proctoring enabled</span>
+          <label class="toggle"><input type="checkbox" id="cfg-proctoring"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span>Leaked item present</span>
+          <label class="toggle"><input type="checkbox" id="cfg-leaked"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <span>Weighted scoring enabled</span>
+          <label class="toggle"><input type="checkbox" id="cfg-weighted"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+      <!-- Weight inputs — shown dynamically after CSV loaded + toggle on -->
+      <div id="weight-inputs-wrap" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px;">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;">Task Slot Weights</div>
+        <div id="weight-inputs-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;" id="weight-total-hint"></div>
       </div>
     </div>
-    <div style="margin-top:12px;">
-      <div class="toggle-row">
-        <span>Task rotation enabled</span>
-        <label class="toggle"><input type="checkbox" id="cfg-rotation"><span class="toggle-slider"></span></label>
-      </div>
-      <div class="toggle-row">
-        <span>Proctoring enabled</span>
-        <label class="toggle"><input type="checkbox" id="cfg-proctoring"><span class="toggle-slider"></span></label>
-      </div>
-      <div class="toggle-row">
-        <span>Leaked item present</span>
-        <label class="toggle"><input type="checkbox" id="cfg-leaked"><span class="toggle-slider"></span></label>
-      </div>
-      <div class="toggle-row">
-        <span>Weighted scoring enabled</span>
-        <label class="toggle"><input type="checkbox" id="cfg-weighted"><span class="toggle-slider"></span></label>
-      </div>
-    </div>
-    <!-- Weight inputs — shown dynamically after CSV loaded + toggle on -->
-    <div id="weight-inputs-wrap" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px;">
-      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em;">Task Slot Weights</div>
-      <div id="weight-inputs-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
-      <div style="font-size:11px;color:var(--muted);margin-top:8px;" id="weight-total-hint"></div>
-    </div>
-  </div>
+
+  </div><!-- /upload-config-row -->
 
   <div id="upload-error"></div>
   <button class="run-btn" id="run-btn" disabled>Generate Report</button>
