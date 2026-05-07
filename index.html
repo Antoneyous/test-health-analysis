@@ -495,6 +495,14 @@
       border: 1px solid var(--grey-300);
       color: var(--grey-600);
     }
+    /* In the KPI stat columns, force the badge onto its own line below the
+       stat value. Without this the badge can land beside the value when the
+       column is wide enough for inline-block siblings to fit (e.g. the wider
+       Engagement columns). Block + width:fit-content + auto margins keeps the
+       pill sized to its text and centered under the value. */
+    .stats-cols .badge {
+      display: block; width: fit-content; margin: 6px auto 0;
+    }
     .badge.green {
       background: var(--green-bg); border-color: #b7e8d3; color: var(--green);
     }
@@ -3050,17 +3058,23 @@ async function downloadPPTX(){
     // presenter rather than a run-on hedge.
     const takeaway = sectionLabel==='ALL TIME' ? buildTakeaway(s, showFairness, cfg, maxTime) : null;
     if(takeaway){
-      // Subtle ultramarine-tint band, accented with a left border bar
-      sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:4.7,w:9.2,h:0.55,fill:{color:C.bgPale},line:{type:'none'}});
-      sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:4.7,w:0.05,h:0.55,fill:{color:C.bg},line:{type:'none'}});
-      sl.addText('KEY TAKEAWAY',{x:0.6,y:4.74,w:1.6,h:0.18,fontFace:FONT,fontSize:8,bold:true,color:C.bg,charSpacing:2,margin:0});
+      // Subtle ultramarine-tint band, accented with a left border bar.
+      // Band sits between the chart card (ends at y=4.55) and the footer
+      // separator (y=5.32). Height 0.65" gives room for two lines of 11pt
+      // text so long stat+descriptor pairs no longer overflow off the slide.
+      sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:4.65,w:9.2,h:0.65,fill:{color:C.bgPale},line:{type:'none'}});
+      sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:4.65,w:0.05,h:0.65,fill:{color:C.bg},line:{type:'none'}});
+      sl.addText('KEY TAKEAWAY',{x:0.6,y:4.69,w:1.6,h:0.18,fontFace:FONT,fontSize:8,bold:true,color:C.bg,charSpacing:2,margin:0});
       const txt=[];
       txt.push({text:takeaway.stat,options:{bold:true,color:C.inkDark}});
       if(takeaway.descriptor){
         txt.push({text:'  ',options:{}});
         txt.push({text:takeaway.descriptor,options:{color:C.mutedLight}});
       }
-      sl.addText(txt,{x:0.6,y:4.93,w:8.9,h:0.27,fontFace:FONT,fontSize:11,margin:0,valign:'middle',wrap:false,shrinkText:true});
+      // wrap:true lets long takeaways break onto a second line. shrinkText
+      // is the safety net for the rare case where the text still doesn't
+      // fit in two lines.
+      sl.addText(txt,{x:0.6,y:4.88,w:8.9,h:0.40,fontFace:FONT,fontSize:11,margin:0,valign:'middle',wrap:true,shrinkText:true});
     }
 
     footer(sl, sectionLabel);
