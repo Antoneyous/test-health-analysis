@@ -452,6 +452,14 @@
       color: var(--grey-700);
     }
     .report-meta-badge strong { font-weight: 700; color: var(--blue-deep); }
+    /* When the source data is over a year old, the meta badge drops its
+       blue tint + border and becomes a plain white card — the yellow
+       Outdated pill carries all the visual emphasis on its own. */
+    .report-meta-badge.is-outdated {
+      background: #FFFFFF;
+      border-color: var(--grey-200);
+    }
+    .report-meta-badge.is-outdated strong { color: var(--navy); }
 
     /* Stats bar */
     .stats-bar {
@@ -1887,12 +1895,42 @@ function render(d){
   $('r-test-name').textContent=d.testName;
   d.firstStart = d.firstStart || (parsedRows && parsedRows._firstStart) || null;
 
-  // Meta badge — first attempt from CSV, creator from input
+  // Meta badge — first attempt from CSV, creator from input. The date is
+  // bolded just like the creator name. If the earliest attempt is more than
+  // one calendar year old, the badge itself drops its blue border + tint
+  // (handled in CSS via .is-outdated) and a yellow "Outdated" pill is
+  // inserted as a sibling element to the LEFT of the whole meta badge.
   let metaHtml='';
+  let isStale=false;
   if(d.cfg.creator) metaHtml+=`<div>Test created by <strong>${esc(d.cfg.creator)}</strong></div>`;
   const dateDisplay=d.firstStart?fmtDate(d.firstStart.split(' ')[0]):null;
-  if(dateDisplay) metaHtml+=`<div>First used on <strong style="color:var(--navy)">${esc(dateDisplay)}</strong></div>`;
-  $('r-meta-badge').innerHTML=metaHtml||'<span style="color:var(--muted);font-size:12px">No creator info entered</span>';
+  if(dateDisplay){
+    const firstDate=new Date(d.firstStart.split(' ')[0]);
+    const oneYearAgo=new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear()-1);
+    isStale=!isNaN(firstDate)&&firstDate<oneYearAgo;
+    metaHtml+=`<div>First used on <strong>${esc(dateDisplay)}</strong></div>`;
+  }
+  const metaEl=$('r-meta-badge');
+  metaEl.classList.toggle('is-outdated', isStale);
+  metaEl.innerHTML=metaHtml||'<span style="color:var(--muted);font-size:12px">No creator info entered</span>';
+  // Outdated pill — sibling element placed immediately before the meta
+  // badge in the title row, so it sits to the LEFT of the whole box. The
+  // title row uses justify-content:space-between, so margin-left:auto on
+  // the pill snaps the pill+meta pair to the right edge while keeping the
+  // title at the left edge.
+  const existingPill=document.getElementById('r-outdated-pill');
+  if(isStale){
+    if(!existingPill){
+      const pill=document.createElement('span');
+      pill.id='r-outdated-pill';
+      pill.className='badge amber';
+      pill.style.cssText='margin-top:0;margin-left:auto;margin-right:8px;padding:3px 10px;font-size:11px;font-weight:700;align-self:center;';
+      pill.textContent='Outdated';
+      metaEl.parentNode.insertBefore(pill, metaEl);
+    }
+  } else if(existingPill){
+    existingPill.remove();
+  }
 
   // ── Engagement ──
   const dropoff1=d.totalInvitations>0?Math.round((1-d.numAttempts/d.totalInvitations)*100):0;
@@ -2241,7 +2279,80 @@ async function downloadPPTX(){
 
   // ── Shared helpers ──
   const mkShadow=()=>({type:'outer',color:'000000',blur:8,offset:2,angle:135,opacity:0.06});
-  const generatedOn=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+
+  // ── Data freshness ──
+  // Each slide header shows two stacked date lines:
+  //   • "First used on …"  → earliest Start date in the export
+  //   • "Data as of …"     → the report's download date (today)
+  // If "First used on" is more than one calendar year old, a yellow
+  // "Outdated" pill renders on its OWN line below the dates, right-aligned.
+  const _starts=_allRows.map(r=>r['Start date']).filter(v=>v&&!isNA(v)).sort();
+  const _firstStartStr=_starts.length?_starts[0]:null;
+  const _firstStartDate=_firstStartStr?new Date(_firstStartStr.split(' ')[0]):null;
+  const _oneYearAgo=new Date(); _oneYearAgo.setFullYear(_oneYearAgo.getFullYear()-1);
+  const isOutdated = !!(_firstStartDate&&!isNaN(_firstStartDate)&&_firstStartDate<_oneYearAgo);
+  // Short "12 Oct 2023" format — narrower than "October 12, 2023".
+  function _fmtShort(s){
+    if(!s) return null;
+    const d=new Date(s.split(' ')[0]);
+    return isNaN(d)? null : d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  }
+  const firstUsedShort = _fmtShort(_firstStartStr);
+  const dataAsOfShort  = new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+
+  // Two meta-block helpers, both right-aligned to a column starting at
+  // anchorX with width anchorW and top edge at anchorY.
+  //
+  //   addFullMeta  — testName, creator, "First used on …", "Data as of …",
+  //                  and (when stale) the yellow Outdated pill below the
+  //                  dates. Used on the high-signal slides (Executive
+  //                  Summary, All Time stat slide) so the reader gets the
+  //                  full context up front.
+  //   addMinMeta   — testName + "Data as of …" only. Used on every other
+  //                  content slide so the headers stay clean and don't
+  //                  repeat the same first-used/outdated info on every page.
+  //
+  // The date strings render with the prefix in regular weight and the date
+  // portion in bold, mirroring the dashboard meta badge styling.
+  function addFullMeta(sl, anchorX, anchorY, anchorW){
+    let y = anchorY;
+    sl.addText(testName,{x:anchorX,y,w:anchorW,h:0.18,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',valign:'middle',margin:0});
+    y += 0.18;
+    if(cfg.creator){
+      sl.addText([
+        {text:'Test created by ',options:{color:C.mutedLight}},
+        {text:cfg.creator,         options:{color:C.mutedLight, bold:true}},
+      ],{x:anchorX,y,w:anchorW,h:0.18,fontFace:FONT,fontSize:9,align:'right',valign:'middle',margin:0});
+      y += 0.18;
+    }
+    if(firstUsedShort){
+      sl.addText([
+        {text:'First used on ',options:{color:C.mutedLight}},
+        {text:firstUsedShort,    options:{color:C.mutedLight, bold:true}},
+      ],{x:anchorX,y,w:anchorW,h:0.18,fontFace:FONT,fontSize:9,align:'right',valign:'middle',margin:0});
+      y += 0.18;
+    }
+    sl.addText([
+      {text:'Data as of ',options:{color:C.mutedLight}},
+      {text:dataAsOfShort,  options:{color:C.mutedLight, bold:true}},
+    ],{x:anchorX,y,w:anchorW,h:0.18,fontFace:FONT,fontSize:9,align:'right',valign:'middle',margin:0});
+    y += 0.20;
+    if(isOutdated){
+      const pillW=0.55, pillH=0.18;
+      const pillX = anchorX + anchorW - pillW;
+      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:pillX,y,w:pillW,h:pillH,fill:{color:C.yellow},line:{type:'none'},rectRadius:0.04});
+      sl.addText('Outdated',{x:pillX,y,w:pillW,h:pillH,fontFace:FONT,fontSize:8,bold:true,color:C.inkDark,align:'center',valign:'middle',margin:0});
+    }
+  }
+  function addMinMeta(sl, anchorX, anchorY, anchorW){
+    let y = anchorY;
+    sl.addText(testName,{x:anchorX,y,w:anchorW,h:0.18,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',valign:'middle',margin:0});
+    y += 0.18;
+    sl.addText([
+      {text:'Data as of ',options:{color:C.mutedLight}},
+      {text:dataAsOfShort,  options:{color:C.mutedLight, bold:true}},
+    ],{x:anchorX,y,w:anchorW,h:0.18,fontFace:FONT,fontSize:9,align:'right',valign:'middle',margin:0});
+  }
 
   // Slide counter — used by footer
   let slideNum=0, totalSlides=0;
@@ -2275,9 +2386,39 @@ async function downloadPPTX(){
     sl.addShape(pres.shapes.LINE,{x:0.7,y:1.85,w:0.6,h:0,line:{color:'FFFFFF',pt:1.5}});
     // Hero — assessment name
     sl.addText(testName,{x:0.7,y:2.1,w:6.4,h:1.4,fontFace:FONT,fontSize:42,bold:true,color:'FFFFFF',margin:0,valign:'top'});
-    // Bottom rail — meta
-    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:0.7,y:5.0,w:5,h:0.25,fontFace:FONT,fontSize:10,color:'FFFFFF',transparency:35,margin:0});
-    sl.addText(generatedOn,{x:5.5,y:5.0,w:3.8,h:0.25,fontFace:FONT,fontSize:10,color:'FFFFFF',transparency:35,align:'right',margin:0});
+    // Bottom rail — meta. Creator pinned to bottom-left, dates pinned to
+    // bottom-right with the Outdated pill below them when stale. Dates use
+    // rich-text so only the date portion is bold, mirroring the dashboard.
+    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:0.7,y:5.30,w:5,h:0.20,fontFace:FONT,fontSize:10,color:'FFFFFF',transparency:35,margin:0});
+    const _coverMetaX=6.2, _coverMetaW=3.5;
+    // Bottom-anchor the whole stack: compute the topmost y based on what's
+    // present (pill + 2 dates / 2 dates / 1 date) so the lowest line always
+    // sits at ~5.30, hugging the slide's bottom-right corner.
+    const _pillH=0.18, _lineH=0.18, _gap=0.02;
+    const _bottomY = 5.30;
+    let _firstLineY = _bottomY;
+    if(isOutdated) _firstLineY -= (_pillH + _gap);
+    _firstLineY -= _lineH; // "Data as of" line
+    if(firstUsedShort) _firstLineY -= _lineH; // "First used on" line above
+    let _coverY=_firstLineY;
+    if(firstUsedShort){
+      sl.addText([
+        {text:'First used on ',options:{color:'FFFFFF',transparency:35}},
+        {text:firstUsedShort,    options:{color:'FFFFFF',transparency:35,bold:true}},
+      ],{x:_coverMetaX,y:_coverY,w:_coverMetaW,h:_lineH,fontFace:FONT,fontSize:10,align:'right',valign:'middle',margin:0});
+      _coverY += _lineH;
+    }
+    sl.addText([
+      {text:'Data as of ',options:{color:'FFFFFF',transparency:35}},
+      {text:dataAsOfShort,  options:{color:'FFFFFF',transparency:35,bold:true}},
+    ],{x:_coverMetaX,y:_coverY,w:_coverMetaW,h:_lineH,fontFace:FONT,fontSize:10,align:'right',valign:'middle',margin:0});
+    _coverY += _lineH + _gap;
+    if(isOutdated){
+      const pillW=0.55;
+      const pillX = _coverMetaX + _coverMetaW - pillW;
+      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:pillX,y:_coverY,w:pillW,h:_pillH,fill:{color:C.yellow},line:{type:'none'},rectRadius:0.04});
+      sl.addText('Outdated',{x:pillX,y:_coverY,w:pillW,h:_pillH,fontFace:FONT,fontSize:8,bold:true,color:C.inkDark,align:'center',valign:'middle',margin:0});
+    }
     return sl;
   }
 
@@ -2304,12 +2445,15 @@ async function downloadPPTX(){
     // Header
     sl.addText('OVERVIEW',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
     sl.addText('Executive Summary',{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
-    sl.addText(testName,{x:6.8,y:0.36,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
-    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.54,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
-    sl.addText(generatedOn,{x:6.8,y:0.72,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    // Full meta stack — high-signal slide gets the complete header context.
+    // Starts at y=0.22 so the whole block + pill (when stale) finishes
+    // above the body content at y=1.30.
+    addFullMeta(sl, 6.8, 0.22, 2.8);
 
     // ── KPI TILES (5 across) ──
-    const kpiY=1.2, kpiH=1.3, kpiGap=0.15;
+    // kpiY pushed down from 1.2 to 1.3 to clear the two-line date stack +
+    // Outdated pill in the top-right meta column.
+    const kpiY=1.3, kpiH=1.3, kpiGap=0.15;
     const kpiW=(10-0.4-0.4-kpiGap*4)/5;
     const dropoff=s.invitations? Math.round((1-s.attempts/s.invitations)*100) : 0;
     // s.passingRate is null when no threshold is configured. isFinite(null) === true
@@ -2434,8 +2578,7 @@ async function downloadPPTX(){
     // Header
     sl.addText('CONTENTS',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
     sl.addText('What you\u2019ll find inside',{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
-    sl.addText(testName,{x:6.8,y:0.36,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
-    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.54,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    addMinMeta(sl, 6.8, 0.36, 2.8);
 
     const items=[
       {num:'01', title:'All Time Overview', desc:'Aggregate performance signals across the entire cohort.'},
@@ -2470,8 +2613,7 @@ async function downloadPPTX(){
     sl.background={color:C.bgLight};
     sl.addText('NEXT STEPS',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
     sl.addText('Where to go from here',{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
-    sl.addText(testName,{x:6.8,y:0.36,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
-    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.54,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    addMinMeta(sl, 6.8, 0.36, 2.8);
 
     // Build dynamic recommendations based on the overall stats
     const recs=buildRecommendations(_overall);
@@ -2513,9 +2655,9 @@ async function downloadPPTX(){
     // Header — same eyebrow + title pattern as the other content slides
     sl.addText('INTEGRITY IMPACT',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
     sl.addText('What changes when high-risk candidates are removed',{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
-    sl.addText(testName,{x:6.8,y:0.36,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
-    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.54,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
-    sl.addText(generatedOn,{x:6.8,y:0.72,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    // Minimal meta — testName + "Data as of"; the full first-used + Outdated
+    // context lives on the Executive Summary and All Time slides upstream.
+    addMinMeta(sl, 6.8, 0.36, 2.8);
 
     // Compute "high-risk excluded" stats by filtering _allRows.
     const highRiskRows=_allRows.filter(r=>{
@@ -2533,14 +2675,17 @@ async function downloadPPTX(){
     const subText= flagged>0
       ? `${flagged} of ${sBefore.integrityWithData} candidates with integrity data are flagged High risk (${flaggedPct.toFixed(1)}%). The right column shows what the dashboard reads with those candidates removed.`
       : `No candidates were flagged High risk in this export. The columns below match — integrity exclusions don't change the read.`;
-    sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:1.15,w:9.2,h:0.42,fill:{color:C.bgPale},line:{type:'none'}});
-    sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:1.15,w:0.05,h:0.42,fill:{color:C.accent2},line:{type:'none'}});
-    sl.addText(subText,{x:0.6,y:1.17,w:8.9,h:0.38,fontFace:FONT,fontSize:10,color:C.inkDark,margin:0,valign:'middle',wrap:true});
+    // Sub-header band pushed down from y=1.15 to y=1.25 to clear the new
+    // two-line date stack in the meta column above.
+    sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:1.25,w:9.2,h:0.42,fill:{color:C.bgPale},line:{type:'none'}});
+    sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:1.25,w:0.05,h:0.42,fill:{color:C.accent2},line:{type:'none'}});
+    sl.addText(subText,{x:0.6,y:1.27,w:8.9,h:0.38,fontFace:FONT,fontSize:10,color:C.inkDark,margin:0,valign:'middle',wrap:true});
 
     // Two columns: ALL CANDIDATES vs HIGH-RISK EXCLUDED. Each column has 5
     // stacked tiles in the same order as the Executive Summary so readers
-    // don't have to learn a new layout.
-    const colY=1.75;
+    // don't have to learn a new layout. colY pushed from 1.75 to 1.85 to
+    // match the new sub-header position.
+    const colY=1.85;
     const colGap=0.2;
     const colW=(10-0.4-0.4-colGap)/2;
     // Tile geometry sized so the 5-tile column ends above the Key Takeaway
@@ -2749,7 +2894,10 @@ async function downloadPPTX(){
   // less vertical space than variants, so we use the variant height as a
   // conservative upper bound — guarantees we never write past the footer.
   function rowsPerSlide(density){
-    const usable = 5.32 - 1.15 - 0.32;
+    // Available body height = slide-bottom (footer separator at 5.32") minus
+    // table top (1.25") minus the header row (0.32"). Table top moved from
+    // 1.15 to 1.25 to clear the two-line date stack in the meta column.
+    const usable = 5.32 - 1.25 - 0.32;
     return Math.max(1, Math.floor(usable / density.variantH));
   }
 
@@ -2799,23 +2947,34 @@ async function downloadPPTX(){
     const titleSuffix = totalPages>1 ? ` (${page} of ${totalPages})` : '';
     sl.addText('ALL TIME',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
     sl.addText(`Task Analysis${titleSuffix}`,{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
-    sl.addText(testName,{x:6.8,y:0.36,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
-    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.54,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
-    sl.addText(generatedOn,{x:6.8,y:0.72,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
+    // Minimal meta — testName + "Data as of"; the full first-used + Outdated
+    // context lives on the Executive Summary and All Time slides upstream.
+    addMinMeta(sl, 6.8, 0.36, 2.8);
 
     // ── Table layout ──
-    // 6 columns: # | Task / Difficulty | Language | Avg | Discrimination | N
-    const tableX=0.4, tableY=1.15, tableW=9.2;
-    const colWidths=[0.4, 3.4, 1.6, 1.4, 1.6, 0.8];      // sums to 9.2
+    // 6 columns: # | Task / Difficulty | Most common language | Avg | Discrimination | N
+    // Language column is given a touch more width than its original 1.6" to
+    // fit the longer "MOST COMMON LANGUAGE" label on a single line. Width
+    // pulled from the TASK / DIFFICULTY column, which still has plenty of
+    // room for the longest task names + chip.
+    // Table starts at y=1.25 (pushed down from 1.15) so the two-line date
+    // stack + Outdated pill in the top-right meta column doesn't collide.
+    const tableX=0.4, tableY=1.25, tableW=9.2;
+    const colWidths=[0.4, 2.9, 2.1, 1.4, 1.6, 0.8];      // sums to 9.2
     const colXs=[];
     let acc=tableX; colWidths.forEach(w=>{colXs.push(acc); acc+=w;});
 
-    // Header row (always 0.32" tall, regardless of body density)
+    // Header row — single-line, every header at the same 8pt + charSpacing 2
+    // so the row reads visually consistent. Numerical columns (AVG. SCORE,
+    // DISCRIMINATION, N) center-align their headers to match the centered
+    // body values and to push them away from the left-aligned LANGUAGE
+    // header, preventing the collision the previous layout had.
     const headH=0.32;
     sl.addShape(pres.shapes.RECTANGLE,{x:tableX,y:tableY,w:tableW,h:headH,fill:{color:C.gray},line:{color:C.borderLight,pt:0.5}});
-    const headers=['#','TASK / DIFFICULTY','LANGUAGE','AVG. SCORE','DISCRIMINATION','N'];
+    const headers=['#','TASK / DIFFICULTY','MOST COMMON LANGUAGE','AVG. SCORE','DISCRIMINATION','N'];
     headers.forEach((h,i)=>{
-      sl.addText(h,{x:colXs[i]+0.08,y:tableY,w:colWidths[i]-0.16,h:headH,fontFace:FONT,fontSize:8,bold:true,color:C.mutedLight,charSpacing:2,margin:0,valign:'middle'});
+      const isNumeric = i>=3; // AVG. SCORE, DISCRIMINATION, N
+      sl.addText(h,{x:colXs[i]+0.08,y:tableY,w:colWidths[i]-0.16,h:headH,fontFace:FONT,fontSize:8,bold:true,color:C.mutedLight,charSpacing:2,margin:0,valign:'middle',align:isNumeric?'center':'left',wrap:false,shrinkText:true});
     });
 
     // Body rows
@@ -2959,13 +3118,19 @@ async function downloadPPTX(){
     // Header — eyebrow above, slide title below (consultant deck style)
     sl.addText(sectionLabel,{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
     sl.addText(`Test Health · ${label}`,{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
-    // Right side — test name on top, creator below, attempts/invited below that (only when present)
-    sl.addText(testName,{x:6.8,y:0.36,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
-    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:6.8,y:0.54,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
-    if(s.attempts) sl.addText(`${s.attempts} attempts · ${s.invitations} invited`,{x:6.8,y:0.72,w:2.8,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',valign:'middle',margin:0});
+    // Meta block — ALL TIME slide is high-signal and gets the full stack
+    // (testName + creator + first used + data as of + Outdated pill). Year
+    // and Month breakdowns get the minimal stack so the headers stay clean.
+    if(sectionLabel==='ALL TIME'){
+      addFullMeta(sl, 6.8, 0.22, 2.8);
+    } else {
+      addMinMeta(sl, 6.8, 0.36, 2.8);
+    }
 
     // ── 3 stat cards ──
-    const cardY=1.2, cardH=1.45, gap=0.18;
+    // cardY pushed slightly down from 1.20 to 1.25 so the All Time slide's
+    // full meta stack (incl. Outdated pill) has comfortable breathing room.
+    const cardY=1.25, cardH=1.45, gap=0.18;
     const cardW=(10-0.4-0.4-gap*2)/3;
 
     function statCard(sl, cx, cy, title, cols){

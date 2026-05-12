@@ -121,7 +121,7 @@ translation.
 | `Detected use of AI assistant`                     | string   | No        | Behavioural Signals tab                                                    |
 | `Task N name` (one per task slot, N starting at 1) | string   | Yes       | Task Analysis table and PPTX Task Analysis slide. Multiple distinct values per slot indicate task rotation |
 | `Task N score %`                                   | number   | Yes       | Per-task average score and discrimination (Pearson r vs. total score)     |
-| `Task N difficulty`                                | string   | No        | Color-coded difficulty chip on the dashboard and PPTX. Expected: `easy`, `medium`, `hard` |
+| `Task N difficulty`                                | string   | No        | Color-coded difficulty chip on the dashboard and PPTX. Expected: `elementary`, `easy`, `medium`, `hard` |
 | `Task N language used`                             | string   | No        | Most common language used per task, shown on the PPTX Task Analysis slide |
 
 **The minimum useful set is `Test`, `Create date`, `% total score`, plus
@@ -369,13 +369,16 @@ set conservatively. Anything between 0 and 0.75 is normal but not
 exceptional; the green color is reserved for tasks doing genuinely strong
 discriminating work.
 
-Difficulty chip color (Task / Difficulty column on the dashboard):
+Difficulty chip color (Task / Difficulty column on the dashboard and PPTX):
 
-| Task N difficulty | Color     |
-| ----------------- | --------- |
-| `easy`            | green     |
-| `medium`          | amber     |
-| `hard`            | raspberry |
+| Task N difficulty | Color           |
+| ----------------- | --------------- |
+| `elementary`      | mint / teal     |
+| `easy`            | green           |
+| `medium`          | amber           |
+| `hard`            | raspberry       |
+
+Anything else (blank, unrecognised, typos) renders as a plain uncolored pill.
 
 ### Integrity
 
@@ -416,12 +419,12 @@ structure, not exact numbers.
 
 | #  | Slide                | What is on it                                                    |
 | -- | -------------------- | ---------------------------------------------------------------- |
-| 1  | Cover                | Test name, generation date, dark ultramarine background          |
+| 1  | Cover                | Test name, creator, "First used on" + "Data as of" dates, dark ultramarine background |
 | 2  | Executive Summary    | 5 KPI tiles plus up to 3 Key Findings                             |
 | 3  | Table of Contents    | Section 01 / 02 / 03 (and 04 if integrity data is present)       |
 | 4  | Section 01 divider   | "ALL TIME"                                                       |
 | 5  | All Time stats       | 3 stat cards, score distribution, **Key Takeaway** band          |
-| …  | Task Analysis        | Per-task table (name, difficulty, language, avg, discrimination, N). Paginates if there are 15+ variants |
+| …  | Task Analysis        | Per-task table (name, difficulty, most common language, avg, discrimination, N). Paginates if there are 15+ variants |
 | …  | Section 02 divider   | "YEAR BY YEAR"                                                   |
 | 7… | One slide per year   | Same layout as the All Time slide, no Key Takeaway               |
 | …  | Section 03 divider   | "MONTH BY MONTH"                                                 |
@@ -429,6 +432,26 @@ structure, not exact numbers.
 | …  | Section 04 divider   | "INTEGRITY IMPACT" (only when the export has integrity data)     |
 | …  | Integrity Impact     | Side-by-side 5-KPI comparison, all candidates vs. high-risk excluded |
 | …  | Next Steps           | Up to 3 action recommendations                                   |
+
+### Slide-header meta block
+
+Every content slide has a right-side meta block in the header. Two variants:
+
+- **Full meta** (Executive Summary, All Time stat slide, cover slide): test
+  name → "Test created by X" → "First used on \<earliest attempt date>" →
+  "Data as of \<today's date>" → yellow **Outdated** pill if the earliest
+  attempt is more than one calendar year old.
+- **Minimal meta** (TOC, Year, Month, Task Analysis, Integrity Impact, Next
+  Steps): test name → "Data as of \<today's date>".
+
+The full block is gated to high-signal slides on purpose — repeating the
+creator name and first-used date on every page would clutter the deck. The
+"Outdated" caution surfaces once on the Executive Summary and once on the
+All Time stat slide, where it has the most impact. The dashboard mirrors
+this with its own yellow Outdated pill in the meta badge.
+
+"First used on" uses the earliest `Start date` in the export; "Data as of"
+uses the current date (i.e. when the user clicked Download PPTX).
 
 ### Section 04, Integrity Impact (conditional)
 
