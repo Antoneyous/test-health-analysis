@@ -607,11 +607,13 @@
       font-size: 12px; font-weight: 600;
     }
     /* Difficulty chips — color-coded so a quick scan of the task table shows
-       the mix of easy / medium / hard variants at a glance. Greens for easy,
-       amber for medium, raspberry for hard. Tints match the brand palette. */
-    .chip-easy   { background: var(--green-bg);     color: var(--green);     border: 1px solid #b7e8d3; }
-    .chip-medium { background: var(--amber-bg);     color: var(--amber);     border: 1px solid var(--yellow-light); }
-    .chip-hard   { background: var(--raspberry-tint); color: var(--raspberry); border: 1px solid #f4c0d6; }
+       the mix of elementary / easy / medium / hard variants at a glance. Mint
+       for elementary, green for easy, amber for medium, raspberry for hard.
+       Tints match the Codility brand palette. */
+    .chip-elementary { background: #DCF1F4;          color: #0E6B7A;          border: 1px solid #A8DBE2; }
+    .chip-easy       { background: var(--green-bg);     color: var(--green);     border: 1px solid #b7e8d3; }
+    .chip-medium     { background: var(--amber-bg);     color: var(--amber);     border: 1px solid var(--yellow-light); }
+    .chip-hard       { background: var(--raspberry-tint); color: var(--raspberry); border: 1px solid #f4c0d6; }
     .avg-score   { font-weight: 700; font-size: 14px; color: var(--navy); }
     .disc-value  { font-weight: 700; font-size: 13px; }
 
@@ -2212,6 +2214,9 @@ async function downloadPPTX(){
     // Caution = Codility yellow palette (pale bg + dark yellow text for contrast)
     amber:'806000',  amberBg:'FFFBD1',
     gray:'F5F7F9',   grayFg:'5D666F',
+    // Elementary difficulty — teal tint (clearly distinct from easy's green
+    // even at chip scale) with deeper teal text for readable contrast.
+    elementaryBg:'DCF1F4', elementaryFg:'0E6B7A',
   };
 
   // Modern, editorial sans — falls back gracefully across PowerPoint on Mac/Windows.
@@ -2838,11 +2843,15 @@ async function downloadPPTX(){
       const chipW=0.55;
       sl.addText(v.name,{x:colXs[1]+0.08,y:curY,w:colWidths[1]-0.16-chipW-0.05,h:rowH,fontFace:FONT,fontSize:density.fontVariant,bold:true,color:C.inkDark,margin:0,valign:'middle',shrinkText:true,wrap:false});
       if(v.diff){
+        // Filled chip: tinted background + matching foreground text, matching
+        // the dashboard. Mint for elementary, green for easy, amber for
+        // medium, raspberry for hard, grey for unknown.
         const dl=String(v.diff).toLowerCase();
-        const chipTone= dl==='easy'   ? {bg:C.greenBg, fg:C.green}
-                      : dl==='medium' ? {bg:C.amberBg, fg:C.amber}
-                      : dl==='hard'   ? {bg:C.accent2Tint, fg:C.accent2}
-                      :                  {bg:C.gray,    fg:C.grayFg};
+        const chipTone= dl==='elementary' ? {bg:C.elementaryBg, fg:C.elementaryFg}
+                      : dl==='easy'       ? {bg:C.greenBg,      fg:C.green}
+                      : dl==='medium'     ? {bg:C.amberBg,      fg:C.amber}
+                      : dl==='hard'       ? {bg:C.accent2Tint,  fg:C.accent2}
+                      :                      {bg:C.gray,         fg:C.grayFg};
         const chipH=density.chipH;
         const chipX=colXs[1]+colWidths[1]-chipW-0.12;
         const chipY=curY+(rowH-chipH)/2;
@@ -3433,7 +3442,11 @@ function describeDistribution(scores, scoreSD){
 function diffChipClass(diff){
   if(!diff)return'';
   const d=diff.toLowerCase();
-  return d==='easy'?'chip-easy':d==='medium'?'chip-medium':d==='hard'?'chip-hard':'';
+  return d==='elementary'?'chip-elementary'
+       : d==='easy'      ?'chip-easy'
+       : d==='medium'    ?'chip-medium'
+       : d==='hard'      ?'chip-hard'
+       : '';
 }
 // Discrimination color rule. Most assessments only have 3-5 tasks so a "good"
 // threshold has to be set conservatively — pulling green back to >=0.75
