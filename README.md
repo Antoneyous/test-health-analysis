@@ -22,24 +22,44 @@ globals are populated, everything downstream works the same way.**
 
 ```
 test-health-analysis/
-├── index.html                 # The entire app: HTML, CSS, JS in one file
-├── README.md                  # This file
+├── index.html                       # The entire app: HTML, CSS, JS in one file
+├── README.md                        # This file
 ├── .gitignore
 └── assets/
-    ├── codility-logo-dark.png   # Used on light backgrounds (dashboard, content slides)
-    ├── codility-logo-light.png  # Used on dark backgrounds (cover slide, dividers)
-    ├── logos.js                 # Same two PNGs as base64, needed by PPTX export
+    ├── codility-logo-dark.png       # Rendered wordmark on light surfaces
+    ├── codility-logo-light.png      # Rendered wordmark on dark surfaces
+    ├── codility-wordmark-dark.svg   # Vector source of the dark wordmark
+    ├── codility-wordmark-light.svg  # Vector source of the light wordmark
+    ├── logos.js                     # Logo PNGs + banding SVG as base64 data URIs
+    ├── fonts/
+    │   ├── JetBrainsMono-Regular.ttf
+    │   ├── JetBrainsMono-Medium.ttf
+    │   ├── JetBrainsMono-SemiBold.ttf
+    │   ├── JetBrainsMono-Bold.ttf
+    │   └── JetBrainsMono-ExtraBold.ttf
+    ├── patterns/
+    │   ├── banding-element.svg        # Native pale variant (`#F1F4F7`)
+    │   └── banding-element-paper.svg  # Slightly darker variant for white surfaces
     └── vendor/
-        ├── xlsx.full.min.js     # SheetJS, parses .xls / .xlsx / .csv
-        ├── pptxgen.bundle.js    # PptxGenJS, generates the .pptx
-        └── chart.umd.min.js     # Chart.js, score distribution chart on the dashboard
+        ├── xlsx.full.min.js         # SheetJS, parses .xls / .xlsx / .csv
+        ├── pptxgen.bundle.js        # PptxGenJS, generates the .pptx
+        └── chart.umd.min.js         # Chart.js, score distribution chart on the dashboard
 ```
 
-`assets/logos.js` is generated from the two PNGs so the PPTX export works
-under all three serving modes: `http://`, `file://`, and offline. PptxGenJS
-needs data URIs, and `fetch()` of a sibling file is blocked under `file://`.
-Putting the data URIs in a separate `<script>` sidesteps the issue while
-keeping `index.html` itself logo-free.
+`assets/logos.js` is generated from the two PNGs + the banding SVG so the
+PPTX export works under all three serving modes: `http://`, `file://`, and
+offline. PptxGenJS needs data URIs, and `fetch()` of a sibling file is
+blocked under `file://`. Putting the data URIs in a separate `<script>`
+sidesteps the issue while keeping `index.html` itself asset-free.
+
+Fonts are self-hosted (JetBrains Mono) so the brand display font renders
+correctly without external requests. Inter is loaded via Google Fonts CDN
+as a fallback in `<style>`.
+
+The banding-element SVGs are no longer used by the current PPTX layout
+(the brand-faithful redesign uses a sky-circle on the cover instead).
+They are kept on disk for potential future use; `logos.js` still exposes
+their data URIs but no slide function calls them.
 
 That is the whole repo. Everything in `assets/vendor/` is third-party;
 everything else is project code.
@@ -64,20 +84,25 @@ will be served in production.
 
 ## What the app does
 
-The user lands on an upload screen, picks an exported assessment file plus a
-small set of configuration values, and clicks **Generate Report**. The app
-then:
+The user lands on a configuration screen (operator-only), picks an exported
+assessment file, fills in a small set of test-level configuration values,
+and clicks **Generate report**. The app then:
 
 1. Parses the file into rows of candidate attempt data.
 2. Computes aggregate stats across All Time, by Year, and by Month.
 3. Renders a single-page dashboard with KPI tiles, a score distribution
-   chart, a Task Analysis table, an Assessment Health Insights list, and a
-   three-tab Integrity panel (Integrity Risk, Similarity Check, Behavioural
-   Signals).
+   chart with a passing-threshold marker, a Task Analysis table, an
+   Assessment Health Insights list, and a three-tab Integrity panel
+   (Integrity Risk, Similarity Check, Behavioural Signals).
 4. On click, generates a PowerPoint deck and downloads it. Slide count
    varies with the data, typically 14 to 25 slides depending on the time
    range, the number of task variants, and whether the export contains
    integrity data.
+
+The configuration screen is intentionally separate from the report screen:
+on the production platform port, the configuration values come from the
+test's existing settings, and the configuration UI can be dropped
+entirely.
 
 ---
 
@@ -134,18 +159,18 @@ This is the object the upload form populates today. When porting, replace
 the form with whatever your platform stores (test settings, customer-level
 overrides, etc.).
 
-| Key             | Type                       | Required? | Source today           | What it controls                                                              |
-| --------------- | -------------------------- | --------- | ---------------------- | ----------------------------------------------------------------------------- |
-| `creator`       | string                     | No        | Test Creator Name input  | Subheader on dashboard and on every PPTX slide ("Test created by ...")        |
-| `passingScore`  | number \| null             | No        | Passing Score input    | Passing rate calculation. Rows with `% total score >= passingScore` pass. `null` skips the calculation |
-| `maxTime`       | number \| null             | No        | Max Test Duration input | Time pressure analysis. `medTimeLeft = maxTime − medTime`. `null` hides the time-pressure badge |
-| `fairness`      | number \| null             | No        | Fairness Rating input  | Fairness rating displayed in Assessment Experience. The platform should populate this from the customer-reported fairness score in the assessment dashboard. `null` hides the tile |
-| `fairnessRel`   | `'above' \| 'below' \| null` | No      | Fairness vs Global Avg | Whether the fairness rating is above or below the global average. Drives the color of the Fairness Rating badge |
-| `rotation`      | boolean                    | No        | Task rotation toggle   | Surfaces a "task rotation enabled" badge. Auto-detected from task slot uniqueness when this field is missing |
-| `proctoring`    | boolean                    | No        | Proctoring toggle      | Configuration insight on the dashboard. The platform should populate this from the test's proctoring settings |
-| `leaked`        | boolean                    | No        | Leaked item toggle     | Reserved. Surfaces a "tasks may be leaked" warning under Question Quality |
-| `weighted`      | boolean                    | No        | Weighted scoring toggle | If `true`, applies per-task-slot weights to the score calculation             |
-| `slotWeights`   | `{[n: number]: number}`    | No        | Per-slot Weight inputs | Map of task slot number to percentage weight. Should sum to 100 when `weighted` is `true` |
+| Key                | Type                          | Required? | Source today              | What it controls                                                              |
+| ------------------ | ----------------------------- | --------- | ------------------------- | ----------------------------------------------------------------------------- |
+| `creator`          | string                        | No        | Test creator name input   | Subheader on dashboard and on the PPTX cover/Executive Summary ("Test created by ...") |
+| `passingScore`     | number \| null                | No        | Passing score input       | Passing rate calculation. Rows with `% total score >= passingScore` pass. Drives the red dashed threshold line on the score-distribution chart. `null` skips the calculation |
+| `maxTime`          | number \| null                | No        | Max test duration input   | Time pressure analysis. `medTimeLeft = maxTime − medTime`. `null` hides the time-pressure badge |
+| `fairness`         | number \| null                | No        | Fairness rating input     | Fairness rating displayed in Assessment Experience. The platform should populate this from the post-assessment survey ("share of candidates who said the test fairly evaluated their coding skills"). `null` hides the tile |
+| `fairnessRel`      | `'above' \| 'below' \| null`  | No        | Fairness vs global average | Whether the fairness rating is above or below the global average. Drives the color of the Fairness Rating badge |
+| `rotation`         | boolean                       | No        | Task rotation toggle      | Whether task slots serve rotated variants. Auto-detected from task-slot uniqueness when this field is missing; the upload screen pre-fills this based on detection |
+| `proctoringLevel`  | `0 \| 1 \| 2 \| 3`            | No        | Proctoring level picker   | 0=Off (warning insight). 1=Behavioural signals. 2=Level 1 + extended live multimedia (webcam snapshots and/or screen recording). 3=Level 2 + identity verification (full webcam/mic + ID check). Drives the Configuration insight wording and tone, including a "consider moving to Level N+1" suggestion for levels 1-2 |
+| `leakedTasks`      | `string[]`                    | No        | Leaked tasks multi-select | Array of task names the operator has marked as leaked. Each name in the array is shown with a "Leaked" badge on the dashboard task table and triggers a "X should be replaced because it has been leaked" line on the Question Quality insight |
+| `weighted`         | boolean                       | No        | Weighted scoring toggle   | When `true`, the Weight column on the task table is shown                     |
+| `slotWeights`      | `{[n: number]: number}`       | No        | Per-slot weight inputs    | Map of task slot number to percentage weight. Should sum to 100 when `weighted` is `true` |
 
 ### Suggested API shape
 
@@ -176,8 +201,8 @@ GET /api/tests/{testId}/health-export
       "fairness": 79,
       "fairnessRel": "above",
       "rotation": false,
-      "proctoring": true,
-      "leaked": false,
+      "proctoringLevel": 2,
+      "leakedTasks": [],
       "weighted": false,
       "slotWeights": {}
     }
@@ -188,9 +213,9 @@ GET /api/tests/{testId}/health-export
 
 The two seams to change:
 
-**1. Skip the upload screen.** `showUpload()` and `showReport()` are the two
-view-toggling functions in `index.html`. The platform port should hide
-`#upload-screen` permanently and show `#report-screen` directly.
+**1. Skip the configuration screen.** `showUpload()` and `showReport()` are
+the two view-toggling functions in `index.html`. The platform port should
+hide `#upload-screen` permanently and show `#report-screen` directly.
 
 **2. Replace the parser.** The file-handling code (`handleFile()`,
 `parseCSV()`, the SheetJS path) is invoked when a file is selected and it
@@ -205,6 +230,10 @@ buildReport(rows, config);   // that is the whole integration
 
 `buildReport()` does everything from there: detects task slots, computes
 stats, renders the dashboard, and arms the PPTX download button.
+
+`downloadPPTX()` is also exposed globally. The Download PPTX button on
+the dashboard topbar wires straight to it, and the platform port can
+call it from anywhere.
 
 ---
 
@@ -419,7 +448,7 @@ structure, not exact numbers.
 
 | #  | Slide                | What is on it                                                    |
 | -- | -------------------- | ---------------------------------------------------------------- |
-| 1  | Cover                | Test name, creator, "First used on" + "Data as of" dates, dark ultramarine background |
+| 1  | Cover                | Codility wordmark top-left, "TEST HEALTH ANALYSIS" eyebrow, test name ending in sky-blue `_`, "Test created by" + "First used on" + "Data as of" meta at the bottom, paper-soft background with a large sky-blue circle bleeding off the top-right |
 | 2  | Executive Summary    | 5 KPI tiles plus up to 3 Key Findings                             |
 | 3  | Table of Contents    | Section 01 / 02 / 03 (and 04 if integrity data is present)       |
 | 4  | Section 01 divider   | "ALL TIME"                                                       |
@@ -435,23 +464,33 @@ structure, not exact numbers.
 
 ### Slide-header meta block
 
-Every content slide has a right-side meta block in the header. Two variants:
+Every content slide has a right-side meta block in the header. Two
+variants are used:
 
-- **Full meta** (Executive Summary, All Time stat slide, cover slide): test
-  name → "Test created by X" → "First used on \<earliest attempt date>" →
-  "Data as of \<today's date>" → yellow **Outdated** pill if the earliest
+- **Full meta** (Executive Summary, All Time stat slide): test name →
+  "Test created by X" → "First used on \<earliest attempt date>" → "Data
+  as of \<today's date>" → yellow **Outdated** pill if the earliest
   attempt is more than one calendar year old.
-- **Minimal meta** (TOC, Year, Month, Task Analysis, Integrity Impact, Next
-  Steps): test name → "Data as of \<today's date>".
+- **Minimal meta** (TOC, Year, Month, Task Analysis, Integrity Impact,
+  Next Steps): test name → "Data as of \<today's date>".
 
-The full block is gated to high-signal slides on purpose — repeating the
-creator name and first-used date on every page would clutter the deck. The
-"Outdated" caution surfaces once on the Executive Summary and once on the
-All Time stat slide, where it has the most impact. The dashboard mirrors
-this with its own yellow Outdated pill in the meta badge.
+The full block is gated to high-signal slides on purpose: repeating the
+creator name and first-used date on every page would clutter the deck.
+The "Outdated" caution surfaces once on the Executive Summary and once
+on the All Time stat slide, where it has the most impact. The dashboard
+mirrors this with its own yellow Outdated pill in the meta badge.
 
-"First used on" uses the earliest `Start date` in the export; "Data as of"
-uses the current date (i.e. when the user clicked Download PPTX).
+The cover slide carries its own bottom-anchored meta strip (creator
+left, dates + Outdated pill right). It does not use `addFullMeta` /
+`addMinMeta` because its layout is bespoke.
+
+Long testnames (longer than 40 characters) are truncated with an
+ellipsis in the meta block to prevent wrapping. The cover still renders
+the full untruncated name and sizes the title down based on character
+count so it lays out cleanly on at most 2 lines.
+
+"First used on" uses the earliest `Start date` in the export; "Data as
+of" uses the current date (i.e. when the user clicked Download PPTX).
 
 ### Section 04, Integrity Impact (conditional)
 
@@ -498,22 +537,34 @@ deck or on the dashboard (Invitations, Attempts, Median Score, Passing
 Rate, Median Time), so the copy never introduces a metric the reader has
 not already seen.
 
-### Logos
+### Logos and brand assets
 
-The dashboard and welcome screen `<img>` tags load
+The dashboard and configuration screen `<img>` tags load
 `assets/codility-logo-{dark,light}.png` directly. The PPTX export uses
-`assets/logos.js`, a small generated file with the same two images encoded
-as base64 data URIs, exposed on `window.CODILITY_LOGO_{DARK,LIGHT}_URI`.
+`assets/logos.js`, a generated file with the logo PNGs and the
+banding-element SVGs encoded as base64 data URIs and exposed on:
 
-To regenerate `logos.js` after replacing the PNGs:
+- `window.CODILITY_LOGO_DARK_URI`
+- `window.CODILITY_LOGO_LIGHT_URI`
+- `window.CODILITY_BANDING_URI` (the native pale variant, currently
+  unused by the deck layout but kept for future reuse)
+- `window.CODILITY_BANDING_PAPER_URI` (the slightly darker variant)
+
+To regenerate `logos.js` after replacing the PNGs or the banding SVG:
 
 ```bash
 python3 -c "
-import base64
-for variant in ['dark', 'light']:
-    with open(f'assets/codility-logo-{variant}.png', 'rb') as f:
-        data = base64.b64encode(f.read()).decode()
-    print(f'window.CODILITY_LOGO_{variant.upper()}_URI = \"data:image/png;base64,{data}\";')
+import base64, json
+def to_uri_png(path):
+    with open(path, 'rb') as f:
+        return 'data:image/png;base64,' + base64.b64encode(f.read()).decode()
+def to_uri_svg(path):
+    with open(path, 'rb') as f:
+        return 'data:image/svg+xml;base64,' + base64.b64encode(f.read()).decode()
+print('window.CODILITY_LOGO_DARK_URI    = ' + json.dumps(to_uri_png('assets/codility-logo-dark.png'))    + ';')
+print('window.CODILITY_LOGO_LIGHT_URI   = ' + json.dumps(to_uri_png('assets/codility-logo-light.png'))   + ';')
+print('window.CODILITY_BANDING_URI      = ' + json.dumps(to_uri_svg('assets/patterns/banding-element.svg')) + ';')
+print('window.CODILITY_BANDING_PAPER_URI= ' + json.dumps(to_uri_svg('assets/patterns/banding-element-paper.svg')) + ';')
 " > assets/logos.js
 ```
 
@@ -521,34 +572,72 @@ for variant in ['dark', 'light']:
 
 ## Brand
 
-Codility Brand v2.0 colors are defined twice: once as CSS variables in the
-`<style>` block, and once as a `C` color object inside `downloadPPTX()` for
-the PPTX export.
+Codility's 2026 brand colors are defined twice: once as CSS variables in
+the `<style>` block, and once as a `C` color object inside `downloadPPTX()`
+for the PPTX export. They are derived from the marketing system's
+`colors_and_type.css`.
 
-| Role                     | Hex       | Usage                                          |
-| ------------------------ | --------- | ---------------------------------------------- |
-| Ultramarine (lead)       | `#4A64E9` | Primary buttons, big numerals, accents         |
-| Raspberry (eyebrow)      | `#C82372` | Section labels (`OVERVIEW`, `ALL TIME`, etc.)  |
-| Yellow (highlight)       | `#FEE64B` | Reserved for callouts                          |
-| Navy (structural)        | `#253641` | Footer, body text                              |
+| Role                   | Hex       | Where it shows up                                                              |
+| ---------------------- | --------- | ------------------------------------------------------------------------------ |
+| Ultramarine (primary)  | `#4A64E9` | Primary buttons, big stat numbers on the PPTX, link colors, chart accent       |
+| Ultramarine-800 (deep) | `#30418C` | The dashboard upload-screen hero surface                                       |
+| Brand ink              | `#253641` | Section-divider slide background, 2pt hairline above stat numbers, body text   |
+| Sky-blue (underscore)  | `#80D5FF` | The `_` mark after titles on light surfaces, section-divider eyebrows          |
+| Sky-200 (cover circle) | `#C7E6FA` | Large circle decoration bleeding off the top-right of the PPTX cover           |
+| Sunset yellow          | `#FFF196` | The `_` mark after titles on dark section-divider slides                       |
+| Raspberry (secondary)  | `#C82372` | Reserved as secondary action color; used sparingly                             |
+| Coolgrey-100 (paper)   | `#F5F7F9` | Cover slide background                                                         |
+| Paper-soft             | `#F8F9FA` | Content slide background, dashboard background                                 |
 
-Font: Inter on the web, Aptos in the PPTX (Aptos is the Office default in
-recent versions and renders cleanly across machines without an embed).
+**Fonts.** Display: **JetBrains Mono** (Regular, Medium, SemiBold, Bold,
+ExtraBold) self-hosted from `assets/fonts/`. Body: **Inter** loaded from
+Google Fonts CDN. Both render in the PPTX and the dashboard. PptxGenJS
+embeds the font name in the slide XML, so PowerPoint and Keynote use the
+local copy if installed and fall back to a system mono / sans otherwise.
+
+**Signature motifs.** Every chapter title in the PPTX ends with the
+underscore mark (`_`) inline in the title text, sky-blue on light
+surfaces, yellow on dark. The cover slide's only decoration is a large
+sky-blue circle bleeding off the top-right corner. The brand explicitly
+rejects: em dashes for emphasis, vertical pipe separators, left-rail
+accent bars on cards, decorative drop shadows, and centered text. The
+codebase follows all of these rules.
 
 ---
 
 ## Development notes
 
 - **No build step.** Edit `index.html` in any editor and refresh.
-- **No tests yet.** The app has been hand-verified against two real exports
-  (Spring Boot Senior with 791 rows and C# Senior with 3,181 rows) using a
-  Python harness that mirrors the JS calculation logic. A future port
-  should add unit tests around `computeStats`, `buildTakeaway`,
-  `buildFindings`, `buildRecommendations`, and `buildInsightsData`.
-- **Vendored libraries.** All three live in `assets/vendor/`. Versions are
-  intentionally pinned to whatever was checked in. Bumping them needs a
-  visual smoke test of the dashboard and the deck.
-- **Async error handling.** All download buttons go through
-  `safeRun(fn, btn)` which catches rejections and surfaces them as alerts.
-  Without this wrapper, unhandled rejections in async onclick handlers die
-  silently in the console.
+- **No automated tests.** The app has been hand-verified against several
+  real Codility exports and a synthetic harness that exercises every
+  code path (every insight branch, every badge variant, the rotation /
+  no-rotation paths, the integrity / no-integrity paths, long testnames,
+  zero-attempt months, etc.). A future port should add unit tests around
+  `computeStats`, `buildTakeaway`, `buildFindings`,
+  `buildRecommendations`, and `buildInsightsData`.
+- **Vendored libraries.** All three live in `assets/vendor/`. Versions
+  are intentionally pinned to whatever was checked in. Bumping them
+  requires a visual smoke test of the dashboard and the deck.
+- **Async error handling.** Download buttons go through
+  `safeRun(fn, btn)` which catches rejections and surfaces them as
+  alerts. Without this wrapper, unhandled rejections in async onclick
+  handlers die silently in the console.
+- **Voice rules baked into copy generation.** The four copy builders
+  (`buildTakeaway`, `buildFindings`, `buildRecommendations`,
+  `buildInsightsData`) all follow the same rules: sentence case, third
+  person, no contractions, no em dashes, no emoji, no exclamation
+  marks. Every claim references one of the five surfaced KPIs
+  (Invitations, Attempts, Median Score, Passing Rate, Median Time) so
+  the copy never introduces a metric the reader hasn't already seen.
+- **Recommendation narrative.** `buildRecommendations` only shows
+  "Keep the assessment as it is" when there are zero actionable
+  recommendations. It is never mixed with "Improve X" / "Set Y"
+  recommendations on the same slide.
+- **Pre-handoff checklist** (round 24 cleanup):
+  - JS parses cleanly (single inline script block, ~147k chars)
+  - CSS braces balanced
+  - All asset references resolve
+  - No dead code (no `placeBanding`, no `bandIdx`, no orphan tokens)
+  - No em dashes in user-facing strings
+  - Integration contract (`_allRows`, `_lastCfg`, `buildReport`,
+    `downloadPPTX`) verified accessible from `window.*`

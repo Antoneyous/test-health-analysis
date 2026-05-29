@@ -10,64 +10,129 @@
   <script src="assets/logos.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    /* JetBrains Mono — display face. Local TTFs so the app works offline / on file://. */
+    @font-face { font-family: 'JetBrains Mono'; src: url('assets/fonts/JetBrainsMono-Regular.ttf') format('truetype'); font-weight: 400; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'JetBrains Mono'; src: url('assets/fonts/JetBrainsMono-Medium.ttf') format('truetype'); font-weight: 500; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'JetBrains Mono'; src: url('assets/fonts/JetBrainsMono-SemiBold.ttf') format('truetype'); font-weight: 600; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'JetBrains Mono'; src: url('assets/fonts/JetBrainsMono-Bold.ttf') format('truetype'); font-weight: 700; font-style: normal; font-display: swap; }
+    @font-face { font-family: 'JetBrains Mono'; src: url('assets/fonts/JetBrainsMono-ExtraBold.ttf') format('truetype'); font-weight: 800; font-style: normal; font-display: swap; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    /* ── Codility Brand v2.0 tokens ── */
+    /* ── Codility Brand 2026 — Marketing tokens ── */
     :root {
-      /* Primary action — Ultramarine */
-      --blue:        #4A64E9;
-      --blue-hover:  #3C53C2;
-      --blue-deep:   #30418C;
-      --blue-tint:   #E8ECFF;
-      --blue-pale:   #F5F7FF;
-      /* Accent — Raspberry (emphasis, drop-off, "notice this") */
-      --raspberry:        #C82372;
-      --raspberry-hover:  #B30C5C;
-      --raspberry-tint:   #FEEAF3;
-      /* Highlight — Yellow (callouts, featured) */
-      --yellow:        #FEE64B;
-      --yellow-light:  #FFF196;
-      --yellow-pale:   #FFFBD1;
-      /* Cool greys */
-      --grey-50:  #F8F9FA;
-      --grey-100: #F5F7F9;
-      --grey-200: #E9EDF1;
-      --grey-300: #D8DFE4;
-      --grey-500: #7E8891;
-      --grey-600: #5D666F;
-      --grey-700: #393C4B;
-      --navy:     #253641;
-      /* Semantic — status only */
-      --green:      #2A9D71;
-      --green-bg:   #E6FBF3;
-      --red:        #C32F2F;
-      --red-bg:     #FDECEC;
-      /* Caution = Codility yellow (#FEE64B brand) — pale bg + dark yellow text for contrast */
+      /* Family-step palette. 50/100 = lightest tints, 500 = base, 900/950 = darkest shades. */
+      /* Ultramarine — primary (light mode) */
+      --c-ultramarine-50:  #F5F7FF;
+      --c-ultramarine-100: #E8ECFF;
+      --c-ultramarine-300: #B2BDF5;
+      --c-ultramarine-500: #4A64E9;  /* primary color */
+      --c-ultramarine-600: #3C53C2;  /* primary hover */
+      --c-ultramarine-800: #30418C;  /* primary active */
+      --c-ultramarine-900: #393C4B;  /* light-mode primary text */
+      /* Cool grey — surfaces, borders, secondary text */
+      --c-coolgrey-50:  #F8F9FA;
+      --c-coolgrey-100: #F5F7F9;
+      --c-coolgrey-200: #E9EDF1;
+      --c-coolgrey-300: #D8DFE4;
+      --c-coolgrey-500: #7E8891;
+      --c-coolgrey-600: #5D666F;
+      --c-coolgrey-900: #252B30;
+      /* Raspberry — secondary (light mode) */
+      --c-raspberry-100: #FEEAF3;
+      --c-raspberry-300: #FDDCEB;
+      --c-raspberry-900: #C82372;
+      --c-raspberry-950: #B30C5C;
+      --c-raspberry-990: #98074C;
+      /* Sunset — yellow callouts (mapped from legacy yellow) */
+      --c-sunset-50:  #FFFBD1;
+      --c-sunset-100: #FFF5B5;
+      --c-sunset-300: #FFF196;
+      --c-sunset-600: #FEE64B;
+      --c-sunset-800: #FFDD00;
+      /* Strawberry — error */
+      --c-strawberry-100: #FFE6E6;
+      --c-strawberry-300: #FFDBDB;
+      --c-strawberry-600: #FC9797;
+      --c-strawberry-900: #C32F2F;
+      /* Mint — success */
+      --c-mint-100: #E6FBF3;
+      --c-mint-600: #A2EBD0;
+      --c-mint-800: #1CA773;
+      --c-mint-900: #008253;
+      --c-mint-950: #006A44;
+      /* Aqua — informational / cerulean replacement */
+      --c-aqua-100: #E6F4FD;
+      --c-aqua-400: #BEE5FA;
+      --c-aqua-900: #0074B1;
+      --c-aqua-950: #006295;
+      /* Neutrals */
+      --c-white: #FFFFFF;
+      --c-black: #000000;
+
+      /* Semantic role aliases */
+      --fg-1:           var(--c-ultramarine-900);  /* primary text */
+      --fg-2:           var(--c-coolgrey-600);     /* secondary text */
+      --fg-3:           var(--c-coolgrey-500);     /* muted */
+      --bg-1:           var(--c-white);
+      --bg-2:           var(--c-coolgrey-100);
+      --border-1:       var(--c-coolgrey-300);
+      --border-2:       var(--c-coolgrey-200);
+      --accent:         var(--c-ultramarine-500);
+      --accent-hover:   var(--c-ultramarine-600);
+      --accent-active:  var(--c-ultramarine-800);
+      --secondary:      var(--c-raspberry-900);
+      --secondary-hover:var(--c-raspberry-950);
+
+      /* Type roles */
+      --font-display: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      --font-body:    'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+
+      /* Legacy aliases — point old names at the new palette so existing inline
+         style="…" and component CSS keep working unchanged. */
+      --blue:        var(--c-ultramarine-500);
+      --blue-hover:  var(--c-ultramarine-600);
+      --blue-deep:   var(--c-ultramarine-800);
+      --blue-tint:   var(--c-ultramarine-100);
+      --blue-pale:   var(--c-ultramarine-50);
+      --raspberry:        var(--c-raspberry-900);
+      --raspberry-hover:  var(--c-raspberry-950);
+      --raspberry-tint:   var(--c-raspberry-100);
+      --yellow:        var(--c-sunset-800);
+      --yellow-light:  var(--c-sunset-300);
+      --yellow-pale:   var(--c-sunset-50);
+      --grey-50:  var(--c-coolgrey-50);
+      --grey-100: var(--c-coolgrey-100);
+      --grey-200: var(--c-coolgrey-200);
+      --grey-300: var(--c-coolgrey-300);
+      --grey-500: var(--c-coolgrey-500);
+      --grey-600: var(--c-coolgrey-600);
+      --grey-700: var(--c-ultramarine-900);
+      --navy:     var(--c-ultramarine-900);
+      --green:      var(--c-mint-900);
+      --green-bg:   var(--c-mint-100);
+      --red:        var(--c-strawberry-900);
+      --red-bg:     var(--c-strawberry-100);
       --amber:      #806000;
-      --amber-bg:   #FFFBD1;
-      --cerulean:   #007FB3;
-      --cerulean-bg:#E1F1FA;
-      /* Convenience aliases used elsewhere in the app */
-      --ink:           var(--grey-700);
-      --muted:         var(--grey-500);
-      --light:         var(--grey-50);
-      --border:        var(--grey-300);
-      --card:          #FFFFFF;
-      --yellow-bg:     var(--yellow-pale);
-      --yellow-border: var(--yellow-light);
-      --blue-bg:       var(--blue-tint);
-      --gray-bg:       var(--grey-100);
-      /* Brand gradients */
-      --hero-gradient: linear-gradient(231deg, #4A64E9 0%, #C82372 100%);
-      --hero-stripe:   linear-gradient(90deg, #4A64E9 0%, #C82372 100%);
-      /* Elevation */
-      --shadow-l1: 0 1px 2px rgba(37,54,65,.06);
-      --shadow-l2: 0 6px 20px rgba(37,54,65,.10);
-      /* Radius scale */
-      --r-tiny: 2px; --r-small: 4px; --r-med: 8px; --r-large: 12px; --r-xl: 16px;
+      --amber-bg:   var(--c-sunset-50);
+      --cerulean:   var(--c-aqua-900);
+      --cerulean-bg:var(--c-aqua-100);
+      --ink:           var(--fg-1);
+      --muted:         var(--fg-3);
+      --light:         var(--c-coolgrey-50);
+      --border:        var(--border-1);
+      --card:          var(--c-white);
+      --yellow-bg:     var(--c-sunset-50);
+      --yellow-border: var(--c-sunset-300);
+      --blue-bg:       var(--c-ultramarine-100);
+      --gray-bg:       var(--c-coolgrey-100);
+      /* Cool brand shadows */
+      --shadow-l1: 0 1px 2px rgba(182,191,201,0.2);
+      --shadow-l2: 0 4px 16px rgba(182,191,201,0.2);
+      /* Radius scale — brand uses 16px on large surfaces. */
+      --r-small: 4px; --r-med: 8px; --r-large: 16px; --r-xl: 16px;
     }
     body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background: var(--grey-50); color: var(--grey-700);
+      font-family: var(--font-body);
+      background: var(--bg-2); color: var(--fg-1);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -75,12 +140,16 @@
       letter-spacing: -0.005em;
     }
     h1, h2, h3, h4, h5, h6 { letter-spacing: -0.018em; font-weight: 700; }
-    /* Brand stripe at the very top of every screen */
-    body::before {
-      content: ''; display: block; height: 4px;
-      background: var(--hero-stripe);
-      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    /* Display font for hero / report titles and KPI numbers (JetBrains Mono). */
+    h1, .upload-hero h1, .report-title h1 {
+      font-family: var(--font-display); font-weight: 800; letter-spacing: -0.005em;
     }
+    .stat-value { font-family: var(--font-display); font-weight: 700; }
+    .eyebrow, [class*="eyebrow"], .upload-hero .eyebrow {
+      font-family: var(--font-display); font-weight: 700;
+    }
+    /* Brand book is clear: no rainbow stripes. The top hairline is removed. */
+    body::before { content: none; }
 
     /* ── Tooltip system ── */
     .tip-wrap { position: relative; display: inline-flex; align-items: center; }
@@ -96,10 +165,15 @@
       position: fixed; /* fixed so it's never clipped */
       z-index: 9999;
       min-width: 200px; max-width: 280px;
-      background: #1f2937; color: #f9fafb;
+      background: var(--c-ultramarine-900); color: var(--c-white);
       padding: 9px 12px; border-radius: 8px;
       font-size: 12px; font-weight: 400; line-height: 1.5;
       pointer-events: none; white-space: normal;
+      /* The tooltip can be nested inside an uppercase-transformed parent
+         (e.g. table <th>, section title). Force sentence-case rendering
+         and normal letter-spacing so tooltip text never inherits caps. */
+      text-transform: none;
+      letter-spacing: normal;
     }
     .tip-icon:hover + .tip-box,
     .tip-icon:focus + .tip-box { display: block; }
@@ -111,14 +185,17 @@
       position: fixed;
       z-index: 9999;
       min-width: 220px; max-width: 300px;
-      background: #1f2937; color: #f9fafb;
+      background: var(--c-ultramarine-900); color: var(--c-white);
       padding: 10px 13px; border-radius: 8px;
       font-size: 12px; line-height: 1.6;
       pointer-events: none; white-space: normal;
+      /* Don't inherit uppercase/letter-spacing from parent containers
+         (e.g. table <th> headers, .stats-section-title). */
+      text-transform: none;
+      letter-spacing: normal;
     }
     .calc-wrap:hover .calc-box { display: block; }
-    .calc-nums { color: #fcd34d; font-weight: 600; display: block; margin-top: 3px; }
-    .calc-formula { font-family: monospace; font-size: 11px; background: rgba(255,255,255,.1); padding: 2px 5px; border-radius: 4px; display: block; margin-top: 3px; }
+    .calc-nums { color: var(--c-sunset-600); font-weight: 600; display: block; margin-top: 3px; }
 
     /* ── Upload screen ── */
     /* Sized to fit a typical desktop viewport (~900px tall) without
@@ -126,28 +203,35 @@
        all live inside the visible area. */
     #upload-screen { display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 0 0 16px; gap: 0; }
 
-    /* Hero — full-bleed brand gradient */
+    /* Hero — saturated ultramarine surface for a confident, on-brand cover
+       moment. Light wordmark + white display headline + white body copy.
+       This mirrors how the marketing decks treat covers and gives the page
+       the boldness Tony's brief calls for. */
     .upload-hero {
       width: 100%;
-      background: var(--hero-gradient);
-      color: #fff;
-      padding: 28px 24px 36px;
+      background: var(--c-ultramarine-800);
+      color: var(--c-white);
+      padding: 40px 24px 52px;
       display: flex; flex-direction: column; align-items: center;
     }
     .upload-hero .eyebrow {
-      font-size: 12px; font-weight: 700; letter-spacing: .12em;
-      text-transform: uppercase; color: rgba(255,255,255,.78); margin-bottom: 8px;
+      font-family: var(--font-display);
+      font-size: 12px; font-weight: 700; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--c-white); opacity: 0.85;
+      margin-bottom: 16px;
     }
     .upload-hero h1 {
-      font-size: 32px; font-weight: 700; line-height: 1.15;
-      text-align: center; margin-bottom: 8px; letter-spacing: -.01em;
+      font-family: var(--font-display);
+      font-size: 44px; font-weight: 800; line-height: 1.1;
+      text-align: center; margin-bottom: 12px; letter-spacing: -.01em;
+      color: var(--c-white);
     }
     .upload-hero p {
-      color: rgba(255,255,255,.85);
-      text-align: center; font-size: 14px; line-height: 1.45;
-      max-width: 560px;
+      color: var(--c-white); opacity: 0.85;
+      text-align: center; font-size: 15px; line-height: 1.5;
+      max-width: 620px;
     }
-    .codility-logo.welcome { height: 32px; margin-bottom: 12px; }
+    .codility-logo.welcome { height: 36px; margin-bottom: 20px; }
 
     /* Content stack — two-column grid below the drop zone so the two
        config panels sit side by side. Keeps the page short enough to fit
@@ -155,8 +239,8 @@
     .upload-stack {
       width: 100%; max-width: 880px;
       display: flex; flex-direction: column; gap: 12px;
-      padding: 0 20px;
-      margin-top: -22px; /* overlap the hero a touch */
+      padding: 20px;
+      margin-top: 0;
     }
     .upload-config-row {
       display: grid; grid-template-columns: 1fr 1fr;
@@ -185,15 +269,17 @@
     .upload-box input { display: none; }
     .upload-box .drop-text { text-align: left; }
     .upload-btn {
-      display: inline-block;
-      background: var(--blue); color: #fff;
-      border: none; border-radius: var(--r-med);
-      padding: 9px 22px; font-size: 14px; font-weight: 600;
-      cursor: pointer; font-family: inherit;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--accent); color: var(--c-white);
+      border: none; border-radius: var(--r-xl);
+      height: 44px; padding: 8px 24px;
+      font-size: 18px; font-weight: 500; line-height: 1.55;
+      cursor: pointer; font-family: var(--font-body);
       transition: background .15s;
       flex-shrink: 0;
     }
-    .upload-btn:hover { background: var(--blue-hover); }
+    .upload-btn:hover  { background: var(--accent-hover); }
+    .upload-btn:active { background: var(--accent-active); }
 
     .config-panel {
       width: 100%;
@@ -257,6 +343,13 @@
     .segmented label:last-of-type {
       border-radius: 0 var(--r-med) var(--r-med) 0;
     }
+    /* Middle segments (3+ children): no rounded corners and -1px right margin
+       so each segment overlaps its neighbour's border by 1px. The active
+       segment's z-index keeps its 1px border on top. */
+    .segmented label:not(:first-of-type):not(:last-of-type) {
+      border-radius: 0;
+      margin-right: -1px;
+    }
     /* Hidden native radio. Higher-specificity overrides cancel the
        .config-field input rule (width:100%, padding, border, background). */
     .segmented input[type="radio"] {
@@ -283,6 +376,20 @@
       padding: 6px 0; border-bottom: 1px solid var(--grey-200);
     }
     .toggle-row:last-child { border-bottom: none; }
+    /* Proctoring level picker — its own row inside the config panel.
+       Heading + tip on top, segmented picker below. Tighter than the
+       toggle rows because the segmented control already has visual weight. */
+    .proctoring-row {
+      padding: 8px 0; border-bottom: 1px solid var(--grey-200);
+    }
+    .proctoring-row-head {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 13px; font-weight: 500; color: var(--fg-1);
+      margin-bottom: 6px;
+    }
+    /* Slightly tighter segments when there are 4 of them — same height as
+       the existing 2-segment control but smaller padding so labels fit. */
+    .segmented-4 label { font-size: 11px; padding: 0 4px; }
     .toggle-row span { font-size: 13px; color: var(--grey-700); }
     .toggle { position: relative; width: 38px; height: 22px; }
     .toggle input { opacity: 0; width: 0; height: 0; }
@@ -337,7 +444,7 @@
     .integrity-filter-chip input { margin: 0; cursor: pointer; }
     .integrity-filter-chip.active {
       background: var(--raspberry-tint);
-      border-color: #f4c0d6;
+      border-color: var(--c-raspberry-300);
       color: var(--raspberry);
     }
     .integrity-bar-row {
@@ -362,23 +469,25 @@
 
     .run-btn {
       width: 100%;
-      background: var(--blue); color: #fff;
-      border: none; border-radius: var(--r-med);
-      padding: 11px; font-size: 14px; font-weight: 600;
+      background: var(--accent); color: var(--c-white);
+      border: none; border-radius: var(--r-xl);
+      height: 44px; padding: 8px 24px;
+      font-size: 18px; font-weight: 500; line-height: 1.55;
       cursor: pointer;
-      font-family: inherit;
+      font-family: var(--font-body);
       transition: background .15s;
     }
     .run-btn:disabled {
-      background: var(--grey-300); color: var(--grey-500);
+      background: var(--c-coolgrey-300); color: var(--c-coolgrey-500);
       cursor: not-allowed;
     }
-    .run-btn:not(:disabled):hover { background: var(--blue-hover); }
+    .run-btn:not(:disabled):hover  { background: var(--accent-hover); }
+    .run-btn:not(:disabled):active { background: var(--accent-active); }
     #upload-error {
       color: var(--red); font-size: 13px; display: none;
       width: 100%; padding: 10px 14px;
       background: var(--red-bg); border-radius: var(--r-med);
-      border: 1px solid #f3c7c7;
+      border: 1px solid var(--c-strawberry-300);
     }
 
     /* ── Report ── */
@@ -386,49 +495,65 @@
     .report-topbar {
       background: var(--card);
       border-bottom: 1px solid var(--grey-200);
-      padding: 10px 24px;
+      padding: 6px 16px;
       display: flex; align-items: center; justify-content: space-between;
-      gap: 12px; flex-wrap: wrap;
+      gap: 10px; flex-wrap: nowrap;
       box-shadow: var(--shadow-l1);
     }
     .topbar-brand {
-      display: flex; align-items: center; gap: 14px;
-      font-size: 13px; font-weight: 600; color: var(--grey-500);
+      display: flex; align-items: center; gap: 10px;
+      color: var(--fg-1);
     }
-    .topbar-brand .topbar-divider {
-      width: 1px; height: 22px; background: var(--grey-200);
+    /* Test name in the topbar — Inter Medium, comfortable read-size. */
+    .topbar-filename {
+      font-size: 12px; font-weight: 500; color: var(--fg-2);
+      max-width: 32ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     /* Official Codility logotype — referenced from disk in the dashboard, and
        fetched + base64-embedded at PPTX export time. Two variants: dark
        (navy on light bg) and light (white on dark bg). */
     .codility-logo { display: inline-block; height: 28px; width: auto; user-select: none; }
-    .codility-logo.dashboard { height: 24px; }
+    .codility-logo.dashboard { height: 20px; }
     /* .codility-logo.welcome height is set in the upload-screen block above. */
     .back-btn {
-      background: transparent;
-      border: 1px solid var(--grey-300);
-      border-radius: var(--r-med);
-      padding: 7px 14px;
-      font-size: 13px; font-weight: 600;
-      cursor: pointer; color: var(--grey-700);
-      font-family: inherit;
-      transition: background .12s, border-color .12s;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--c-white);
+      border: 1px solid var(--border-1);
+      border-radius: var(--r-xl);
+      height: 44px; padding: 8px 24px;
+      font-size: 18px; font-weight: 500; line-height: 1.55;
+      cursor: pointer; color: var(--fg-1);
+      font-family: var(--font-body);
+      transition: border-color .12s;
     }
     .back-btn:hover {
-      background: var(--blue-pale);
-      border-color: var(--blue);
-      color: var(--blue);
+      background: var(--c-white);
+      border-color: var(--c-ultramarine-900);
+      color: var(--fg-1);
     }
     .dl-btn {
-      background: var(--blue); color: #fff;
-      border: none; border-radius: var(--r-med);
-      padding: 8px 16px; font-size: 13px; font-weight: 600;
-      cursor: pointer; font-family: inherit;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--accent); color: var(--c-white);
+      border: none; border-radius: var(--r-xl);
+      height: 44px; padding: 8px 24px;
+      font-size: 18px; font-weight: 500; line-height: 1.55;
+      cursor: pointer; font-family: var(--font-body);
       transition: background .15s;
     }
-    .dl-btn:hover { background: var(--blue-hover); }
-    .dl-btn.accent { background: var(--raspberry); }
-    .dl-btn.accent:hover { background: var(--raspberry-hover); }
+    .dl-btn:hover  { background: var(--accent-hover); }
+    .dl-btn:active { background: var(--accent-active); }
+    .dl-btn.accent        { background: var(--secondary); }
+    .dl-btn.accent:hover  { background: var(--secondary-hover); }
+
+    /* Slim variant in the report topbar — the bar should be a thin utility
+       strip, not a full-height hero. Override the 44px marketing-spec height
+       for buttons that live inside the topbar. */
+    .report-topbar .back-btn,
+    .report-topbar .dl-btn {
+      height: 28px; padding: 2px 12px;
+      font-size: 13px; border-radius: var(--r-med);
+      line-height: 1.2;
+    }
 
     .report-body { max-width: 100%; margin: 0 auto; padding: 10px 24px 24px; }
     .report-title-row {
@@ -456,8 +581,8 @@
        blue tint + border and becomes a plain white card — the yellow
        Outdated pill carries all the visual emphasis on its own. */
     .report-meta-badge.is-outdated {
-      background: #FFFFFF;
-      border-color: var(--grey-200);
+      background: var(--c-white);
+      border-color: var(--border-2);
     }
     .report-meta-badge.is-outdated strong { color: var(--navy); }
 
@@ -474,6 +599,7 @@
       padding: 11px 16px;
       border-right: 1px solid var(--grey-200);
       overflow: visible;
+      min-width: 0; /* allow flex children to shrink + ellipsis */
     }
     .stats-section:last-child { border-right: none; }
     .stats-section-title {
@@ -482,26 +608,37 @@
       text-align: center; margin-bottom: 9px;
       padding-bottom: 8px; border-bottom: 1px solid var(--grey-200);
       display: flex; align-items: center; justify-content: center; gap: 4px;
+      white-space: nowrap;
     }
     .stats-cols { display: flex; justify-content: space-around; gap: 6px; }
-    .stat-item { text-align: center; flex: 1; overflow: visible; }
+    .stat-item { text-align: center; flex: 1; min-width: 0; overflow: visible; }
+    /* Labels stay on one line — long ones get the tiny-font treatment so they
+       don't wrap. Original labels like "Number of Non Zero Attempts" and
+       "Median Attempt Time" were wrapping at 11px; shrinking to 10.5px and
+       forcing nowrap fixes it without losing the descriptive labels. */
     .stat-label {
-      font-size: 11px; color: var(--grey-500); line-height: 1.3;
+      font-size: 10.5px; color: var(--grey-500); line-height: 1.2;
       margin-bottom: 6px;
       display: flex; align-items: center; justify-content: center; gap: 2px;
+      white-space: nowrap;
     }
     .stat-value {
       font-size: 22px; font-weight: 700; line-height: 1;
       color: var(--navy);
+      white-space: nowrap;
     }
     /* Default badge = neutral grey. Use modifier classes for semantic meaning. */
+    /* Badges — small status pills under KPI values. The 100-tint backgrounds
+       are very pale, so the foreground MUST be the deepest brand step in the
+       same family to read at 11px. Bumped to weight 700 too. */
     .badge {
       display: inline-block; margin-top: 6px;
       padding: 3px 10px; border-radius: 99px;
-      font-size: 11px; font-weight: 600;
-      background: var(--grey-100);
-      border: 1px solid var(--grey-300);
-      color: var(--grey-600);
+      font-size: 11px; font-weight: 700;
+      background: var(--c-coolgrey-100);
+      border: 1px solid var(--c-coolgrey-300);
+      color: var(--c-coolgrey-900);
+      white-space: nowrap;
     }
     /* In the KPI stat columns, force the badge onto its own line below the
        stat value. Without this the badge can land beside the value when the
@@ -512,22 +649,24 @@
       display: block; width: fit-content; margin: 6px auto 0;
     }
     .badge.green {
-      background: var(--green-bg); border-color: #b7e8d3; color: var(--green);
+      background: var(--c-mint-100); border-color: var(--c-mint-800);
+      color: var(--c-mint-950);
     }
     .badge.gray  {
-      background: var(--grey-100); border-color: var(--grey-300); color: var(--grey-600);
+      background: var(--c-coolgrey-100); border-color: var(--c-coolgrey-300);
+      color: var(--c-coolgrey-900);
     }
     .badge.blue  {
-      background: var(--blue-tint); border-color: #c2cdf7; color: var(--blue-deep);
+      background: var(--c-ultramarine-100); border-color: var(--c-ultramarine-500);
+      color: var(--c-ultramarine-800);
     }
     .badge.red   {
-      background: var(--raspberry-tint); border-color: #f4c0d6; color: var(--raspberry);
+      background: var(--c-raspberry-100); border-color: var(--c-raspberry-900);
+      color: var(--c-raspberry-990);
     }
     .badge.amber {
-      background: var(--amber-bg); border-color: var(--yellow-light); color: var(--amber);
-    }
-    .badge.yellow {
-      background: var(--yellow-pale); border-color: var(--yellow-light); color: #806000;
+      background: var(--c-sunset-100); border-color: var(--c-sunset-800);
+      color: var(--c-coolgrey-900);
     }
 
     /* Layout */
@@ -564,8 +703,8 @@
     .middle-row { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 16px; margin-bottom: 16px; align-items: start; }
     .card {
       background: var(--card);
-      border: 1px solid var(--grey-200);
-      border-radius: var(--r-large);
+      border: 1px solid var(--border-1);
+      border-radius: var(--r-xl);
       overflow: visible;
       box-shadow: var(--shadow-l1);
     }
@@ -578,23 +717,57 @@
     }
 
     /* Task table */
-    .task-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .task-table {
+      width: 100%; border-collapse: collapse; font-size: 13px;
+      /* Fixed layout so column widths are honoured exactly and rows can't
+         expand vertically when content (e.g. a 'Leaked' badge) gets tight. */
+      table-layout: fixed;
+    }
+    /* Column widths — locked so the table reads evenly whether weighted
+       scoring is on or off. "DISCRIMINATION" is the longest header word
+       (13 chars in caps), so its column needs the most room. The avg-score
+       column must hold the number plus a 'Very Easy' / 'Leaked' badge on
+       one line. Percentages add up to 100%; when the Weight column is
+       hidden the wider columns absorb its share via table-layout: fixed. */
+    .task-table col.col-num    { width: 5%;  }
+    .task-table col.col-task   { width: 26%; }
+    .task-table col.col-avg    { width: 20%; }
+    .task-table col.col-disc   { width: 24%; }
+    .task-table col.col-n      { width: 9%;  }
+    .task-table col.col-weight { width: 16%; }
     /* Sticky thead so the column headers stay visible while the inner
        scroller handles long task lists (15+ tasks). */
     .task-table thead { position: sticky; top: 0; z-index: 1; }
     .task-table th {
-      padding: 7px 12px; text-align: left;
+      padding: 7px 6px; text-align: left;
       font-size: 11px; font-weight: 700; color: var(--grey-500);
-      text-transform: uppercase; letter-spacing: .06em;
+      text-transform: uppercase; letter-spacing: .02em;
       background: var(--grey-50);
       border-bottom: 1px solid var(--grey-200);
+      /* Don't let a long header (e.g. DISCRIMINATION) push past its
+         column. The whole row is sized by table-layout: fixed, so any
+         overflow has to be hidden here. */
+      overflow: hidden;
     }
-    .task-table th .th-inner { display: flex; align-items: center; gap: 4px; }
+    .task-table th .th-inner {
+      display: flex; align-items: center; gap: 3px;
+      white-space: nowrap; min-width: 0;
+    }
+    /* Slight shrink for the discrimination header so the word + ? fit
+       comfortably without spilling into the next column. */
+    .task-table th .th-inner .tip-icon { flex-shrink: 0; }
     .task-table td {
       padding: 0; border-bottom: 1px solid var(--grey-200);
       vertical-align: middle;
     }
     .task-table tr:last-child td { border-bottom: none; }
+    /* Avg-score cell: number + badge stay on one line so the row height
+       doesn't grow when a Leaked / Very Easy / Very Hard pill appears.
+       The wrapper itself is nowrap; the cell hides any extreme overflow. */
+    .task-table .avg-cell {
+      display: inline-flex; align-items: center;
+      white-space: nowrap;
+    }
 
     /* Slot row (the numbered group header) */
     .slot-row td {
@@ -613,15 +786,30 @@
       display: inline-block; padding: 3px 9px;
       border-radius: var(--r-small);
       font-size: 12px; font-weight: 600;
+      /* Never let a long task name (e.g. SpeedMeasurementPoints) bleed
+         into the next column. The chip stays within its cell; if it
+         genuinely needs more characters, it breaks onto a second line
+         inside the chip rather than truncating, so the full name is
+         always visible. */
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      line-height: 1.25;
     }
+    /* The task-name <td> needs a tiny right-side gutter so the chip
+       border doesn't kiss the next column. Targeted by class on the
+       <td> so column-hiding (# column off in rotation mode) doesn't
+       break the selector. */
+    .task-table .variant-row .task-cell { padding-right: 6px; }
     /* Difficulty chips — color-coded so a quick scan of the task table shows
        the mix of elementary / easy / medium / hard variants at a glance. Mint
        for elementary, green for easy, amber for medium, raspberry for hard.
        Tints match the Codility brand palette. */
-    .chip-elementary { background: #DCF1F4;          color: #0E6B7A;          border: 1px solid #A8DBE2; }
-    .chip-easy       { background: var(--green-bg);     color: var(--green);     border: 1px solid #b7e8d3; }
-    .chip-medium     { background: var(--amber-bg);     color: var(--amber);     border: 1px solid var(--yellow-light); }
-    .chip-hard       { background: var(--raspberry-tint); color: var(--raspberry); border: 1px solid #f4c0d6; }
+    .chip-elementary { background: var(--c-aqua-100);   color: var(--c-aqua-950, #006295); border: 1px solid var(--c-aqua-900); font-weight: 700; }
+    .chip-easy       { background: var(--c-mint-100);   color: var(--c-mint-950);         border: 1px solid var(--c-mint-800); font-weight: 700; }
+    .chip-medium     { background: var(--c-sunset-100); color: var(--c-coolgrey-900);     border: 1px solid var(--c-sunset-800); font-weight: 700; }
+    .chip-hard       { background: var(--c-raspberry-100); color: var(--c-raspberry-990); border: 1px solid var(--c-raspberry-900); font-weight: 700; }
     .avg-score   { font-weight: 700; font-size: 14px; color: var(--navy); }
     .disc-value  { font-weight: 700; font-size: 13px; }
 
@@ -682,9 +870,10 @@
       font-size: 11px; font-weight: 600;
       background: var(--grey-100); border: 1px solid var(--grey-300); color: var(--grey-600);
     }
-    .chart-meta .shape-badge.green { background: var(--green-bg);     border-color:#b7e8d3;            color: var(--green); }
-    .chart-meta .shape-badge.amber { background: var(--amber-bg);     border-color: var(--yellow-light); color: var(--amber); }
-    .chart-meta .shape-badge.red   { background: var(--raspberry-tint); border-color:#f4c0d6;            color: var(--raspberry); }
+    .chart-meta .shape-badge { font-weight: 700; }
+    .chart-meta .shape-badge.green { background: var(--c-mint-100);   border-color: var(--c-mint-800);     color: var(--c-mint-950); }
+    .chart-meta .shape-badge.amber { background: var(--c-sunset-100); border-color: var(--c-sunset-800);   color: var(--c-coolgrey-900); }
+    .chart-meta .shape-badge.red   { background: var(--c-raspberry-100); border-color: var(--c-raspberry-900); color: var(--c-raspberry-990); }
     #scoreChart { max-height: 170px; }
 
     @media (max-width: 760px) {
@@ -710,7 +899,8 @@
 <div id="upload-screen">
   <div class="upload-hero">
     <img class="codility-logo welcome" src="assets/codility-logo-light.png" alt="Codility" />
-    <h1>Test Health Analysis</h1>
+    <div class="eyebrow">Assessment insights</div>
+    <h1>Test health analysis</h1>
     <p>Upload an assessment export to generate an instant assessment health report — engagement, scoring, time pressure, behavioural signals, and more.</p>
   </div>
 
@@ -734,18 +924,18 @@
   <div class="upload-config-row">
 
     <div class="config-panel">
-      <h3>Test Details</h3>
+      <h3>Test details</h3>
       <div class="config-grid">
         <div class="config-field full">
-          <label>Test Creator Name</label>
+          <label>Test creator name</label>
           <input type="text" id="cfg-creator" placeholder="e.g. Dylan Caldeira" />
         </div>
         <div class="config-field">
-          <label>Fairness Rating (%)</label>
+          <label>Fairness rating (%)</label>
           <input type="number" id="cfg-fairness" placeholder="e.g. 90" min="0" max="100" />
         </div>
         <div class="config-field" style="display:flex;flex-direction:column;justify-content:flex-end;">
-          <label>Fairness vs Global Avg</label>
+          <label>Fairness vs global average</label>
           <div class="segmented">
             <label>
               <input type="radio" name="fairness-rel" value="above" id="fair-above" />
@@ -761,14 +951,14 @@
     </div>
 
     <div class="config-panel">
-      <h3>Assessment Configuration</h3>
+      <h3>Assessment configuration</h3>
       <div class="config-grid">
         <div class="config-field">
-          <label>Passing Score (%)</label>
+          <label>Passing score (%)</label>
           <input type="number" id="cfg-passing" placeholder="e.g. 75" min="0" max="100" />
         </div>
         <div class="config-field">
-          <label>Max Test Duration (min)</label>
+          <label>Max test duration (min)</label>
           <input type="number" id="cfg-maxtime" placeholder="e.g. 60" min="1" />
         </div>
       </div>
@@ -777,13 +967,26 @@
           <span>Task rotation enabled</span>
           <label class="toggle"><input type="checkbox" id="cfg-rotation"><span class="toggle-slider"></span></label>
         </div>
-        <div class="toggle-row">
-          <span>Proctoring enabled</span>
-          <label class="toggle"><input type="checkbox" id="cfg-proctoring"><span class="toggle-slider"></span></label>
-        </div>
-        <div class="toggle-row">
-          <span>Leaked item present</span>
-          <label class="toggle"><input type="checkbox" id="cfg-leaked"><span class="toggle-slider"></span></label>
+        <div class="proctoring-row">
+          <div class="proctoring-row-head">
+            <span>Proctoring level</span>
+            <span class="tip-wrap">
+              <span class="tip-icon">?</span>
+              <span class="tip-box">
+                Each level is a superset of the one below.<br>
+                <b>Off:</b> no proctoring.<br>
+                <b>Level 1:</b> behavioural signals — paste, tab switches, time-away, copy, typing pattern. Nothing recorded.<br>
+                <b>Level 2:</b> Level 1 + extended live multimedia (periodic webcam snapshots and/or screen recording).<br>
+                <b>Level 3:</b> Level 2 + identity verification (full webcam + mic recording + ID check).
+              </span>
+            </span>
+          </div>
+          <div class="segmented segmented-4">
+            <label><input type="radio" name="proctoring-level" value="0" id="proctoring-0" checked><span class="seg-text">Off</span></label>
+            <label><input type="radio" name="proctoring-level" value="1" id="proctoring-1"><span class="seg-text">Level 1</span></label>
+            <label><input type="radio" name="proctoring-level" value="2" id="proctoring-2"><span class="seg-text">Level 2</span></label>
+            <label><input type="radio" name="proctoring-level" value="3" id="proctoring-3"><span class="seg-text">Level 3</span></label>
+          </div>
         </div>
         <div class="toggle-row">
           <span>Weighted scoring enabled</span>
@@ -792,16 +995,24 @@
       </div>
       <!-- Weight inputs — shown dynamically after CSV loaded + toggle on -->
       <div id="weight-inputs-wrap" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px;">
-        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;">Task Slot Weights</div>
+        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;">Task slot weights</div>
         <div id="weight-inputs-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
         <div style="font-size:11px;color:var(--muted);margin-top:6px;" id="weight-total-hint"></div>
+      </div>
+      <!-- Leaked tasks — populated dynamically once a CSV is loaded.
+           Operator ticks any task names that have been publicly leaked.
+           Selected names go into cfg.leakedTasks (string array). -->
+      <div id="leaked-tasks-wrap" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px;">
+        <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;">Leaked tasks</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Tick any task whose contents have been publicly leaked.</div>
+        <div id="leaked-tasks-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;"></div>
       </div>
     </div>
 
   </div><!-- /upload-config-row -->
 
   <div id="upload-error"></div>
-  <button class="run-btn" id="run-btn" disabled>Generate Report</button>
+  <button class="run-btn" id="run-btn" disabled>Generate report</button>
 
   </div><!-- /upload-stack -->
 </div>
@@ -813,19 +1024,17 @@
   <div class="report-topbar">
     <div class="topbar-brand">
       <img class="codility-logo dashboard" src="assets/codility-logo-dark.png" alt="Codility" />
-      <span class="topbar-divider"></span>
-      <span style="color:var(--navy);font-weight:600;">Test Health Analysis</span>
     </div>
-    <button class="back-btn" onclick="showUpload()">← Go back</button>
-    <span style="font-size:12px;color:var(--grey-500)" id="report-filename"></span>
-    <button class="dl-btn accent" onclick="safeRun(downloadPPTX, this)" style="margin-left:auto">⬇ Download PPTX</button>
+    <button class="back-btn" onclick="showUpload()">Go back</button>
+    <span class="topbar-filename" id="report-filename"></span>
+    <button class="dl-btn accent" onclick="safeRun(downloadPPTX, this)" style="margin-left:auto">Download PPTX</button>
   </div>
 
   <div class="report-body" id="report-body">
 
     <div class="report-title-row">
       <div class="report-title">
-        <h1>Test Health Analysis</h1>
+        <h1>Test health analysis</h1>
         <div class="test-name" id="r-test-name"></div>
       </div>
       <div class="report-meta-badge" id="r-meta-badge"></div>
@@ -837,8 +1046,8 @@
     <div class="card" style="margin-bottom:10px;">
       <div class="card-header">
         Filter by Date
-        <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Filter the cohort by invitation date (Create date). Select which years and months to include — all invitations sent in that window are kept, including those that never converted. Statistics update immediately.</span></span>
-        <span id="r-filter-active" style="display:none;margin-left:auto;font-size:11px;font-weight:600;color:var(--blue);background:var(--blue-bg);padding:2px 10px;border-radius:99px;border:1px solid #c2cdf7;">Filtered</span>
+        <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Choose which years and months of invitations to include in the report. The numbers update as soon as you change the selection.</span></span>
+        <span id="r-filter-active" style="display:none;margin-left:auto;font-size:11px;font-weight:600;color:var(--blue);background:var(--blue-bg);padding:2px 10px;border-radius:99px;border:1px solid var(--c-ultramarine-300);">Filtered</span>
         <button onclick="clearDateFilter()" style="margin-left:auto;font-size:11px;font-weight:600;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:3px 10px;cursor:pointer;">Clear filter</button>
       </div>
       <div style="padding:8px 14px;">
@@ -854,11 +1063,6 @@
       </div>
     </div>
 
-    <!-- Weighted scoring indicator (compact, no banner) -->
-    <div id="r-weighted-notice" style="display:none;margin-bottom:12px;">
-      <span style="font-size:12px;font-weight:600;color:var(--blue);background:var(--blue-bg);padding:3px 12px;border-radius:99px;border:1px solid #c2cdf7;">⚖ Weighted scoring enabled</span>
-    </div>
-
     <!-- Stats bar -->
     <div class="stats-bar">
 
@@ -866,16 +1070,12 @@
       <div class="stats-section">
         <div class="stats-section-title">
           Candidate Engagement
-          <span class="tip-wrap">
-            <span class="tip-icon">?</span>
-            <span class="tip-box">How many candidates received an invitation, started the test, and submitted at least partial work. Big drop-offs from invitation → attempt or attempt → non-zero suggest the test is too long, too hard, or unclear.</span>
-          </span>
         </div>
         <div class="stats-cols">
 
           <div class="stat-item">
             <div class="stat-label">Number of Invitations
-              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Total rows in the CSV export — every candidate who received an invitation link.</span></span>
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Every candidate who received an invitation link to this assessment.</span></span>
             </div>
             <div class="calc-wrap">
               <div class="stat-value" id="r-invitations">—</div>
@@ -885,7 +1085,7 @@
 
           <div class="stat-item">
             <div class="stat-label">Number of Attempts
-              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Candidates who have a Start date AND a numeric % total score in the CSV.</span></span>
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Invited candidates who opened the test and received a score.</span></span>
             </div>
             <div class="calc-wrap">
               <div class="stat-value" id="r-attempts">—</div>
@@ -896,7 +1096,7 @@
 
           <div class="stat-item">
             <div class="stat-label">Number of Non Zero Attempts
-              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Attempted candidates whose % total score is greater than 0 — people who submitted at least partial work.</span></span>
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Candidates who attempted the test and earned a score above zero. A zero score means the candidate either started the test but never submitted, or submitted work that earned no points.</span></span>
             </div>
             <div class="calc-wrap">
               <div class="stat-value" id="r-nonzero">—</div>
@@ -912,20 +1112,19 @@
       <div class="stats-section">
         <div class="stats-section-title">
           Scoring &amp; Outcomes
-          <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Score statistics calculated across ALL attempts (including zero scores).</span></span>
         </div>
         <div class="stats-cols">
 
           <div class="stat-item">
             <div class="stat-label">Passing Score
-              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">The minimum % total score threshold for passing, entered manually in the config. Leave blank if the test has no passing threshold.</span></span>
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">The minimum score a candidate needs to pass the assessment.</span></span>
             </div>
             <div class="stat-value" id="r-passing-score">—</div>
           </div>
 
           <div class="stat-item">
             <div class="stat-label">Passing Rate
-              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">% of ALL attempts (including zeros) that met or exceeded the passing score. Formula: passed ÷ total attempts × 100. N/A if no passing score is set.</span></span>
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Share of candidates who scored at or above the passing score.</span></span>
             </div>
             <div class="calc-wrap">
               <div class="stat-value" id="r-passing-rate">—</div>
@@ -936,7 +1135,7 @@
 
           <div class="stat-item">
             <div class="stat-label">Median Score
-              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Middle value of all attempt scores sorted ascending (including zeros). Half scored above, half below.</span></span>
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">The middle score across all attempts. Half of candidates scored higher and half scored lower.</span></span>
             </div>
             <div class="calc-wrap">
               <div class="stat-value" id="r-median-score">—</div>
@@ -947,7 +1146,7 @@
 
           <div class="stat-item">
             <div class="stat-label">Score SD
-              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Standard deviation of all attempt scores (including zeros). Measures spread. Under 10% is a tight cluster, 10–20% is a healthy spread, 20–35% is wide, over 35% suggests a bimodal or uneven distribution.</span></span>
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">How spread out the scores are. A small number means candidates clustered together. A large number means a wide range or two distinct groups.</span></span>
             </div>
             <div class="calc-wrap">
               <div class="stat-value" id="r-score-sd">—</div>
@@ -963,13 +1162,12 @@
       <div class="stats-section">
         <div class="stats-section-title">
           Assessment Experience
-          <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">How candidates experienced the test in terms of time spent and perceived fairness.</span></span>
         </div>
         <div class="stats-cols">
 
           <div class="stat-item">
             <div class="stat-label">Median Attempt Time
-              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Median of Time Used (minutes) across all attempts. Compared against the max duration you entered. Both too low (rushed/gave up) and too high (time pressure) are flagged.</span></span>
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">How long the typical candidate spent on the assessment. If this is close to the time limit, candidates were under time pressure. If it is well below, the test was likely too easy or too short for the time allowed.</span></span>
             </div>
             <div class="calc-wrap">
               <div class="stat-value" id="r-median-time">—</div>
@@ -980,7 +1178,7 @@
 
           <div class="stat-item">
             <div class="stat-label">Fairness Rating
-              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Candidate-reported fairness score from the assessment dashboard. Not in the CSV — enter it manually. Higher is better; very low ratings are flagged.</span></span>
+              <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Share of candidates who reported in the post-assessment survey that the test fairly evaluated their coding skills.</span></span>
             </div>
             <div class="stat-value" id="r-fairness">—</div>
             <div class="badge" id="r-fairness-badge" style="display:none"></div>
@@ -997,32 +1195,40 @@
       <div class="card">
         <div class="card-header">
           Task Analysis
-          <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Per-task stats across ALL attempts that have a score for that task. When task rotation is on, tasks are grouped by slot — each slot is one position in the test, served as one of several random variants.</span></span>
+          <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">A look at how each individual task performed, so you can tell which tasks are pulling their weight and which are not. Tasks with low scores or weak discrimination are worth revising or replacing.</span></span>
         </div>
         <div class="task-table-wrap">
           <table class="task-table">
+            <colgroup>
+              <col class="col-num" id="col-num">
+              <col class="col-task">
+              <col class="col-avg">
+              <col class="col-disc">
+              <col class="col-n">
+              <col class="col-weight" id="col-weight" style="display:none">
+            </colgroup>
             <thead>
               <tr>
-                <th><div class="th-inner">#</div></th>
+                <th id="th-num"><div class="th-inner">#</div></th>
                 <th><div class="th-inner">Task / Difficulty</div></th>
                 <th>
                   <div class="th-inner">Avg. Score
-                    <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Mean of Task N score % across all attempts that have a score for this task (including zeros). High (>85%) or very low (<15%) may indicate calibration issues.</span></span>
+                    <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">The average score candidates received on this task. Very high (above 85%) usually means the task is too easy. Very low (under 15%) usually means it is too hard or broken.</span></span>
                   </div>
                 </th>
                 <th>
                   <div class="th-inner">Discrimination
-                    <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Pearson r between this task's score and the candidate's total score. Higher is better. Values at or above 0.75 are highlighted green as strong discriminators; values between 0 and 0.75 are normal but not exceptional; negative values mean the task is working against the total score signal.</span></span>
+                    <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">How well this task separates stronger candidates from weaker ones. Values at or above 0.75 are strong. Values close to zero mean the task is not adding much signal. Negative values mean weaker candidates tended to score higher on this task than stronger ones, which usually points to a problem with the task itself.</span></span>
                   </div>
                 </th>
                 <th>
                   <div class="th-inner">N
-                    <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Number of attempts that received this specific task variant.</span></span>
+                    <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Number of candidates who attempted this task.</span></span>
                   </div>
                 </th>
                 <th id="th-weight" style="display:none">
                   <div class="th-inner">Weight
-                    <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">The percentage weight assigned to this task slot. All slot weights should sum to 100%.</span></span>
+                    <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">How much this task slot contributes to a candidate&#39;s overall score.</span></span>
                   </div>
                 </th>
               </tr>
@@ -1042,7 +1248,7 @@
       <div class="card">
         <div class="card-header" style="flex-wrap:wrap;gap:0;">
           <span style="display:flex;align-items:center;">Integrity
-            <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Three lenses on assessment integrity. Switch tabs to see the population by Integrity Risk level, Similarity Check verdicts, or Behavioural Signals. Each tab can exclude worrisome candidates and recompute the dashboard's KPIs above.</span></span>
+            <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Three views on assessment integrity. Switch tabs to see candidates by overall integrity risk, by similarity to other submissions, or by behavioural signals seen during the test. You can exclude flagged candidates to see how the numbers change.</span></span>
           </span>
           <div id="integrity-filters-active" style="margin-left:auto;font-size:10px;font-weight:700;color:var(--raspberry);text-transform:uppercase;letter-spacing:.06em;display:none;align-items:center;gap:6px;">
             <span style="width:6px;height:6px;border-radius:50%;background:var(--raspberry);"></span>
@@ -1063,7 +1269,7 @@
     <div class="card" style="margin-bottom:14px;">
       <div class="card-header">
         Live Score Distribution
-        <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Histogram of % total score across ALL attempts including zeros. Hover each bar for exact counts.</span></span>
+        <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Where candidates landed on the score range. Hover any bar to see the exact count.</span></span>
       </div>
       <div class="chart-wrapper">
         <div class="chart-meta" id="r-chart-meta"></div>
@@ -1093,7 +1299,7 @@ async function loadLogoDataURIs(){
   // No-op: the data URIs are already loaded synchronously via the <script>
   // tag in <head>. This wrapper exists so downloadPPTX() can stay async-aware.
   if (!LOGO_DATA_URIS.dark || !LOGO_DATA_URIS.light) {
-    throw new Error('Codility logo data URIs not loaded — check assets/logos.js is included');
+    throw new Error('Codility logo data URIs not loaded. Check that assets/logos.js is included.');
   }
 }
 
@@ -1257,11 +1463,11 @@ function handleFile(file){
         });
       }
       if(!rows.length) throw new Error('No data rows found.');
-      if(!rows[0].hasOwnProperty('% total score')) throw new Error("Missing '% total score' column — check this is the right assessment export.");
+      if(!rows[0].hasOwnProperty('% total score')) throw new Error("Missing '% total score' column. Check this is the right assessment export.");
       parsedRows=rows;
       showError('');
       $('run-btn').disabled=false;
-      $('drop-label').textContent=`✓ ${file.name} — ${rows.length} rows loaded`;
+      $('drop-label').textContent=`✓ ${file.name} (${rows.length} rows loaded)`;
       // Auto-detect first attempt date
       const starts=rows.map(r=>r['Start date']).filter(v=>!isNA(v)).sort();
       if(starts.length) parsedRows._firstStart=starts[0];
@@ -1269,6 +1475,17 @@ function handleFile(file){
       const slotNums=new Set();
       Object.keys(rows[0]).forEach(k=>{const m=k.match(/^Task (\d+) name$/i);if(m)slotNums.add(Number(m[1]));});
       parsedRows._slotNums=[...slotNums].sort((a,b)=>a-b);
+
+      // Collect every unique task name across every slot. Used to populate
+      // the "Leaked tasks" checkbox grid below the config panel.
+      const taskNames=new Set();
+      parsedRows._slotNums.forEach(n=>{
+        rows.forEach(r=>{
+          const v=r[`Task ${n} name`];
+          if(!isNA(v)&&String(v).trim()) taskNames.add(String(v).trim());
+        });
+      });
+      parsedRows._taskNames=[...taskNames].sort((a,b)=>a.localeCompare(b));
 
       // ── Auto-detect rotation ──
       // If any slot has 2+ unique task names across rows, the test uses rotation.
@@ -1285,6 +1502,7 @@ function handleFile(file){
         rotEl.dispatchEvent(new Event('change',{bubbles:true}));
       }
       renderWeightInputs();
+      renderLeakedTasks();
     }catch(err){
       showError(err.message);parsedRows=null;$('run-btn').disabled=true;
     }
@@ -1303,8 +1521,15 @@ $('run-btn').addEventListener('click',()=>{
     passingScore: parseNum($('cfg-passing').value),
     maxTime: parseNum($('cfg-maxtime').value),
     rotation: $('cfg-rotation').checked,
-    proctoring: $('cfg-proctoring').checked,
-    leaked: $('cfg-leaked').checked,
+    // Proctoring level: 0 = Off, 1 = behavioural signals, 2 = + multimedia,
+    // 3 = + identity verification.
+    proctoringLevel: (function(){
+      const r = document.querySelector('input[name="proctoring-level"]:checked');
+      return r ? Number(r.value) : 0;
+    })(),
+    // Array of task names the operator has marked as leaked. Consumers
+    // derive truthiness from `leakedTasks.length > 0`.
+    leakedTasks: getLeakedTasks(),
     weighted: $('cfg-weighted').checked,
     slotWeights: getSlotWeights(),
     creator: $('cfg-creator').value.trim(),
@@ -1344,7 +1569,7 @@ function updateWeightHint(){
   const rounded=Math.round(total*10)/10;
   if(rounded===0){ hint.textContent=''; return; }
   const ok=Math.abs(rounded-100)<0.1;
-  hint.textContent=`Total: ${rounded}%${ok?' ✓':' — weights should sum to 100%'}`;
+  hint.textContent=`Total: ${rounded}%${ok?' ✓':'. Weights should sum to 100%.'}`;
   hint.style.color=ok?'var(--green)':'var(--red)';
 }
 
@@ -1356,6 +1581,35 @@ function getSlotWeights(){
     weights[n]=isFinite(v)?v:null;
   });
   return weights;
+}
+
+// ══════════════════════════════════
+// LEAKED TASKS
+// ══════════════════════════════════
+// Renders a checkbox grid of every unique task name detected in the CSV.
+// Each checkbox id is "cfg-leaked-task-<index>" and carries the task name
+// in a data-name attribute (task names can contain characters that are not
+// safe in IDs). getLeakedTasks() returns the selected names as a string[].
+function renderLeakedTasks(){
+  const wrap=$('leaked-tasks-wrap');
+  const grid=$('leaked-tasks-grid');
+  const names=parsedRows?._taskNames||[];
+  if(!names.length){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  grid.innerHTML=names.map((name,i)=>`
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--fg-1);cursor:pointer;">
+      <input type="checkbox" id="cfg-leaked-task-${i}" data-name="${esc(name)}" style="width:auto;margin:0;">
+      <span>${esc(name)}</span>
+    </label>`).join('');
+}
+
+function getLeakedTasks(){
+  const names=[];
+  document.querySelectorAll('#leaked-tasks-grid input[type="checkbox"]:checked').forEach(cb=>{
+    const n=cb.getAttribute('data-name');
+    if(n) names.push(n);
+  });
+  return names;
 }
 
 $('cfg-weighted').addEventListener('change', renderWeightInputs);
@@ -1614,7 +1868,7 @@ function renderRiskTab(rows){
           </label>
           <label class="integrity-filter-chip ${f.moderate?'active':''}" style="justify-content:flex-start;">
             <input type="checkbox" ${f.moderate?'checked':''} onchange="toggleIntegrityFilter('risk','moderate',this.checked)">
-            <span>Also exclude <b>Moderate</b> risk (${counts.moderate||0})</span>
+            <span>Exclude <b>Moderate</b> risk (${counts.moderate||0})</span>
           </label>
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;">
@@ -1671,7 +1925,7 @@ function renderSimTab(rows){
           </label>
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;">
-          Likely plagiarized = Codility's review found likely plagiarism. Confirmed plagiarized = customer reviewed and confirmed it. Skipped is informational only — those candidates didn't reach the similarity-check passing score.
+          Likely plagiarized = Codility's review found likely plagiarism. Confirmed plagiarized = customer reviewed and confirmed it. Skipped is informational only: those candidates didn't reach the similarity-check passing score.
         </div>
       </div>
     </div>`;
@@ -1937,17 +2191,17 @@ function render(d){
   const dropoff2=d.numAttempts>0?Math.round((1-d.numNonZero/d.numAttempts)*100):0;
 
   $('r-invitations').textContent=d.totalInvitations.toLocaleString();
-  setCalc('calc-invitations','Total rows in CSV',`= ${d.totalInvitations.toLocaleString()} rows`);
+  setCalc('calc-invitations','Total number of candidates invited.',`${d.totalInvitations.toLocaleString()} invitations`);
 
   $('r-attempts').textContent=d.numAttempts.toLocaleString();
-  setCalc('calc-attempts','Rows with Start date + numeric % total score',`${d.numAttempts} of ${d.totalInvitations} invitations`);
+  setCalc('calc-attempts','Invited candidates who opened the test and received a score.',`${d.numAttempts} of ${d.totalInvitations} invitations`);
 
   // Drop-off 1: very high (>50%) = red, mid (>25%) = caution yellow, low (≤10%) = green, else neutral
   $('r-dropoff1').textContent=`${dropoff1}% Drop-off Rate`;
   $('r-dropoff1').className=dropoff1>50?'badge red':dropoff1>25?'badge amber':dropoff1<=10?'badge green':'badge gray';
 
   $('r-nonzero').textContent=d.numNonZero.toLocaleString();
-  setCalc('calc-nonzero','Attempts where % total score > 0',`${d.numNonZero} of ${d.numAttempts} attempts`);
+  setCalc('calc-nonzero','Attempts that earned a score above zero.',`${d.numNonZero} of ${d.numAttempts} attempts`);
 
   $('r-dropoff2').textContent=`${dropoff2}% Drop-off Rate`;
   $('r-dropoff2').className=dropoff2>30?'badge red':dropoff2>15?'badge amber':dropoff2<=5?'badge green':'badge gray';
@@ -1957,14 +2211,14 @@ function render(d){
 
   if(d.passingRate!==null){
     $('r-passing-rate').textContent=`${fmt(d.passingRate,0)}%`;
-    setCalc('calc-passing-rate','passed ÷ total attempts × 100',`${d.passedCount} passed ÷ ${d.allScores.length} attempts = ${fmt(d.passingRate,1)}%`);
+    setCalc('calc-passing-rate','Share of attempts that scored at or above the passing score.',`${d.passedCount} of ${d.allScores.length} attempts passed (${fmt(d.passingRate,1)}%)`);
     // Extreme low (<20%) or extreme high (>90%) both flagged; sweet spot 40-70% = green
     if(d.passingRate<20||d.passingRate>90) setBadge('r-passing-badge',d.passingRate<20?'Very Low':'Very High','red');
     else if(d.passingRate>=40&&d.passingRate<=70) setBadge('r-passing-badge','Good Range','green');
     else hideBadge('r-passing-badge');
   } else {
     $('r-passing-rate').textContent='N/A';
-    setCalc('calc-passing-rate','Set a passing score in config to compute this.','');
+    setCalc('calc-passing-rate','No passing score has been set for this assessment.','');
     hideBadge('r-passing-badge');
   }
 
@@ -1974,13 +2228,13 @@ function render(d){
   const medStr=ss.length%2===0
     ?`Avg of positions ${mi} & ${mi+1}: (${fmt(ss[mi-1],0)} + ${fmt(ss[mi],0)}) ÷ 2`
     :`Middle value at position ${mi+1} of ${ss.length}`;
-  setCalc('calc-median-score',`Median of all ${d.allScores.length} attempt scores (incl. zeros) sorted`,medStr+` = ${fmt(d.medScore,1)}%`);
+  setCalc('calc-median-score','The middle score across all attempts. Half scored higher, half scored lower.',`Median of ${d.allScores.length} attempt scores = ${fmt(d.medScore,1)}%`);
 
   // Median score badge: very low (<20%) = red (too hard), very high (>85%) = red (too easy), mid range = green
   // SD — match the rest of the dashboard which rounds % values to whole numbers.
   $('r-score-sd').textContent=isFinite(d.scoreSD)?`${fmt(d.scoreSD,0)}%`:'N/A';
   setCalc('calc-score-sd',
-    `Standard deviation of all ${d.allScores.length} attempt scores (incl. zeros)`,
+    'How spread out the scores are. A small number means candidates clustered together, a large number means a wide range or two distinct groups.',
     isFinite(d.scoreSD)?`SD = ${fmt(d.scoreSD,0)}%`:''
   );
 
@@ -2008,8 +2262,8 @@ function render(d){
   // ── Time ──
   const maxTime=isFinite(d.cfg.maxTime)?d.cfg.maxTime:null;
   if(isFinite(d.medTime)){
-    $('r-median-time').textContent=maxTime?`${Math.round(d.medTime)} out of ${maxTime} min`:`${Math.round(d.medTime)} min`;
-    setCalc('calc-median-time',`Median of ${d.times.length} recorded Time Used (minutes) values`,`Median = ${fmt(d.medTime,1)} min`);
+    $('r-median-time').textContent=maxTime?`${Math.round(d.medTime)}/${maxTime}m`:`${Math.round(d.medTime)}m`;
+    setCalc('calc-median-time','How long the typical candidate spent on the assessment.',`Median of ${d.times.length} recorded times = ${fmt(d.medTime,1)} min`);
     if(maxTime){
       const minsLeft=maxTime-d.medTime;
       // ≤5 min remaining = High Time Pressure (red), ≤10 min = Fine (green), >10 min = Too Much Time (amber).
@@ -2039,9 +2293,22 @@ function render(d){
   // ── Task table ──
   const tbody=$('r-task-tbody');
   const showWeight=d.cfg.weighted&&d.cfg.slotWeights;
-  // Show/hide weight column header
+  // Show/hide weight column — both the <col> in the colgroup (so the
+  // table layout algorithm reclaims its 12% when hidden) and the <th>.
+  const colWeight=$('col-weight');
+  if(colWeight) colWeight.style.display=showWeight?'':'none';
   const thWeight=$('th-weight');
   if(thWeight) thWeight.style.display=showWeight?'':'none';
+  // # column is only useful for single-variant slots (where it carries the
+  // slot number on the variant row). When ANY slot is rotated, the # column
+  // is dead space — the slot-divider title already shows "Slot N: …".
+  // Hide the column entirely in that case so the task chips shift left.
+  const anyRotated = d.slots.some(s=>s.variants.length>1);
+  const showNum = !anyRotated;
+  const colNum=$('col-num');
+  if(colNum) colNum.style.display=showNum?'':'none';
+  const thNum=$('th-num');
+  if(thNum) thNum.style.display=showNum?'':'none';
 
   let tableHtml='';
   d.slots.forEach(slot=>{
@@ -2053,12 +2320,16 @@ function render(d){
     // row's # column instead, which saves a row of vertical space and
     // removes a redundant header that just repeats "Slot N".
     if(isRotated){
+      // The slot-divider title carries the slot number ("Slot N: …"), so
+      // the # cell next to it would be redundant. When the # column is
+      // hidden globally (any-rotation case), we skip the cell entirely.
+      // Otherwise we render a blank # cell to keep column alignment.
       tableHtml+=`<tr class="slot-row">
-        <td>${slot.num}</td>
-        <td colspan="3" style="color:var(--ink)">
-          Slot ${slot.num} — ${slot.variants.length} task variants (rotation on)
+        ${showNum?`<td></td>`:''}
+        <td colspan="4" style="color:var(--ink)">
+          Slot ${slot.num}: ${slot.variants.length} rotated tasks
         </td>
-        ${showWeight?`<td></td><td style="font-size:12px;font-weight:700;color:var(--blue)">${weightDisp}</td>`:'<td></td>'}
+        ${showWeight?`<td style="font-size:12px;font-weight:700;color:var(--blue)">${weightDisp}</td>`:''}
       </tr>`;
     }
     slot.variants.forEach((v,vi)=>{
@@ -2066,29 +2337,34 @@ function render(d){
       const avgDisp=isFinite(v.avg)?`${fmt(v.avg,0)}%`:'N/A';
       const discDisp=isFinite(v.disc)?v.disc.toFixed(2):'N/A';
       const discCol=discColour(v.disc);
-      const avgCalc=isFinite(v.avg)?`Mean of ${v.n} scores (incl. zeros) for this task = ${fmt(v.avg,1)}%`:'No scores';
-      const discCalc=isFinite(v.disc)?`Pearson r between ${v.n} task scores and total scores. r = ${v.disc.toFixed(4)}`:'Not enough data';
+      const avgCalc=isFinite(v.avg)?`Average score on this task across ${v.n} attempts = ${fmt(v.avg,1)}%`:'No scores yet for this task';
+      const discCalc=isFinite(v.disc)?`How closely this task tracks the overall score across ${v.n} attempts. Value = ${v.disc.toFixed(2)}`:'Not enough data to compute';
 
-      // Avg score badge (extreme low or high = warn)
+      // Avg score badge (extreme low or high = warn). When a task is in
+      // cfg.leakedTasks, "Leaked" takes precedence over the difficulty chip
+      // and occupies the exact same slot/styling so the row reads cleanly.
+      const isLeaked = Array.isArray(d.cfg.leakedTasks) && d.cfg.leakedTasks.includes(v.name);
       let avgBadge='';
-      if(isFinite(v.avg)){
-        if(v.avg>85) avgBadge=`<span class="badge amber" style="font-size:10px;padding:1px 6px;margin-left:4px">Very Easy</span>`;
-        else if(v.avg<15) avgBadge=`<span class="badge amber" style="font-size:10px;padding:1px 6px;margin-left:4px">Very Hard</span>`;
+      if(isLeaked){
+        avgBadge=`<span class="badge amber" style="font-size:10px;padding:1px 6px;margin-left:4px;white-space:nowrap">Leaked</span>`;
+      } else if(isFinite(v.avg)){
+        if(v.avg>85) avgBadge=`<span class="badge amber" style="font-size:10px;padding:1px 6px;margin-left:4px;white-space:nowrap">Very Easy</span>`;
+        else if(v.avg<15) avgBadge=`<span class="badge amber" style="font-size:10px;padding:1px 6px;margin-left:4px;white-space:nowrap">Very Hard</span>`;
       }
 
-      // # cell shows the slot number on single-variant slots (where the
-      // slot-divider row was suppressed); on rotation slots it stays empty
-      // because the divider row already shows the slot number.
+      // # cell carries the slot number on single-variant slots (where no
+      // slot-divider row was rendered). When the # column is hidden
+      // entirely (any-rotation case), skip writing the cell at all so
+      // column alignment stays correct.
       const numCell = isRotated ? '' : String(slot.num);
       tableHtml+=`<tr class="variant-row">
-        <td style="color:var(--grey-500);font-weight:600;">${numCell}</td>
-        <td><span class="task-name-chip ${chipCls}">${esc(v.name)}</span></td>
+        ${showNum?`<td style="color:var(--grey-500);font-weight:600;">${numCell}</td>`:''}
+        <td class="task-cell"><span class="task-name-chip ${chipCls}">${esc(v.name)}</span></td>
         <td>
-          <div class="calc-wrap" style="display:inline-block">
+          <div class="calc-wrap avg-cell">
             <span class="avg-score">${avgDisp}</span>${avgBadge}
             <div class="calc-box">
               <span>${esc(avgCalc)}</span>
-              <span class="calc-formula">mean(task_scores)</span>
             </div>
           </div>
         </td>
@@ -2097,12 +2373,17 @@ function render(d){
             <span class="disc-value" style="color:${discCol}">${discDisp}</span>
             <div class="calc-box">
               <span>${esc(discCalc)}</span>
-              <span class="calc-formula">pearson_r(task_score, total_score)</span>
             </div>
           </div>
         </td>
         <td>${v.n.toLocaleString()}</td>
-        ${showWeight?`<td></td>`:''}
+        ${showWeight
+          // On single-variant (no-rotation) slots there is no slot divider
+          // row, so the weight number has to live in this row instead.
+          ? (isRotated
+              ? `<td></td>`
+              : `<td style="font-size:12px;font-weight:700;color:var(--blue)">${weightDisp}</td>`)
+          : ''}
       </tr>`;
     });
   });
@@ -2125,10 +2406,6 @@ function render(d){
     (shape.label
       ? ` <span class="shape-badge ${shape.cls}">${esc(shape.label)}</span>`
       : '');
-
-  // Weighted scoring notice
-  const wNotice=$('r-weighted-notice');
-  wNotice.style.display=d.cfg.weighted?'flex':'none';
 
   // Store for PPTX download
   window._lastRenderData=d;
@@ -2172,6 +2449,62 @@ function renderChart(scores){
 
   if(chartInstance){chartInstance.destroy();chartInstance=null;}
   const ctx=$('scoreChart').getContext('2d');
+
+  // Passing-score vertical marker. When _lastCfg.passingScore is set, draw
+  // a red vertical line at the passing-score position over the bars. The
+  // x-axis is categorical (11 buckets at positions 0..10), so we convert
+  // the configured percentage into a fractional bucket index. The buckets
+  // are: 0% (idx 0), 1–10% (idx 1, midpoint 5%), 11–20% (idx 2, midpoint
+  // 15%), ..., 91–100% (idx 10, midpoint 95%). So passing X% maps to
+  // fractional index ~= 0.5 + X/10 for X>0.
+  const passing = (_lastCfg && isFinite(_lastCfg.passingScore)) ? Number(_lastCfg.passingScore) : null;
+  const passingLinePlugin = {
+    id: 'passingLine',
+    afterDatasetsDraw(chart) {
+      if(passing===null) return;
+      const {ctx, chartArea: {top, bottom}, scales: {x}} = chart;
+      // Convert passing% to fractional x-axis position (categorical scale)
+      const idx = passing <= 0 ? 0 : 0.5 + passing/10;
+      const xPx = x.getPixelForValue(Math.min(idx, 10));
+      if(!isFinite(xPx)) return;
+      // Vertical red line + small label at the top
+      ctx.save();
+      ctx.strokeStyle = '#C32F2F';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(xPx, top);
+      ctx.lineTo(xPx, bottom);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Label pill
+      const label = `Threshold: ${passing}%`;
+      ctx.font = '600 10px Inter, system-ui, sans-serif';
+      const padX = 5, padY = 3;
+      const textW = ctx.measureText(label).width;
+      const pillW = textW + padX*2;
+      const pillH = 16;
+      // Anchor the pill so it doesn't overflow the chart on the right
+      let pillX = xPx + 4;
+      if(pillX + pillW > chart.chartArea.right) pillX = xPx - pillW - 4;
+      ctx.fillStyle = '#C32F2F';
+      ctx.beginPath();
+      // Rounded rect (Chart.js bundled canvas may not have roundRect)
+      const r = 8;
+      ctx.moveTo(pillX+r, top);
+      ctx.arcTo(pillX+pillW, top,   pillX+pillW, top+pillH, r);
+      ctx.arcTo(pillX+pillW, top+pillH, pillX,    top+pillH, r);
+      ctx.arcTo(pillX,    top+pillH, pillX,    top,      r);
+      ctx.arcTo(pillX,    top,    pillX+pillW, top,      r);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, pillX+padX, top + pillH/2);
+      ctx.restore();
+    }
+  };
+
   chartInstance=new Chart(ctx,{
     type:'bar',
     data:{
@@ -2184,6 +2517,8 @@ function renderChart(scores){
     },
     options:{
       responsive:true,
+      // Extra top padding so the passing-line label pill doesn't get clipped
+      layout: { padding: { top: 16 } },
       plugins:{
         legend:{display:false},
         tooltip:{
@@ -2205,7 +2540,8 @@ function renderChart(scores){
           grid:{color:'#f3f4f6'}
         }
       }
-    }
+    },
+    plugins: [passingLinePlugin],
   });
 }
 
@@ -2219,54 +2555,74 @@ async function downloadPPTX(){
   // ── Codility Brand v2.0 palette (PPTX hex without the leading #) ──
   const C={
     // Primary action — Ultramarine
-    bg:'4A64E9',         // ultramarine
-    bgHover:'3C53C2',
-    bgDark:'30418C',     // deep
-    bgTint:'E8ECFF',     // light tint
-    bgPale:'F5F7FF',     // pale tint
-    // Accent — Raspberry
-    accent2:'C82372',
-    accent2Hover:'B30C5C',
-    accent2Tint:'FEEAF3',
-    // Highlight — Yellow
-    accent:'FEE64B',
-    accentLight:'FFF196',
-    accentPale:'FFFBD1',
+    bg:'4A64E9',         // ultramarine-500
+    blue:'4A64E9',       // brand stat-number color (alias of bg, for brand-faithful names)
+    blueDark:'3C53C2',   // ultramarine-600
+    bgHover:'3C53C2',    // ultramarine-600
+    bgDark:'30418C',     // ultramarine-800
+    bgTint:'E8ECFF',     // ultramarine-100
+    bgPale:'F5F7FF',     // ultramarine-50
+    // Secondary — Raspberry
+    accent2:'C82372',    // raspberry-900
+    accent2Hover:'B30C5C',// raspberry-950
+    accent2Tint:'FEEAF3',// raspberry-100
+    // Highlight — Sunset (was Yellow)
+    accent:'FFDD00',     // sunset-800
+    accentLight:'FFF196',// sunset-300
+    accentPale:'FFFBD1', // sunset-50
+    // Brand sky + yellow accents (the underscore colors)
+    sky:'80D5FF',        // sky-blue, signature underscore on light surfaces
+    sky200:'C7E6FA',     // sky-200, cover circle decoration
+    yellowSig:'FFF196',  // brand yellow, signature underscore on dark surfaces
     // Surfaces
     card:'FFFFFF',
     cardLight:'FFFFFF',
-    bgLight:'F8F9FA',    // page bg per brand (NOT pure white)
-    // Text
+    bgLight:'F8F9FA',    // paper-soft (true brand content surface, was pure white)
+    paper:'F8F9FA',
+    paper100:'F5F7F9',   // cover background
+    hair:'E9EDF1',       // hairline rule color (alias of borderLight)
+    // Text / ink — 253641 is the true brand ink (deeper than 393C4B)
     ink:'FFFFFF',
-    inkDark:'253641',    // navy — used for body text on light surfaces
-    inkAccent:'30418C',  // deep ultramarine for stat values on light surfaces
-    muted:'BCC8FF',      // muted on dark/coloured bg
-    mutedLight:'7E8891', // grey-500
+    inkDark:'253641',    // brand ink-900 (KEY CHANGE: was 393C4B; now true brand ink)
+    inkText:'393C4B',    // body text color
+    inkAccent:'30418C',  // ultramarine-800
+    muted:'B2BDF5',      // ultramarine-300 — muted on dark/saturated bg
+    mutedLight:'7E8891', // coolgrey-500
+    inkMuted:'7E8891',   // alias of mutedLight, brand-faithful name
     // Borders
-    border:'3C53C2',
-    borderLight:'E9EDF1',// grey-200
-    // Semantic — status only
-    yellow:'FEE64B', yellowBg:'FFFBD1', yellowFg:'806000',
-    green:'2A9D71',  greenBg:'E6FBF3',
-    red:'C32F2F',    redBg:'FDECEC',
-    // Caution = Codility yellow palette (pale bg + dark yellow text for contrast)
-    amber:'806000',  amberBg:'FFFBD1',
-    gray:'F5F7F9',   grayFg:'5D666F',
-    // Elementary difficulty — teal tint (clearly distinct from easy's green
-    // even at chip scale) with deeper teal text for readable contrast.
-    elementaryBg:'DCF1F4', elementaryFg:'0E6B7A',
+    border:'D8DFE4',     // coolgrey-300
+    borderLight:'E9EDF1',// coolgrey-200
+    // Semantic — status
+    yellow:'FFDD00', yellowBg:'FFFBD1', yellowFg:'806000',
+    green:'008253', greenBg:'E6FBF3',     // mint-900 / mint-100
+    red:'C32F2F',   redBg:'FFE6E6',       // strawberry-900 / strawberry-100
+    amber:'806000', amberBg:'FFFBD1',
+    gray:'F5F7F9',  grayFg:'5D666F',      // coolgrey-100 / coolgrey-600
+    // Elementary difficulty — aqua family (brand-faithful teal)
+    elementaryBg:'E6F4FD', elementaryFg:'0074B1', // aqua-100 / aqua-900
   };
 
-  // Modern, editorial sans — falls back gracefully across PowerPoint on Mac/Windows.
-  // Aptos = Microsoft 365 default (Windows/Office 2024). Looks distinctly modern, geometric, with
-  // strong personality — an upgrade over generic Inter/Helvetica.
-  const FONT='Aptos';
+  // Display font — JetBrains Mono Bold per Codility brand. Used for heroes,
+  // big numbers (KPIs), and eyebrows. Falls back to Consolas (Windows mono
+  // default) and Menlo (macOS) if the user's machine doesn't have it installed.
+  const FONT_DISPLAY='JetBrains Mono';
+  // Body font — Inter per Codility brand. Used for content text, body copy,
+  // table cells, and tooltips. Falls back to Calibri/Segoe UI on Windows or
+  // Helvetica/system on Mac if not installed.
+  const FONT='Inter';
 
   const pres=new PptxGenJS();
   pres.layout='LAYOUT_16x9'; // 10 × 5.625
-  pres.theme={headFontFace:FONT,bodyFontFace:FONT};
+  pres.theme={headFontFace:FONT_DISPLAY,bodyFontFace:FONT};
 
   const testName=_allRows.find(r=>r['Test'])?.['Test']||'Assessment';
+  // Truncated form for the top-right meta block on every content slide.
+  // Long testnames like "China - Engineering pathway test - Emerging
+  // talent v5 (CR 2025)" wrap to 2-3 lines in the narrow 2.8" meta column
+  // and shove the date stack down into the slide body. ~38 chars fits
+  // the column at 9pt Inter without wrapping; longer names get an
+  // ellipsis. The cover hero still renders the full untruncated name.
+  const testNameMeta = testName.length>40 ? testName.slice(0,37).trimEnd()+'…' : testName;
   pres.title=testName;
   const cfg=_lastCfg;
   const maxTime=isFinite(cfg.maxTime)?cfg.maxTime:null;
@@ -2278,7 +2634,7 @@ async function downloadPPTX(){
   const LOGO_ASPECT = 4.01;
 
   // ── Shared helpers ──
-  const mkShadow=()=>({type:'outer',color:'000000',blur:8,offset:2,angle:135,opacity:0.06});
+  const mkShadow=()=>({type:'outer',color:'B6BFC9',blur:10,offset:2,angle:90,opacity:0.20});
 
   // ── Data freshness ──
   // Each slide header shows two stacked date lines:
@@ -2316,7 +2672,7 @@ async function downloadPPTX(){
   // portion in bold, mirroring the dashboard meta badge styling.
   function addFullMeta(sl, anchorX, anchorY, anchorW){
     let y = anchorY;
-    sl.addText(testName,{x:anchorX,y,w:anchorW,h:0.18,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',valign:'middle',margin:0});
+    sl.addText(testNameMeta,{x:anchorX,y,w:anchorW,h:0.18,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',valign:'middle',margin:0,wrap:false,shrinkText:true});
     y += 0.18;
     if(cfg.creator){
       sl.addText([
@@ -2346,7 +2702,7 @@ async function downloadPPTX(){
   }
   function addMinMeta(sl, anchorX, anchorY, anchorW){
     let y = anchorY;
-    sl.addText(testName,{x:anchorX,y,w:anchorW,h:0.18,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',valign:'middle',margin:0});
+    sl.addText(testNameMeta,{x:anchorX,y,w:anchorW,h:0.18,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',valign:'middle',margin:0,wrap:false,shrinkText:true});
     y += 0.18;
     sl.addText([
       {text:'Data as of ',options:{color:C.mutedLight}},
@@ -2354,7 +2710,7 @@ async function downloadPPTX(){
     ],{x:anchorX,y,w:anchorW,h:0.18,fontFace:FONT,fontSize:9,align:'right',valign:'middle',margin:0});
   }
 
-  // Slide counter — used by footer
+  // Slide counter — used by footer.
   let slideNum=0, totalSlides=0;
   // Place the official Codility logotype on a slide, preserving aspect ratio.
   // `variant` is 'dark' (navy on light bg) or 'light' (white on dark bg).
@@ -2362,34 +2718,49 @@ async function downloadPPTX(){
     const w=h*LOGO_ASPECT;
     sl.addImage({data: LOGO_DATA_URIS[variant], x, y, w, h});
   }
-  // Footer applied to every CONTENT slide (not cover/dividers)
+  // Footer applied to every CONTENT slide (not cover/dividers). The only
+  // chrome on content slides is a JBMono UPPERCASE page number at the
+  // bottom-right. The Codility wordmark lives only on the cover.
   function footer(sl, sectionLabel){
-    // Hairline separator above footer
-    sl.addShape(pres.shapes.LINE,{x:0.4,y:5.32,w:9.2,h:0,line:{color:C.borderLight,pt:0.5}});
-    // Official Codility logotype — bottom-left footer, ~0.16" tall
-    placeLogo(sl, 0.4, 5.4, 0.16, 'dark');
-    // Page number, right (skip if totalSlides not yet known)
-    if(slideNum && totalSlides) sl.addText(`${slideNum} / ${totalSlides}`,{x:8,y:5.38,w:1.6,h:0.22,fontFace:FONT,fontSize:8,color:C.mutedLight,align:'right',margin:0});
+    if(slideNum && totalSlides) sl.addText(`${slideNum} / ${totalSlides}`,{x:8.4,y:5.30,w:1.2,h:0.22,fontFace:FONT_DISPLAY,fontSize:9,bold:true,color:C.mutedLight,charSpacing:2,align:'right',margin:0});
   }
 
   // ── COVER SLIDE ──
   function coverSlide(){
     const sl=pres.addSlide();
-    sl.background={color:C.bg};
-    // Subtle deep-tone column on the right for visual interest (uses brand deep ultramarine, not accent2)
-    sl.addShape(pres.shapes.RECTANGLE,{x:7.4,y:0,w:2.6,h:5.625,fill:{color:C.bgDark,transparency:30},line:{type:'none'}});
-    // Official Codility logotype — top-left, white variant for the ultramarine cover
-    placeLogo(sl, 0.7, 0.45, 0.32, 'light');
-    // Eyebrow — fits in the left zone (0.7 to 7.2). LibreOffice can mis-render charSpacing → drop it.
-    sl.addText('TEST HEALTH ANALYSIS',{x:0.7,y:1.35,w:6.4,h:0.4,fontFace:FONT,fontSize:12,bold:true,color:'FFFFFF',transparency:40,valign:'middle',margin:0});
-    // Hairline accent
-    sl.addShape(pres.shapes.LINE,{x:0.7,y:1.85,w:0.6,h:0,line:{color:'FFFFFF',pt:1.5}});
-    // Hero — assessment name
-    sl.addText(testName,{x:0.7,y:2.1,w:6.4,h:1.4,fontFace:FONT,fontSize:42,bold:true,color:'FFFFFF',margin:0,valign:'top'});
+    // Light cover surface — paper-100. The single piece of decoration is the
+    // sky-200 circle bleeding off the top-right corner. No banding, no rails.
+    sl.background={color:C.paper100};
+    // Sky-200 circle bleeding off top-right — the cover's ONLY decoration.
+    sl.addShape(pres.shapes.OVAL,{x:6.0,y:-1.5,w:6.0,h:6.0,fill:{color:C.sky200},line:{type:'none'},transparency:50});
+    // Official Codility logotype — top-left, DARK variant for the light cover.
+    placeLogo(sl, 0.7, 0.45, 0.32, 'dark');
+    // Eyebrow — JBMono UPPERCASE in muted coolgrey on the light cover.
+    sl.addText('TEST HEALTH ANALYSIS',{x:0.7,y:1.35,w:6.4,h:0.4,fontFace:FONT_DISPLAY,fontSize:12,bold:true,color:C.inkMuted,charSpacing:3,valign:'middle',margin:0});
+    // Hero — assessment name + signature sky-blue underscore.
+    //
+    // Long testnames like "China - Engineering pathway test - Emerging
+    // talent v5 (CR 2025)" can run to 5+ lines at the default 42pt and
+    // collide with the bottom meta. shrinkText alone isn't enough because
+    // PptxGenJS keeps shrinking only until the text fits the box height,
+    // which still permits 4-5 narrow lines. Drive the font size from the
+    // character count so the title is sized to fit on at most 2 lines
+    // within the wider text box, and use a taller box so the rendering
+    // engine has enough room to lay out without further compression.
+    const _heroLen = testName.length;
+    const _heroSize = _heroLen<=18 ? 42
+                    : _heroLen<=28 ? 36
+                    : _heroLen<=40 ? 28
+                    : _heroLen<=56 ? 22
+                    : 18;
+    sl.addText([
+      {text:testName, options:{}},
+      {text:'_',      options:{color:C.sky}},
+    ],{x:0.7,y:2.1,w:6.4,h:2.2,fontFace:FONT_DISPLAY,fontSize:_heroSize,bold:true,color:C.inkDark,margin:0,valign:'top',wrap:true,shrinkText:true});
     // Bottom rail — meta. Creator pinned to bottom-left, dates pinned to
     // bottom-right with the Outdated pill below them when stale. Dates use
     // rich-text so only the date portion is bold, mirroring the dashboard.
-    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:0.7,y:5.30,w:5,h:0.20,fontFace:FONT,fontSize:10,color:'FFFFFF',transparency:35,margin:0});
+    if(cfg.creator) sl.addText(`Test created by ${cfg.creator}`,{x:0.7,y:5.30,w:5,h:0.20,fontFace:FONT,fontSize:10,color:C.inkMuted,margin:0});
     const _coverMetaX=6.2, _coverMetaW=3.5;
     // Bottom-anchor the whole stack: compute the topmost y based on what's
     // present (pill + 2 dates / 2 dates / 1 date) so the lowest line always
@@ -2403,14 +2774,14 @@ async function downloadPPTX(){
     let _coverY=_firstLineY;
     if(firstUsedShort){
       sl.addText([
-        {text:'First used on ',options:{color:'FFFFFF',transparency:35}},
-        {text:firstUsedShort,    options:{color:'FFFFFF',transparency:35,bold:true}},
+        {text:'First used on ',options:{color:C.inkMuted}},
+        {text:firstUsedShort,    options:{color:C.inkMuted,bold:true}},
       ],{x:_coverMetaX,y:_coverY,w:_coverMetaW,h:_lineH,fontFace:FONT,fontSize:10,align:'right',valign:'middle',margin:0});
       _coverY += _lineH;
     }
     sl.addText([
-      {text:'Data as of ',options:{color:'FFFFFF',transparency:35}},
-      {text:dataAsOfShort,  options:{color:'FFFFFF',transparency:35,bold:true}},
+      {text:'Data as of ',options:{color:C.inkMuted}},
+      {text:dataAsOfShort,  options:{color:C.inkMuted,bold:true}},
     ],{x:_coverMetaX,y:_coverY,w:_coverMetaW,h:_lineH,fontFace:FONT,fontSize:10,align:'right',valign:'middle',margin:0});
     _coverY += _lineH + _gap;
     if(isOutdated){
@@ -2423,17 +2794,21 @@ async function downloadPPTX(){
   }
 
   // ── SECTION DIVIDER ──
-  // Brand hierarchy: ultramarine LEADS on cover; navy is STRUCTURAL — used here
-  // on dividers to give the deck a tonal rhythm and let the ultramarine cover/
-  // closing slides feel more like the lead surfaces. The numeral and SECTION
-  // eyebrow share raspberry as the signature accent.
+  // Eyebrow + headline layout: small raspberry "SECTION 0X" numeral sits
+  // above a large white section title. Mirrors the brand's eyebrow + headline
+  // pattern from the marketing site/decks. Ultramarine-900 surface for tonal
+  // rhythm against the saturated ultramarine cover and paper content slides.
   function sectionDivider(num, title){
     const sl=pres.addSlide();
     sl.background={color:C.inkDark};
-    // Big numeral — white, ghosted (transparency keeps it from overpowering the title).
-    sl.addText(num,{x:6.0,y:0.8,w:3.5,h:4.0,fontFace:FONT,fontSize:200,bold:true,color:'FFFFFF',transparency:75,align:'center',valign:'middle',margin:0});
-    // Section title — left-aligned, vertically centered on the slide for a clean two-element layout.
-    sl.addText(title,{x:0.7,y:2.3,w:5.5,h:1.0,fontFace:FONT,fontSize:38,bold:true,color:'FFFFFF',margin:0,valign:'middle'});
+    // Eyebrow — small all-caps "SECTION 0X" in sky-blue on the dark surface.
+    sl.addText(`SECTION ${num}`,{x:0.7,y:2.0,w:8.6,h:0.32,fontFace:FONT_DISPLAY,fontSize:14,bold:true,color:C.sky,charSpacing:3,margin:0,valign:'middle'});
+    // Section title — white, large, left-aligned with the brand's signature
+    // underscore in yellow on the dark surface.
+    sl.addText([
+      {text:title, options:{}},
+      {text:'_',   options:{color:C.yellowSig}},
+    ],{x:0.7,y:2.45,w:8.6,h:1.0,fontFace:FONT_DISPLAY,fontSize:44,bold:true,color:C.ink,margin:0,valign:'middle'});
     return sl;
   }
 
@@ -2443,8 +2818,11 @@ async function downloadPPTX(){
     const sl=pres.addSlide();
     sl.background={color:C.bgLight};
     // Header
-    sl.addText('OVERVIEW',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
-    sl.addText('Executive Summary',{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+    sl.addText('OVERVIEW',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT_DISPLAY,fontSize:9,bold:true,color:C.blue,charSpacing:3,margin:0});
+    sl.addText([
+      {text:'Executive summary', options:{}},
+      {text:'_',                 options:{color:C.sky}},
+    ],{x:0.4,y:0.6,w:6.3,h:0.42,fontFace:FONT_DISPLAY,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle',wrap:false,shrinkText:true});
     // Full meta stack — high-signal slide gets the complete header context.
     // Starts at y=0.22 so the whole block + pill (when stale) finishes
     // above the body content at y=1.30.
@@ -2475,23 +2853,29 @@ async function downloadPPTX(){
       {label:'MEDIAN TIME', value:tDisp, sub:tSub},
     ];
 
+    // Hairline stat treatment (the brand's signature). For each tile:
+    //   • 2pt ink-900 horizontal line at the top
+    //   • JBMono UPPERCASE eyebrow label
+    //   • Big ultramarine number, left-aligned (the visual hero)
+    //   • Inter regular sub-label below
+    // No card fill, no border, no shadow, no left rail.
     kpis.forEach((k,i)=>{
       const x=0.4+i*(kpiW+kpiGap);
-      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x,y:kpiY,w:kpiW,h:kpiH,fill:{color:C.card},line:{color:C.borderLight,pt:1},rectRadius:0.08,shadow:mkShadow()});
-      // Top accent bar
-      sl.addShape(pres.shapes.RECTANGLE,{x,y:kpiY,w:kpiW,h:0.06,fill:{color:C.bg},line:{type:'none'}});
-      sl.addText(k.label,{x:x+0.1,y:kpiY+0.18,w:kpiW-0.2,h:0.2,fontFace:FONT,fontSize:8,bold:true,color:C.mutedLight,charSpacing:2,margin:0});
-      // Auto-shrink the value so longer strings (e.g. "147/180m") fit on one line.
-      // 4 chars or fewer → 30pt; 5–6 chars → 24pt; 7+ chars → 20pt.
+      // 2pt ink-900 hairline — the stat motif
+      sl.addShape(pres.shapes.LINE,{x,y:kpiY,w:kpiW,h:0,line:{color:C.inkDark,pt:2}});
+      // Eyebrow label — JBMono UPPERCASE
+      sl.addText(k.label,{x:x+0.02,y:kpiY+0.10,w:kpiW-0.04,h:0.22,fontFace:FONT_DISPLAY,fontSize:8,bold:true,color:C.mutedLight,charSpacing:2,margin:0,align:'left'});
+      // Big blue number — left-aligned, the visual hero. Auto-shrink for long strings.
       const vLen=k.value.length;
-      const vSize=vLen<=4?30:vLen<=6?24:20;
-      sl.addText(k.value,{x:x+0.1,y:kpiY+0.42,w:kpiW-0.2,h:0.55,fontFace:FONT,fontSize:vSize,bold:true,color:C.inkAccent,margin:0,valign:'middle',wrap:false,shrinkText:true});
-      sl.addText(k.sub,{x:x+0.1,y:kpiY+1.02,w:kpiW-0.2,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,margin:0,valign:'middle'});
+      const vSize=vLen<=4?44:vLen<=6?36:30;
+      sl.addText(k.value,{x:x+0.02,y:kpiY+0.34,w:kpiW-0.04,h:0.7,fontFace:FONT_DISPLAY,fontSize:vSize,bold:true,color:C.blue,align:'left',margin:0,valign:'top',wrap:false,shrinkText:true});
+      // Sub-label — Inter regular ink
+      sl.addText(k.sub,{x:x+0.02,y:kpiY+kpiH-0.32,w:kpiW-0.04,h:0.22,fontFace:FONT,fontSize:9,color:C.inkText,align:'left',margin:0});
     });
 
     // ── KEY FINDINGS ──
     const findY=2.75;
-    sl.addText('KEY FINDINGS',{x:0.4,y:findY,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.mutedLight,charSpacing:2,margin:0});
+    sl.addText('KEY FINDINGS',{x:0.4,y:findY,w:6,h:0.22,fontFace:FONT_DISPLAY,fontSize:9,bold:true,color:C.mutedLight,charSpacing:2,margin:0});
     sl.addShape(pres.shapes.LINE,{x:0.4,y:findY+0.28,w:9.2,h:0,line:{color:C.borderLight,pt:0.5}});
 
     const findings=buildFindings(s);
@@ -2499,12 +2883,11 @@ async function downloadPPTX(){
     const findingH=0.6;
     findings.forEach((f,i)=>{
       const fy=findingY+i*(findingH+0.1);
-      // Number circle
-      sl.addShape(pres.shapes.OVAL,{x:0.4,y:fy+0.05,w:0.45,h:0.45,fill:{color:C.bgPale},line:{type:'none'}});
-      sl.addText(String(i+1),{x:0.4,y:fy+0.05,w:0.45,h:0.45,fontFace:FONT,fontSize:14,bold:true,color:C.bg,align:'center',valign:'middle',margin:0});
+      // Blue arrow bullet — the brand's signature list mark.
+      sl.addText('→',{x:0.4,y:fy,w:0.55,h:0.32,fontFace:FONT,fontSize:18,bold:true,color:C.blue,align:'left',valign:'middle',margin:0});
       // Stat (bold) + diagnostic insight (muted) — Findings interprets the number
-      sl.addText(f.stat,{x:1.0,y:fy,w:8.4,h:0.28,fontFace:FONT,fontSize:13,bold:true,color:C.inkDark,margin:0,valign:'middle'});
-      if(f.insight) sl.addText(f.insight,{x:1.0,y:fy+0.28,w:8.4,h:0.32,fontFace:FONT,fontSize:11,color:C.mutedLight,margin:0,valign:'top'});
+      sl.addText(f.stat,{x:0.95,y:fy,w:8.5,h:0.28,fontFace:FONT,fontSize:13,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+      if(f.insight) sl.addText(f.insight,{x:0.95,y:fy+0.28,w:8.5,h:0.32,fontFace:FONT,fontSize:11,color:C.inkText,margin:0,valign:'top'});
     });
 
     footer(sl,'EXECUTIVE SUMMARY');
@@ -2576,27 +2959,30 @@ async function downloadPPTX(){
     const sl=pres.addSlide();
     sl.background={color:C.bgLight};
     // Header
-    sl.addText('CONTENTS',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
-    sl.addText('What you\u2019ll find inside',{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+    sl.addText('CONTENTS',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT_DISPLAY,fontSize:9,bold:true,color:C.blue,charSpacing:3,margin:0});
+    sl.addText([
+      {text:'What you\u2019ll find inside', options:{}},
+      {text:'_',                            options:{color:C.sky}},
+    ],{x:0.4,y:0.6,w:6.3,h:0.42,fontFace:FONT_DISPLAY,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle',wrap:false,shrinkText:true});
     addMinMeta(sl, 6.8, 0.36, 2.8);
 
     const items=[
-      {num:'01', title:'All Time Overview', desc:'Aggregate performance signals across the entire cohort.'},
-      {num:'02', title:'Year by Year', desc:`Annual breakdown across ${yearN} year${yearN===1?'':'s'} of activity.`},
-      {num:'03', title:'Month by Month', desc:`Monthly drilldown across ${monthN} month${monthN===1?'':'s'} for trend detection.`},
+      {num:'01', title:'All time overview', desc:'Aggregate performance signals across the entire cohort.'},
+      {num:'02', title:'Year by year', desc:`Annual breakdown across ${yearN} year${yearN===1?'':'s'} of activity.`},
+      {num:'03', title:'Month by month', desc:`Monthly drilldown across ${monthN} month${monthN===1?'':'s'} for trend detection.`},
     ];
     if(includeIntegrity){
-      items.push({num:'04', title:'Integrity Impact', desc:'How the headline KPIs shift when High-risk candidates are removed.'});
+      items.push({num:'04', title:'Integrity impact', desc:'How the headline KPIs shift when High-risk candidates are removed.'});
     }
 
     // Tighter row spacing when 4 items so everything stays above the footer.
     const rowH = items.length>=4 ? 0.92 : 1.05;
     items.forEach((it,i)=>{
       const y=1.45+i*rowH;
-      // Big numeral — strong ultramarine so it's clearly visible on the light page bg
-      sl.addText(it.num,{x:0.4,y:y,w:1.4,h:0.85,fontFace:FONT,fontSize:54,bold:true,color:C.bg,margin:0,valign:'top'});
+      // Big numeral — ultramarine, the brand's primary action color leads the contents.
+      sl.addText(it.num,{x:0.4,y:y,w:1.4,h:0.85,fontFace:FONT_DISPLAY,fontSize:54,bold:true,color:C.blue,margin:0,valign:'top'});
       // Title and desc
-      sl.addText(it.title,{x:1.7,y:y+0.12,w:7.9,h:0.4,fontFace:FONT,fontSize:22,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+      sl.addText(it.title,{x:1.7,y:y+0.12,w:7.9,h:0.4,fontFace:FONT_DISPLAY,fontSize:22,bold:true,color:C.inkDark,margin:0,valign:'middle'});
       sl.addText(it.desc,{x:1.7,y:y+0.52,w:7.9,h:0.3,fontFace:FONT,fontSize:11,color:C.mutedLight,margin:0,valign:'top'});
       // Hairline below
       if(i<items.length-1) sl.addShape(pres.shapes.LINE,{x:0.4,y:y+rowH-0.1,w:9.2,h:0,line:{color:C.borderLight,pt:0.5}});
@@ -2611,26 +2997,32 @@ async function downloadPPTX(){
     slideNum++;
     const sl=pres.addSlide();
     sl.background={color:C.bgLight};
-    sl.addText('NEXT STEPS',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
-    sl.addText('Where to go from here',{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+    sl.addText('NEXT STEPS',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT_DISPLAY,fontSize:9,bold:true,color:C.blue,charSpacing:3,margin:0});
+    sl.addText([
+      {text:'Where to go from here', options:{}},
+      {text:'_',                     options:{color:C.sky}},
+    ],{x:0.4,y:0.6,w:6.3,h:0.42,fontFace:FONT_DISPLAY,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle',wrap:false,shrinkText:true});
     addMinMeta(sl, 6.8, 0.36, 2.8);
 
     // Build dynamic recommendations based on the overall stats
     const recs=buildRecommendations(_overall);
 
-    // 3 horizontal action cards stacked vertically
+    // 3 horizontal action cards stacked vertically. Cards are simple white
+    // with a hairline border — no shadow, no left rail accent.
     const cardW=9.2, cardH=1.15, cardGap=0.18;
     recs.forEach((r,i)=>{
       const cy=1.3+i*(cardH+cardGap);
-      // Card
-      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:0.4,y:cy,w:cardW,h:cardH,fill:{color:C.card},line:{color:C.borderLight,pt:1},rectRadius:0.08,shadow:mkShadow()});
-      // Left accent bar
-      sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:cy,w:0.08,h:cardH,fill:{color:C.bg},line:{type:'none'}});
-      // Big number — strong ultramarine so it reads clearly on white card
-      sl.addText(`0${i+1}`,{x:0.65,y:cy+0.18,w:0.85,h:0.85,fontFace:FONT,fontSize:42,bold:true,color:C.bg,margin:0,valign:'middle'});
-      // Action verb (bold) + forward-looking plan (muted) — Next Steps acts
-      sl.addText(r.action,{x:1.65,y:cy+0.18,w:cardW-1.85,h:0.4,fontFace:FONT,fontSize:15,bold:true,color:C.inkDark,margin:0,valign:'middle'});
-      if(r.plan) sl.addText(r.plan,{x:1.65,y:cy+0.55,w:cardW-1.85,h:0.5,fontFace:FONT,fontSize:11,color:C.mutedLight,margin:0,valign:'top'});
+      // Card — simple white, hairline border, no shadow.
+      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:0.4,y:cy,w:cardW,h:cardH,fill:{color:C.card},line:{color:C.border,pt:1},rectRadius:0.10});
+      // Big number — ultramarine, the brand's primary stat color.
+      sl.addText(`0${i+1}`,{x:0.55,y:cy+0.18,w:0.95,h:0.85,fontFace:FONT_DISPLAY,fontSize:42,bold:true,color:C.blue,margin:0,valign:'middle'});
+      // Action verb (bold) + forward-looking plan (muted). Brand bullet arrow
+      // signals action.
+      sl.addText([
+        {text:'→  ', options:{color:C.blue, bold:true}},
+        {text:r.action,    options:{color:C.inkDark, bold:true}},
+      ],{x:1.65,y:cy+0.18,w:cardW-1.85,h:0.4,fontFace:FONT,fontSize:15,margin:0,valign:'middle'});
+      if(r.plan) sl.addText(r.plan,{x:1.65,y:cy+0.55,w:cardW-1.85,h:0.5,fontFace:FONT,fontSize:11,color:C.inkText,margin:0,valign:'top'});
     });
 
     footer(sl,'NEXT STEPS');
@@ -2653,8 +3045,11 @@ async function downloadPPTX(){
     const sl=pres.addSlide();
     sl.background={color:C.bgLight};
     // Header — same eyebrow + title pattern as the other content slides
-    sl.addText('INTEGRITY IMPACT',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
-    sl.addText('What changes when high-risk candidates are removed',{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+    sl.addText('INTEGRITY IMPACT',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT_DISPLAY,fontSize:9,bold:true,color:C.blue,charSpacing:3,margin:0});
+    sl.addText([
+      {text:'Removing high-risk candidates', options:{}},
+      {text:'_',                              options:{color:C.sky}},
+    ],{x:0.4,y:0.6,w:6.3,h:0.42,fontFace:FONT_DISPLAY,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle',wrap:false,shrinkText:true});
     // Minimal meta — testName + "Data as of"; the full first-used + Outdated
     // context lives on the Executive Summary and All Time slides upstream.
     addMinMeta(sl, 6.8, 0.36, 2.8);
@@ -2674,11 +3069,9 @@ async function downloadPPTX(){
     const flaggedPct= sBefore.integrityWithData ? ((sBefore.highIntegrityCount/sBefore.integrityWithData)*100) : 0;
     const subText= flagged>0
       ? `${flagged} of ${sBefore.integrityWithData} candidates with integrity data are flagged High risk (${flaggedPct.toFixed(1)}%). The right column shows what the dashboard reads with those candidates removed.`
-      : `No candidates were flagged High risk in this export. The columns below match — integrity exclusions don't change the read.`;
-    // Sub-header band pushed down from y=1.15 to y=1.25 to clear the new
-    // two-line date stack in the meta column above.
+      : `No candidates were flagged High risk in this export. The columns below match. Integrity exclusions do not change the read.`;
+    // Sub-header band — simple ultramarine-tint surface, no rail accent.
     sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:1.25,w:9.2,h:0.42,fill:{color:C.bgPale},line:{type:'none'}});
-    sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:1.25,w:0.05,h:0.42,fill:{color:C.accent2},line:{type:'none'}});
     sl.addText(subText,{x:0.6,y:1.27,w:8.9,h:0.38,fontFace:FONT,fontSize:10,color:C.inkDark,margin:0,valign:'middle',wrap:true});
 
     // Two columns: ALL CANDIDATES vs HIGH-RISK EXCLUDED. Each column has 5
@@ -2709,17 +3102,16 @@ async function downloadPPTX(){
     const right=kpiSet(sAfter);
 
     // Captions
-    sl.addText('ALL CANDIDATES',     {x:0.4,           y:colY,w:colW,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.mutedLight,charSpacing:2,margin:0,align:'center'});
-    sl.addText('HIGH-RISK EXCLUDED', {x:0.4+colW+colGap,y:colY,w:colW,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2, charSpacing:2,margin:0,align:'center'});
+    sl.addText('ALL CANDIDATES',     {x:0.4,           y:colY,w:colW,h:0.22,fontFace:FONT_DISPLAY,fontSize:9,bold:true,color:C.mutedLight,charSpacing:2,margin:0,align:'center'});
+    sl.addText('HIGH-RISK EXCLUDED', {x:0.4+colW+colGap,y:colY,w:colW,h:0.22,fontFace:FONT_DISPLAY,fontSize:9,bold:true,color:C.blue,    charSpacing:2,margin:0,align:'center'});
 
     const tilesY=colY+0.3;
     function tile(sl, x, y, k, isAfter, deltaText, deltaTone){
-      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x,y,w:colW,h:tileH,fill:{color:C.card},line:{color:C.borderLight,pt:1},rectRadius:0.06,shadow:mkShadow()});
-      // Left rail accent — raspberry on the "after" column to signal comparison cohort
-      sl.addShape(pres.shapes.RECTANGLE,{x,y,w:0.05,h:tileH,fill:{color:isAfter?C.accent2:C.bg},line:{type:'none'}});
+      // Card — simple white surface with hairline border, no rail accent, no shadow.
+      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x,y,w:colW,h:tileH,fill:{color:C.card},line:{color:C.border,pt:1},rectRadius:0.08});
       // Label (left)
-      sl.addText(k.label,{x:x+0.18,y:y+0.06,w:colW*0.5,h:0.2,fontFace:FONT,fontSize:8,bold:true,color:C.mutedLight,charSpacing:2,margin:0,valign:'middle'});
-      if(k.sub) sl.addText(k.sub,{x:x+0.18,y:y+0.26,w:colW*0.5,h:0.22,fontFace:FONT,fontSize:8,color:C.mutedLight,margin:0,valign:'middle'});
+      sl.addText(k.label,{x:x+0.12,y:y+0.06,w:colW*0.5,h:0.2,fontFace:FONT_DISPLAY,fontSize:8,bold:true,color:C.mutedLight,charSpacing:2,margin:0,valign:'middle'});
+      if(k.sub) sl.addText(k.sub,{x:x+0.12,y:y+0.26,w:colW*0.5,h:0.22,fontFace:FONT,fontSize:8,color:C.mutedLight,margin:0,valign:'middle'});
       // ── Right zone (value + optional chip) ──
       // The value and chip both live in the right half of the tile. To stop
       // the chip overlapping the value, we split the right zone vertically:
@@ -2739,7 +3131,7 @@ async function downloadPPTX(){
       const vSize= showChip
         ? (k.value.length<=4?16:k.value.length<=6?14:12)
         : (k.value.length<=4?20:k.value.length<=6?16:14);
-      sl.addText(k.value,{x:rightX,y:valY,w:rightW,h:valH,fontFace:FONT,fontSize:vSize,bold:true,color:C.inkAccent,align:'right',margin:0,valign:'middle',wrap:false,shrinkText:true});
+      sl.addText(k.value,{x:rightX,y:valY,w:rightW,h:valH,fontFace:FONT_DISPLAY,fontSize:vSize,bold:true,color:C.blue,align:'right',margin:0,valign:'middle',wrap:false,shrinkText:true});
       if(showChip){
         const chipW=0.85, chipH=tileH*0.28;
         const chipX=x+colW-chipW-0.1;
@@ -2808,7 +3200,6 @@ async function downloadPPTX(){
     // contributing real-looking scores.") so wrap is enabled rather than
     // shrinkText, which would render the text too small to read.
     sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:4.97,w:9.2,h:0.32,fill:{color:C.bgPale},line:{type:'none'}});
-    sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:4.97,w:0.05,h:0.32,fill:{color:C.bg},line:{type:'none'}});
     const tTxt=[];
     tTxt.push({text:takeaway.stat,options:{bold:true,color:C.inkDark}});
     if(takeaway.descriptor){
@@ -2858,7 +3249,7 @@ async function downloadPPTX(){
           type:'slot',
           slotNum:slot.num,
           variantCount:slot.variants.length,
-          text:`Slot ${slot.num} — ${slot.variants.length} task variants (rotation on)`
+          text:`Slot ${slot.num}: ${slot.variants.length} rotated tasks`
         });
       }
       slot.variants.forEach(v=>{
@@ -2945,8 +3336,11 @@ async function downloadPPTX(){
     sl.background={color:C.bgLight};
     // Header — same eyebrow + title pattern as the other content slides
     const titleSuffix = totalPages>1 ? ` (${page} of ${totalPages})` : '';
-    sl.addText('ALL TIME',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
-    sl.addText(`Task Analysis${titleSuffix}`,{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+    sl.addText('ALL TIME',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT_DISPLAY,fontSize:9,bold:true,color:C.blue,charSpacing:3,margin:0});
+    sl.addText([
+      {text:`Task analysis${titleSuffix}`, options:{}},
+      {text:'_',                            options:{color:C.sky}},
+    ],{x:0.4,y:0.6,w:6.3,h:0.42,fontFace:FONT_DISPLAY,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle',wrap:false,shrinkText:true});
     // Minimal meta — testName + "Data as of"; the full first-used + Outdated
     // context lives on the Executive Summary and All Time slides upstream.
     addMinMeta(sl, 6.8, 0.36, 2.8);
@@ -2974,7 +3368,7 @@ async function downloadPPTX(){
     const headers=['#','TASK / DIFFICULTY','MOST COMMON LANGUAGE','AVG. SCORE','DISCRIMINATION','N'];
     headers.forEach((h,i)=>{
       const isNumeric = i>=3; // AVG. SCORE, DISCRIMINATION, N
-      sl.addText(h,{x:colXs[i]+0.08,y:tableY,w:colWidths[i]-0.16,h:headH,fontFace:FONT,fontSize:8,bold:true,color:C.mutedLight,charSpacing:2,margin:0,valign:'middle',align:isNumeric?'center':'left',wrap:false,shrinkText:true});
+      sl.addText(h,{x:colXs[i]+0.08,y:tableY,w:colWidths[i]-0.16,h:headH,fontFace:FONT_DISPLAY,fontSize:8,bold:true,color:C.mutedLight,charSpacing:2,margin:0,valign:'middle',align:isNumeric?'center':'left',wrap:false,shrinkText:true});
     });
 
     // Body rows
@@ -2982,8 +3376,8 @@ async function downloadPPTX(){
     chunk.forEach(r=>{
       if(r.type==='slot'){
         const rowH=density.slotH;
-        sl.addShape(pres.shapes.RECTANGLE,{x:tableX,y:curY,w:tableW,h:rowH,fill:{color:C.bgPale},line:{color:C.borderLight,pt:0.5}});
-        sl.addText(r.text,{x:tableX+0.12,y:curY,w:tableW-0.24,h:rowH,fontFace:FONT,fontSize:density.fontSlot,bold:true,color:C.inkAccent,margin:0,valign:'middle'});
+        sl.addShape(pres.shapes.RECTANGLE,{x:tableX,y:curY,w:tableW,h:rowH,fill:{color:C.borderLight},line:{color:C.borderLight,pt:0.5}});
+        sl.addText(r.text,{x:tableX+0.12,y:curY,w:tableW-0.24,h:rowH,fontFace:FONT,fontSize:density.fontSlot,bold:true,color:C.inkDark,margin:0,valign:'middle'});
         curY+=rowH;
         return;
       }
@@ -3021,7 +3415,7 @@ async function downloadPPTX(){
       sl.addText(v.lang||'—',{x:colXs[2]+0.08,y:curY,w:colWidths[2]-0.16,h:rowH,fontFace:FONT,fontSize:density.fontVariant-1,color:C.inkDark,margin:0,valign:'middle'});
       // Avg score
       const avgDisp=isFinite(v.avg)?`${Math.round(v.avg)}%`:'N/A';
-      sl.addText(avgDisp,{x:colXs[3]+0.08,y:curY,w:colWidths[3]-0.16,h:rowH,fontFace:FONT,fontSize:density.numFont,bold:true,color:C.inkAccent,align:'center',margin:0,valign:'middle'});
+      sl.addText(avgDisp,{x:colXs[3]+0.08,y:curY,w:colWidths[3]-0.16,h:rowH,fontFace:FONT,fontSize:density.numFont,bold:true,color:C.blue,align:'center',margin:0,valign:'middle'});
       // Discrimination — color by quality (>=0.75 green, >=0 ink, <0 red).
       const discDisp=isFinite(v.disc)?v.disc.toFixed(2):'N/A';
       const discColor=isFinite(v.disc)?(v.disc>=0.75?C.green:v.disc>=0?C.inkDark:C.red):C.mutedLight;
@@ -3092,14 +3486,16 @@ async function downloadPPTX(){
     // the reader has not already seen.
 
     // ── Fallbacks ──
-    if(pr===null && candidates.length<3){
+    // Missing passing score is a config gap the operator can fix. Surface
+    // it as a real recommendation when no other actionable rec already
+    // touches the threshold. (Don't gate on candidates.length — the
+    // recommendation is genuinely useful even on a healthy deck.)
+    const hasPassingRec = candidates.some(c=>c.topic==='passing');
+    if(pr===null && !hasPassingRec){
       candidates.push({priority:4, topic:'config', action:'Set a passing threshold.', plan:'No passing score is configured, so passing-rate analysis is unavailable. Set a threshold to get a sharper read on filtering.'});
     }
-    if(candidates.length<3){
-      candidates.push({priority:5, topic:'monitor', action:'Keep the assessment as it is.', plan:'No flags surfaced. The current setup is producing workable signals. Revisit after the next batch to confirm the trend holds.'});
-    }
 
-    // Sort by priority (lowest = most important), dedupe by topic, take 3.
+    // Sort by priority (lowest = most important), dedupe by topic.
     candidates.sort((a,b)=>a.priority-b.priority);
     const seen=new Set();
     const out=[];
@@ -3108,6 +3504,15 @@ async function downloadPPTX(){
       seen.add(c.topic);
       out.push({action:c.action, plan:c.plan});
     });
+
+    // Only fall back to "Keep as it is" when there are ZERO actionable
+    // recs. Mixing 'Keep as is' alongside 'Improve X' / 'Set Y' reads as
+    // contradictory and undermines the narrative.
+    if(out.length === 0){
+      out.push({action:'Keep the assessment as it is.', plan:'No flags surfaced. The current setup is producing workable signals. Revisit after the next batch to confirm the trend holds.'});
+    }
+    // Cap at 3 so the slide layout still fits, but show 1 or 2 when that's
+    // all the signals warrant — better than padding.
     return out.slice(0,3);
   }
 
@@ -3116,8 +3521,11 @@ async function downloadPPTX(){
     const sl=pres.addSlide();
     sl.background={color:C.bgLight};
     // Header — eyebrow above, slide title below (consultant deck style)
-    sl.addText(sectionLabel,{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.accent2,charSpacing:3,margin:0});
-    sl.addText(`Test Health · ${label}`,{x:0.4,y:0.6,w:7.5,h:0.42,fontFace:FONT,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+    sl.addText(sectionLabel,{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT_DISPLAY,fontSize:9,bold:true,color:C.blue,charSpacing:3,margin:0});
+    sl.addText([
+      {text:`Test health · ${label}`, options:{}},
+      {text:'_',                       options:{color:C.sky}},
+    ],{x:0.4,y:0.6,w:6.3,h:0.42,fontFace:FONT_DISPLAY,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle',wrap:false,shrinkText:true});
     // Meta block — ALL TIME slide is high-signal and gets the full stack
     // (testName + creator + first used + data as of + Outdated pill). Year
     // and Month breakdowns get the minimal stack so the headers stay clean.
@@ -3134,8 +3542,8 @@ async function downloadPPTX(){
     const cardW=(10-0.4-0.4-gap*2)/3;
 
     function statCard(sl, cx, cy, title, cols){
-      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:cx,y:cy,w:cardW,h:cardH,fill:{color:C.cardLight},line:{color:C.borderLight,pt:1},rectRadius:0.08,shadow:mkShadow()});
-      sl.addText(title,{x:cx+0.14,y:cy+0.12,w:cardW-0.28,h:0.18,fontFace:FONT,fontSize:8,bold:true,color:C.mutedLight,charSpacing:2,margin:0});
+      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:cx,y:cy,w:cardW,h:cardH,fill:{color:C.cardLight},line:{color:C.border,pt:1},rectRadius:0.10});
+      sl.addText(title,{x:cx+0.14,y:cy+0.12,w:cardW-0.28,h:0.18,fontFace:FONT_DISPLAY,fontSize:8,bold:true,color:C.blue,charSpacing:2,margin:0});
       sl.addShape(pres.shapes.LINE,{x:cx+0.14,y:cy+0.36,w:cardW-0.28,h:0,line:{color:C.borderLight,pt:0.75}});
       // Inner padding 0.06 — gives badges full breathing room
       const innerX=cx+0.06, innerW=cardW-0.12;
@@ -3143,7 +3551,17 @@ async function downloadPPTX(){
       cols.forEach((col,i)=>{
         const colX=innerX+i*colW;
         sl.addText(col.label,{x:colX,y:cy+0.42,w:colW,h:0.18,fontFace:FONT,fontSize:8,color:C.mutedLight,align:'center',margin:0});
-        sl.addText(col.val,{x:colX,y:cy+0.6,w:colW,h:0.4,fontFace:FONT,fontSize:col.val.length>5?18:22,bold:true,color:C.inkDark,align:'center',margin:0,valign:'middle'});
+        // Stat value sizing scales with character count so big numbers
+        // (e.g. 4-digit invitation counts on multi-month aggregates) don't
+        // collide with their neighbours. JetBrains Mono is wide, so the
+        // thresholds are tighter than for proportional fonts. shrinkText
+        // is the safety net for anything that still overflows.
+        const _vLen = String(col.val).length;
+        const _vSize = _vLen<=2 ? 28 : _vLen<=3 ? 24 : _vLen<=4 ? 20 : _vLen<=5 ? 18 : 16;
+        // Add a small horizontal inset so the value cell has whitespace
+        // between adjacent columns even at the bigger end of the scale.
+        const _valInset = 0.05;
+        sl.addText(col.val,{x:colX+_valInset,y:cy+0.6,w:colW-_valInset*2,h:0.4,fontFace:FONT_DISPLAY,fontSize:_vSize,bold:true,color:C.blue,align:'center',margin:0,valign:'middle',wrap:false,shrinkText:true});
         if(col.badge){
           const bBg=col.badgeBg||C.gray, bFg=col.badgeFg||C.grayFg;
           // Badge fills column with 0.04" inset and a single line of bold 8pt — fits "Good Difficulty", "Above Global Avg.", etc.
@@ -3202,12 +3620,12 @@ async function downloadPPTX(){
       const tot=s.allScores.length||1;
       const chartVals=chartCounts.map(c=>+((c/tot)*100).toFixed(2));
       // Card wrapping the chart for visual cohesion with the stat cards above
-      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:0.4,y:2.85,w:9.2,h:1.7,fill:{color:C.card},line:{color:C.borderLight,pt:1},rectRadius:0.08,shadow:mkShadow()});
-      sl.addText('SCORE DISTRIBUTION',{x:0.55,y:2.93,w:6,h:0.22,fontFace:FONT,fontSize:9,bold:true,color:C.mutedLight,charSpacing:2,margin:0});
+      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:0.4,y:2.85,w:9.2,h:1.7,fill:{color:C.card},line:{color:C.border,pt:1},rectRadius:0.10});
+      sl.addText('SCORE DISTRIBUTION',{x:0.55,y:2.93,w:6,h:0.22,fontFace:FONT_DISPLAY,fontSize:9,bold:true,color:C.blue,charSpacing:2,margin:0});
       sl.addText(`${s.allScores.length} attempts`,{x:3.4,y:2.93,w:6.05,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
       sl.addChart(pres.charts.BAR,[{name:'%',labels:chartLabels,values:chartVals}],{
         x:0.5,y:3.18,w:9.0,h:1.32,barDir:'col',
-        chartColors:chartVals.map((_,i)=>i>=8?C.bg:'A8B6F4'),
+        chartColors:chartVals.map((_,i)=>i>=8?C.bg:C.muted),
         chartArea:{fill:{color:C.card},roundedCorners:false},
         plotArea:{fill:{color:C.card}},
         catAxisLabelFontFace:FONT,valAxisLabelFontFace:FONT,
@@ -3219,8 +3637,49 @@ async function downloadPPTX(){
         dataLabelFontFace:FONT,dataLabelColor:C.inkDark,dataLabelFontSize:7,
         valAxisLabelFormatCode:'0"%"',
       });
+
+      // Passing-score marker — red dashed vertical line over the bar chart
+      // at the configured passing score. PptxGenJS's BAR chart doesn't
+      // support overlays, so we draw the line as a separate shape positioned
+      // by manually mapping passing% → chart x.
+      //
+      // Chart geometry: x=0.5, w=9.0. The plot area inside the chart is
+      // narrower than the chart frame because the Y-axis label column eats
+      // ~0.45" on the left. Bars are centered on 11 categorical positions.
+      // Plot starts at ~chart.x+0.55 and ends at ~chart.x+chart.w-0.1.
+      const passingCfg = (cfg && isFinite(cfg.passingScore)) ? Number(cfg.passingScore) : null;
+      if(passingCfg!==null){
+        const chartX = 0.5, chartY = 3.18, chartW = 9.0, chartH = 1.32;
+        const plotX0 = chartX + 0.55;
+        const plotX1 = chartX + chartW - 0.10;
+        const plotW = plotX1 - plotX0;
+        // 11 bucket centers: bucket 0 (=0%) at index 0, bucket 1 (1-10%, mid 5%) at index 1, ..., bucket 10 (91-100%, mid 95%) at index 10.
+        const passingIdx = passingCfg<=0 ? 0 : 0.5 + passingCfg/10;
+        const xPos = plotX0 + (Math.min(passingIdx,10)/10) * plotW;
+        // Dashed red line spanning the plot height. Slight inset top/bottom
+        // to avoid touching the axis labels.
+        sl.addShape(pres.shapes.LINE, {
+          x:xPos, y:chartY+0.05, w:0, h:chartH-0.30,
+          line:{color:'C32F2F', pt:1.25, dashType:'dash'},
+        });
+        // Label pill above the line
+        const labelText = `Threshold: ${passingCfg}%`;
+        const pillW = 1.0, pillH = 0.18;
+        // Keep pill within chart bounds
+        let pillX = xPos + 0.04;
+        if(pillX + pillW > chartX + chartW - 0.1) pillX = xPos - pillW - 0.04;
+        sl.addShape(pres.shapes.ROUNDED_RECTANGLE, {
+          x:pillX, y:chartY+0.05, w:pillW, h:pillH,
+          fill:{color:'C32F2F'}, line:{type:'none'}, rectRadius:0.04,
+        });
+        sl.addText(labelText, {
+          x:pillX, y:chartY+0.05, w:pillW, h:pillH,
+          fontFace:FONT, fontSize:7, bold:true, color:'FFFFFF',
+          align:'center', valign:'middle', margin:0, wrap:false,
+        });
+      }
     } else {
-      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:0.4,y:2.85,w:9.2,h:1.7,fill:{color:C.card},line:{color:C.borderLight,pt:1},rectRadius:0.08});
+      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:0.4,y:2.85,w:9.2,h:1.7,fill:{color:C.card},line:{color:C.border,pt:1},rectRadius:0.10});
       sl.addText('No attempt data for this period.',{x:0.4,y:2.85,w:9.2,h:1.7,fontFace:FONT,fontSize:13,color:C.mutedLight,align:'center',valign:'middle',margin:0});
     }
 
@@ -3237,8 +3696,7 @@ async function downloadPPTX(){
       // separator (y=5.32). Height 0.65" gives room for two lines of 11pt
       // text so long stat+descriptor pairs no longer overflow off the slide.
       sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:4.65,w:9.2,h:0.65,fill:{color:C.bgPale},line:{type:'none'}});
-      sl.addShape(pres.shapes.RECTANGLE,{x:0.4,y:4.65,w:0.05,h:0.65,fill:{color:C.bg},line:{type:'none'}});
-      sl.addText('KEY TAKEAWAY',{x:0.6,y:4.69,w:1.6,h:0.18,fontFace:FONT,fontSize:8,bold:true,color:C.bg,charSpacing:2,margin:0});
+      sl.addText('KEY TAKEAWAY',{x:0.6,y:4.69,w:1.6,h:0.18,fontFace:FONT_DISPLAY,fontSize:8,bold:true,color:C.blue,charSpacing:2,margin:0});
       const txt=[];
       txt.push({text:takeaway.stat,options:{bold:true,color:C.inkDark}});
       if(takeaway.descriptor){
@@ -3398,7 +3856,7 @@ async function downloadPPTX(){
   // ════════════════════════════════
   // SECTION 1 — ALL TIME
   // ════════════════════════════════
-  sectionDivider('01','All Time Overview');
+  sectionDivider('01','All time overview');
   statSlide('All Time', _overall, /*showFairness=*/true, 'ALL TIME');
   // Task Analysis slide(s) are rendered inside Section 01 (ALL TIME) so
   // the task-level deep-dive lives next to the all-time KPIs that
@@ -3411,7 +3869,7 @@ async function downloadPPTX(){
   // ════════════════════════════════
   // SECTION 2 — BY YEAR
   // ════════════════════════════════
-  sectionDivider('02','Year by Year');
+  sectionDivider('02','Year by year');
   years.forEach(y=>{
     // Bucket by invitation date (Create date) so unattempted invitations contribute to drop-off.
     const yRows=_allRows.filter(r=>{
@@ -3425,7 +3883,7 @@ async function downloadPPTX(){
   // ════════════════════════════════
   // SECTION 3 — BY MONTH
   // ════════════════════════════════
-  sectionDivider('03','Month by Month');
+  sectionDivider('03','Month by month');
   years.forEach(y=>{
     yearMap.get(y).forEach(m=>{
       // Bucket by invitation date (Create date) — same reason as Year by Year above.
@@ -3445,7 +3903,7 @@ async function downloadPPTX(){
   // would just show "no data" everywhere. The slide count math above already
   // accounts for this skip.
   if(showIntegritySection){
-    sectionDivider('04','Integrity Impact');
+    sectionDivider('04','Integrity impact');
     integrityImpactSlide();
   }
 
@@ -3502,16 +3960,39 @@ function buildInsightsData(d){
     ins.push({icon,cls,title:'Completion Rate',desc});
   }
 
-  // ── 3. Configuration (rotation + proctoring) ──
-  const cfgNotes=[];
-  if(!d.cfg.rotation)   cfgNotes.push('Task rotation is off');
-  if(!d.cfg.proctoring) cfgNotes.push('Proctoring is off');
-  ins.push({
-    icon:cfgNotes.length?'⚠':'✓',
-    cls:cfgNotes.length?'warn':'ok',
-    title:'Configuration',
-    desc:cfgNotes.length?(cfgNotes.join('. ')+'.'):'Task rotation and proctoring are both on.'
-  });
+  // ── 3. Configuration (rotation + proctoring level) ──
+  // Proctoring is now a 4-level field (0=Off, 1=behavioural, 2=+multimedia,
+  // 3=+identity). Off is a warning; 1-3 are good but each level below 3
+  // gets a soft suggestion to consider moving up. Every sentence terminates
+  // with a period so they join cleanly. No em dashes anywhere (brand voice).
+  const cfgParts=[];
+  let cfgIcon='✓', cfgCls='ok';
+  // Task rotation
+  if(d.cfg.rotation){
+    cfgParts.push('Task rotation is on.');
+  } else {
+    cfgParts.push('Task rotation is off.');
+    cfgIcon='⚠'; cfgCls='warn';
+  }
+  // Proctoring — read level (defaults to 0 if upstream code didn't set it).
+  const pLevel = Number(d.cfg.proctoringLevel || 0);
+  if(pLevel===0){
+    cfgParts.push('Proctoring is off. No behavioural signals, recording, or identity checks are being captured.');
+    cfgIcon='⚠'; cfgCls='warn';
+  } else {
+    const levelDesc = pLevel===1 ? 'behavioural signals'
+                    : pLevel===2 ? 'behavioural signals plus extended live multimedia'
+                    :              'behavioural signals plus extended live multimedia plus identity verification';
+    if(pLevel<3){
+      const nextLevel = pLevel+1;
+      const nextAdds = nextLevel===2 ? 'webcam snapshots and/or screen recording'
+                                     : 'full webcam/mic recording and ID verification';
+      cfgParts.push(`Proctoring is on at Level ${pLevel} (${levelDesc}). Consider moving to Level ${nextLevel} for stricter security, which adds ${nextAdds}.`);
+    } else {
+      cfgParts.push(`Proctoring is on at Level 3 (${levelDesc}), the strictest setting available.`);
+    }
+  }
+  ins.push({icon:cfgIcon, cls:cfgCls, title:'Configuration', desc:cfgParts.join(' ')});
 
   // ── 4. Difficulty (median score) ──
   if(isFinite(d.medScore)){
@@ -3526,32 +4007,92 @@ function buildInsightsData(d){
     });
   }
 
-  // ── 5. Question Quality (leaked items + low-scoring tasks) ──
-  const lowAvgTasks=d.slots.flatMap(s=>s.variants).filter(v=>isFinite(v.avg)&&v.avg<15);
-  const qIssues=[];
-  if(d.cfg.leaked) qIssues.push('Leaked items have been flagged');
-  if(lowAvgTasks.length) qIssues.push(`${lowAvgTasks.length} task${lowAvgTasks.length===1?' is':'s are'} averaging under 15%`);
+  // ── 5. Question Quality (leaked items + score + discrimination) ──
+  // Each flag names the actual tasks involved instead of just counting them,
+  // so the operator can act on the message directly.
+  const allVariants=d.slots.flatMap(s=>s.variants);
+  const leakedNames = Array.isArray(d.cfg.leakedTasks) ? d.cfg.leakedTasks.slice() : [];
+  // Exclude leaked tasks from the other quality categories — once a task
+  // is leaked it should be replaced, so flagging it for being "too easy"
+  // or "low discrimination" on top of that is just noise.
+  const remainingVariants = allVariants.filter(v=>!leakedNames.includes(v.name));
+  const veryEasyTasks = remainingVariants.filter(v=>isFinite(v.avg)&&v.avg>85);
+  const veryHardTasks = remainingVariants.filter(v=>isFinite(v.avg)&&v.avg<15);
+  const lowDiscTasks  = remainingVariants.filter(v=>isFinite(v.disc)&&v.disc<0.20 && !(isFinite(v.avg)&&v.avg>85));
+  // Human-readable list join: ["A"] -> "A"; ["A","B"] -> "A and B";
+  // ["A","B","C"] -> "A, B and C". Used to name tasks in each flag.
+  const joinNames = arr => {
+    const a = arr.slice();
+    if(a.length===0) return '';
+    if(a.length===1) return a[0];
+    if(a.length===2) return `${a[0]} and ${a[1]}`;
+    return `${a.slice(0,-1).join(', ')} and ${a[a.length-1]}`;
+  };
+  const qParts=[];
+  let qHasWarn=false;
+  // Leaked tasks — name them. "X should be replaced because it has been
+  // leaked." / "X and Y should be replaced because they have been leaked."
+  if(leakedNames.length){
+    const subj = joinNames(leakedNames);
+    const verb = leakedNames.length===1 ? 'should be replaced because it has been leaked' : 'should be replaced because they have been leaked';
+    qParts.push(`${subj} ${verb}.`);
+    qHasWarn=true;
+  } else {
+    qParts.push('No leaked tasks have been flagged.');
+  }
+  // Very hard
+  if(veryHardTasks.length){
+    qParts.push(`${veryHardTasks.length} task${veryHardTasks.length===1?' is':'s are'} averaging under 15%, which suggests the task is too hard or broken.`);
+    qHasWarn=true;
+  }
+  // Very easy
+  if(veryEasyTasks.length){
+    qParts.push(`${veryEasyTasks.length} task${veryEasyTasks.length===1?' is':'s are'} averaging over 85%. Consider replacing with harder tasks.`);
+    qHasWarn=true;
+  }
+  // Low discrimination
+  if(lowDiscTasks.length){
+    qParts.push(`${lowDiscTasks.length} task${lowDiscTasks.length===1?' has':'s have'} discrimination below 0.20, so the task is not separating stronger candidates from weaker ones.`);
+    qHasWarn=true;
+  }
+  // If nothing was wrong and we have data, add a positive line about scores/disc
+  if(!qHasWarn && allVariants.length){
+    const haveDisc=allVariants.some(v=>isFinite(v.disc));
+    qParts.push(haveDisc
+      ? 'Task scores and discrimination both look reasonable.'
+      : 'Task scores look reasonable.');
+  }
   ins.push({
-    icon:qIssues.length?'⚠':'✓',
-    cls:qIssues.length?'warn':'ok',
+    icon:qHasWarn?'⚠':'✓',
+    cls:qHasWarn?'warn':'ok',
     title:'Question Quality',
-    desc:qIssues.length?(qIssues.join('. ')+'.'):'No leaked items have been flagged. Task scores look reasonable.'
+    desc:qParts.join(' '),
   });
 
   // ── 6. Candidate Feedback (fairness rating) ──
+  // The fairness rating comes from the post-assessment candidate survey,
+  // where candidates rate whether the test fairly evaluated their coding
+  // skills. The number is the share of respondents who said "yes". The
+  // operator separately tags this assessment as above/below the global
+  // average (a baseline maintained outside this app).
   if(isFinite(d.cfg.fairness)){
-    const low=d.cfg.fairness<70,rel=d.cfg.fairnessRel;
+    const pct=Math.round(d.cfg.fairness);
+    const low=d.cfg.fairness<70, rel=d.cfg.fairnessRel;
+    let desc=`${pct}% of candidates felt the assessment fairly evaluated their coding skills.`;
+    if(rel==='above')      desc+=' That is above the global average.';
+    else if(rel==='below') desc+=' That is below the global average.';
+    if(low) desc+=' Candidates are flagging a problem.';
     ins.push({
       icon:low?'⚠':'✓',
       cls:low?'warn':'ok',
       title:'Candidate Feedback',
-      desc:low?`Fairness rating is low at ${Math.round(d.cfg.fairness)}%. Candidates are flagging a problem.`
-          :rel==='above'?`Fairness rating is ${Math.round(d.cfg.fairness)}%, above the global average.`
-          :rel==='below'?`Fairness rating is ${Math.round(d.cfg.fairness)}%, below the global average.`
-          :`Fairness rating is ${Math.round(d.cfg.fairness)}%.`
+      desc,
     });
   } else {
-    ins.push({icon:'○',cls:'neutral',title:'Candidate Feedback',desc:'No fairness rating has been entered.'});
+    ins.push({
+      icon:'○', cls:'neutral', title:'Candidate Feedback',
+      desc:'No candidate feedback survey data has been entered for this assessment.',
+    });
   }
   return ins;
 }
