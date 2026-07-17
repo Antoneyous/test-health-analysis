@@ -36,6 +36,9 @@
       --c-coolgrey-500: #7E8891;
       --c-coolgrey-600: #5D666F;
       --c-coolgrey-900: #252B30;
+      /* Ink — the near-black hero surface the platform uses for its
+         marketing banners (white headline + Sunset-yellow highlight). */
+      --c-ink-950: #1E2126;
       /* Raspberry — secondary (light mode) */
       --c-raspberry-100: #FEEAF3;
       --c-raspberry-300: #FDDCEB;
@@ -542,8 +545,12 @@
     }
     .dl-btn:hover  { background: var(--accent-hover); }
     .dl-btn:active { background: var(--accent-active); }
-    .dl-btn.accent        { background: var(--secondary); }
-    .dl-btn.accent:hover  { background: var(--secondary-hover); }
+    /* In the product UI primary actions are blue — yellow CTAs only appear
+       in marketing banners. The report topbar's Download button is a
+       standard blue primary. */
+    .dl-btn.accent        { background: var(--accent); color: var(--c-white); font-weight: 600; }
+    .dl-btn.accent:hover  { background: var(--accent-hover); }
+    .dl-btn.accent:active { background: var(--accent-active); }
 
     /* Slim variant in the report topbar — the bar should be a thin utility
        strip, not a full-height hero. Override the 44px marketing-spec height
@@ -555,26 +562,34 @@
       line-height: 1.2;
     }
 
-    .report-body { max-width: 100%; margin: 0 auto; padding: 10px 24px 24px; }
+    .report-body { max-width: 100%; margin: 0 auto; padding: 12px 24px 24px; }
+    /* Report title — product-page header treatment (like the assessment
+       detail page): plain sans title sitting directly on the light page
+       background, no banner. The dark-ink banner look is reserved for the
+       upload cover, mirroring how the platform only uses it for the
+       marketing carousel. */
     .report-title-row {
       display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 8px; gap: 16px; flex-wrap: wrap;
+      margin-bottom: 12px; padding: 6px 0;
+      gap: 16px; flex-wrap: wrap;
     }
     .report-title { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
     .report-title h1 {
+      font-family: var(--font-body);
       font-size: 22px; font-weight: 700;
-      color: var(--navy); letter-spacing: -.01em;
+      color: var(--c-coolgrey-900); letter-spacing: -.01em;
     }
     .report-title .test-name {
       font-size: 13px; font-weight: 600; color: var(--blue);
     }
     .report-meta-badge {
-      background: var(--blue-tint);
-      border: 1px solid var(--blue);
+      background: var(--c-white);
+      border: 1px solid var(--border-2);
       border-radius: var(--r-med);
       padding: 6px 10px;
       font-size: 11px; text-align: right; line-height: 1.4;
       color: var(--grey-700);
+      box-shadow: var(--shadow-l1);
     }
     .report-meta-badge strong { font-weight: 700; color: var(--blue-deep); }
     /* When the source data is over a year old, the meta badge drops its
@@ -703,7 +718,9 @@
     .middle-row { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 16px; margin-bottom: 16px; align-items: start; }
     .card {
       background: var(--card);
-      border: 1px solid var(--border-1);
+      /* Platform cards read nearly borderless — use the lighter grey-200
+         hairline instead of grey-300 so cards float on the page bg. */
+      border: 1px solid var(--border-2);
       border-radius: var(--r-xl);
       overflow: visible;
       box-shadow: var(--shadow-l1);
@@ -802,16 +819,50 @@
        <td> so column-hiding (# column off in rotation mode) doesn't
        break the selector. */
     .task-table .variant-row .task-cell { padding-right: 6px; }
-    /* Difficulty chips — color-coded so a quick scan of the task table shows
-       the mix of elementary / easy / medium / hard variants at a glance. Mint
-       for elementary, green for easy, amber for medium, raspberry for hard.
-       Tints match the Codility brand palette. */
-    .chip-elementary { background: var(--c-aqua-100);   color: var(--c-aqua-950, #006295); border: 1px solid var(--c-aqua-900); font-weight: 700; }
-    .chip-easy       { background: var(--c-mint-100);   color: var(--c-mint-950);         border: 1px solid var(--c-mint-800); font-weight: 700; }
-    .chip-medium     { background: var(--c-sunset-100); color: var(--c-coolgrey-900);     border: 1px solid var(--c-sunset-800); font-weight: 700; }
-    .chip-hard       { background: var(--c-raspberry-100); color: var(--c-raspberry-990); border: 1px solid var(--c-raspberry-900); font-weight: 700; }
+    /* Task chips — platform treatment: white card, grey hairline border,
+       dark text, and a colored left stripe that carries the category.
+       Green = easy, amber = medium, red = hard, aqua = elementary, and
+       periwinkle = custom content (customer-authored tasks), exactly as
+       the platform's "Tasks selected for the test" panel colors them. */
+    .task-name-chip {
+      background: var(--c-white);
+      color: var(--c-coolgrey-900);
+      border: 1px solid var(--grey-300);
+      border-left: 4px solid var(--grey-300);
+      font-weight: 600;
+    }
+    .chip-elementary { border-left-color: var(--c-aqua-400); }
+    .chip-easy       { border-left-color: var(--c-mint-600); }
+    .chip-medium     { border-left-color: var(--c-sunset-600); }
+    .chip-hard       { border-left-color: var(--c-strawberry-600); }
+    .chip-custom     { border-left-color: #AAB4F1; }
     .avg-score   { font-weight: 700; font-size: 14px; color: var(--navy); }
     .disc-value  { font-weight: 700; font-size: 13px; }
+
+    /* Clickable variant rows — clicking toggles an inline per-task score
+       distribution row directly beneath. The caret in the task cell flips
+       from ▸ to ▾ while the row is expanded. */
+    .variant-row.clickable { cursor: pointer; }
+    .variant-row.clickable:hover td { background: var(--grey-50, #F8F9FA); }
+    /* Flex row keeps the caret in a fixed slot beside the chip, so a long
+       task name wraps inside its chip instead of pushing the caret onto
+       its own line above. */
+    .task-cell-inner { display: flex; align-items: center; gap: 5px; }
+    .dist-caret {
+      flex-shrink: 0;
+      font-size: 10px; color: var(--grey-500);
+      transition: transform .15s;
+    }
+    .variant-row.expanded .dist-caret { transform: rotate(90deg); color: var(--blue); }
+    .task-dist-row td {
+      background: var(--grey-50, #F8F9FA);
+      border-bottom: 1px solid var(--grey-100);
+      padding: 8px 12px 12px;
+    }
+    .task-dist-meta {
+      font-size: 11px; color: var(--grey-500); margin-bottom: 6px;
+    }
+    .task-dist-row canvas { max-height: 130px; width: 100%; }
 
     /* Insights */
     .insights-list { padding: 0; }
@@ -857,6 +908,35 @@
       background: var(--blue-pale);
     }
 
+    /* Date filter row — preset pills on the left, From/To month pickers on
+       the right. Wraps gracefully on narrow screens. */
+    .filter-row {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .filter-range {
+      display: flex; align-items: center; gap: 6px;
+      margin-left: auto; flex-wrap: wrap;
+    }
+    .filter-range-label {
+      font-size: 10px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .06em;
+    }
+    .filter-range input[type="month"] {
+      font: 600 12px Inter, system-ui, sans-serif;
+      color: var(--grey-600, #5D666F);
+      border: 1px solid var(--grey-300, #D8DFE4);
+      border-radius: 6px; padding: 3px 8px;
+      background: var(--card, #fff); cursor: pointer;
+    }
+    .filter-range input[type="month"]:focus {
+      outline: none; border-color: var(--blue);
+    }
+    /* When a custom range is active the inputs pick up the brand blue */
+    .filter-range input[type="month"].active {
+      border-color: var(--blue); color: var(--blue);
+      background: var(--blue-pale, #F5F7FF);
+    }
+
     /* Chart */
     .chart-wrapper { padding: 10px 14px; }
     .chart-meta { font-size: 12px; color: var(--grey-500); margin-bottom: 10px; }
@@ -874,7 +954,56 @@
     .chart-meta .shape-badge.green { background: var(--c-mint-100);   border-color: var(--c-mint-800);     color: var(--c-mint-950); }
     .chart-meta .shape-badge.amber { background: var(--c-sunset-100); border-color: var(--c-sunset-800);   color: var(--c-coolgrey-900); }
     .chart-meta .shape-badge.red   { background: var(--c-raspberry-100); border-color: var(--c-raspberry-900); color: var(--c-raspberry-990); }
-    #scoreChart { max-height: 170px; }
+    /* Bottom charts row — Live Score Distribution and Cut Score Analysis
+       side by side at equal height. Cards are flex columns; the canvas box
+       flex-grows so both charts absorb any difference in meta/slider rows
+       and the card bottoms align. Charts use maintainAspectRatio:false and
+       size to the .chart-canvas-box (Chart.js responsive-container pattern:
+       the box must be position:relative with an explicit height source).
+       Stacks to one column on narrow screens (same 760px breakpoint as the
+       rest of the layout). */
+    .charts-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 14px; margin-bottom: 14px;
+    }
+    .charts-grid .card { display: flex; flex-direction: column; }
+    .charts-grid .chart-wrapper { flex: 1; display: flex; flex-direction: column; }
+    .chart-canvas-box { position: relative; flex: 1; min-height: 170px; }
+    @media (max-width: 760px) {
+      .charts-grid { grid-template-columns: 1fr; }
+      .chart-canvas-box { height: 170px; flex: none; }
+    }
+
+    /* Cut score slider row */
+    .cs-slider-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 10px; padding: 0 2px;
+    }
+    .cs-slider-label {
+      font-size: 11px; font-weight: 600; color: var(--grey-500);
+      text-transform: uppercase; letter-spacing: .06em; white-space: nowrap;
+    }
+    .cs-slider-value {
+      font-size: 13px; font-weight: 700; color: var(--blue);
+      min-width: 42px; text-align: right; font-variant-numeric: tabular-nums;
+    }
+    #cs-slider {
+      flex: 1; appearance: none; -webkit-appearance: none;
+      height: 5px; border-radius: 99px;
+      background: var(--grey-200, #E9EDF1);
+      outline: none; cursor: pointer;
+    }
+    #cs-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--blue); border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,.25); cursor: grab;
+    }
+    #cs-slider::-moz-range-thumb {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--blue); border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,.25); cursor: grab;
+    }
 
     @media (max-width: 760px) {
       .stats-bar { grid-template-columns: 1fr; }
@@ -1040,24 +1169,26 @@
       <div class="report-meta-badge" id="r-meta-badge"></div>
     </div>
 
-    <!-- Date filter — laid out as two inline rows (Year, Month) with the
-         label sitting flush-left of the chips so the whole card is short
-         enough that the score chart stays in viewport. -->
+    <!-- Date filter — one row of preset pills plus From/To month pickers.
+         Presets are anchored to the latest invitation date in the CSV (not
+         today) so "Last 90 days" always means the last 90 days OF THE DATA
+         and never returns an empty report for older exports. -->
     <div class="card" style="margin-bottom:10px;">
       <div class="card-header">
         Filter by Date
-        <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Choose which years and months of invitations to include in the report. The numbers update as soon as you change the selection.</span></span>
+        <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Choose which invitations to include, by invitation date. Use a preset for one-click ranges, or set a custom From/To month. Presets are measured back from the most recent invitation in the file, so they always select data. The numbers update as soon as you change the selection.</span></span>
         <span id="r-filter-active" style="display:none;margin-left:auto;font-size:11px;font-weight:600;color:var(--blue);background:var(--blue-bg);padding:2px 10px;border-radius:99px;border:1px solid var(--c-ultramarine-300);">Filtered</span>
         <button onclick="clearDateFilter()" style="margin-left:auto;font-size:11px;font-weight:600;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:3px 10px;cursor:pointer;">Clear filter</button>
       </div>
       <div style="padding:8px 14px;">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;">
-          <span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;width:46px;flex-shrink:0;">Year</span>
-          <div id="filter-years" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-          <span style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;width:46px;flex-shrink:0;">Month</span>
-          <div id="filter-months" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
+        <div class="filter-row">
+          <div id="filter-presets" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
+          <div class="filter-range">
+            <span class="filter-range-label">From</span>
+            <input type="month" id="filter-from" onchange="onRangeInput()">
+            <span class="filter-range-label">To</span>
+            <input type="month" id="filter-to" onchange="onRangeInput()">
+          </div>
         </div>
         <div id="filter-summary" style="margin-top:6px;font-size:11px;color:var(--muted);"></div>
       </div>
@@ -1265,17 +1396,36 @@
 
     </div><!-- /main-grid -->
 
-    <!-- Bottom 2-column grid: chart | (nothing, just full width chart) -->
-    <div class="card" style="margin-bottom:14px;">
-      <div class="card-header">
-        Live Score Distribution
-        <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Where candidates landed on the score range. Hover any bar to see the exact count.</span></span>
+    <!-- Bottom 2-column grid: score distribution | cut score analysis -->
+    <div class="charts-grid">
+      <div class="card">
+        <div class="card-header">
+          Live Score Distribution
+          <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">Where candidates landed on the score range. Hover any bar to see the exact count.</span></span>
+        </div>
+        <div class="chart-wrapper">
+          <div class="chart-meta" id="r-chart-meta"></div>
+          <div class="chart-canvas-box"><canvas id="scoreChart"></canvas></div>
+        </div>
       </div>
-      <div class="chart-wrapper">
-        <div class="chart-meta" id="r-chart-meta"></div>
-        <canvas id="scoreChart"></canvas>
+
+      <!-- Cut score analysis — pass-rate curve + interactive slider -->
+      <div class="card">
+        <div class="card-header">
+          Cut Score Analysis
+          <span class="tip-wrap"><span class="tip-icon">?</span><span class="tip-box">What percentage of candidates would pass if the cut score were set at different points. Drag the slider (or hover the curve) to explore the trade-off: a higher cut score means fewer candidates pass. A candidate passes when their total score is at or above the cut score.</span></span>
+        </div>
+        <div class="chart-wrapper">
+          <div class="chart-meta" id="cs-readout"></div>
+          <div class="chart-canvas-box"><canvas id="cutScoreChart"></canvas></div>
+          <div class="cs-slider-row">
+            <span class="cs-slider-label">Cut score</span>
+            <input type="range" id="cs-slider" min="0" max="100" step="1" value="60" oninput="onCutSliderInput(this.value)">
+            <span class="cs-slider-value" id="cs-slider-value">60%</span>
+          </div>
+        </div>
       </div>
-    </div>
+    </div><!-- /charts-grid -->
 
   </div><!-- /report-body -->
 </div><!-- /report-screen -->
@@ -1351,6 +1501,15 @@ document.addEventListener('mouseover', e => {
 // ══════════════════════════════════
 const $ = id => document.getElementById(id);
 let chartInstance = null;
+// Per-task distribution charts, keyed by canvas id. Destroyed whenever the
+// task table is rebuilt (report re-run, date filter change) so Chart.js
+// instances never leak against detached canvases.
+let taskDistCharts = {};
+let taskDistSeq = 0;
+// Cut score analysis chart + the precomputed pass-rate curve it renders.
+// _cutCurve[c] = {count, pct} of candidates whose total score >= c.
+let cutChartInstance = null;
+let _cutCurve = null;
 
 function parseNum(v) {
   if (v === null || v === undefined) return NaN;
@@ -1625,65 +1784,109 @@ function showUpload(){
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 let _allRows=null; // store full unfiltered rows after first report generation
 let _lastCfg=null;
-let _activeYears=new Set();
-let _activeMonths=new Set();
+// Date filter state — a single [from, to] range (inclusive), plus which
+// preset (if any) produced it. Filtering is by Create date (invitation
+// date) — partitioning by Start date would hide unattempted invitations
+// and break drop-off math per period.
+let _dateRange={from:null,to:null};
+let _activePreset='all';
+let _dataMinDate=null,_dataMaxDate=null;
+
+// Presets are anchored to the LATEST invitation date in the file, not
+// today — so "Last 90 days" means the last 90 days of the data and never
+// yields an empty report for an older export.
+const DATE_PRESETS=[
+  {id:'all', label:'All time'},
+  {id:'30d', label:'Last 30 days',  days:30},
+  {id:'90d', label:'Last 90 days',  days:90},
+  {id:'6m',  label:'Last 6 months', months:6},
+  {id:'12m', label:'Last 12 months',months:12},
+  {id:'ytd', label:'YTD'},
+];
 
 function buildDateFilter(rows){
-  // Collect unique years from Create date (invitation date) — partitioning by Start date
-  // would hide unattempted invitations and break drop-off math per period.
-  const years=new Set();
+  // Find the data's date span
+  _dataMinDate=null;_dataMaxDate=null;
   rows.forEach(r=>{
     const s=r['Create date'];
-    if(!isNA(s)){const d=new Date(s);if(!isNaN(d))years.add(d.getFullYear());}
+    if(isNA(s)) return;
+    const d=new Date(s);
+    if(isNaN(d)) return;
+    if(!_dataMinDate||d<_dataMinDate) _dataMinDate=d;
+    if(!_dataMaxDate||d>_dataMaxDate) _dataMaxDate=d;
   });
-  const sortedYears=[...years].sort();
 
-  // Render year chips
-  const yWrap=$('filter-years');
-  yWrap.innerHTML=sortedYears.map(y=>`<span class="filter-chip active" data-year="${y}" onclick="toggleFilterChip(this,'year')">${y}</span>`).join('');
-  _activeYears=new Set(sortedYears);
+  // Render preset pills
+  $('filter-presets').innerHTML=DATE_PRESETS.map(p=>
+    `<span class="filter-chip${p.id==='all'?' active':''}" data-preset="${p.id}" onclick="setDatePreset('${p.id}')">${p.label}</span>`
+  ).join('');
 
-  // Render month chips (all 12, always shown)
-  const mWrap=$('filter-months');
-  mWrap.innerHTML=MONTHS.map((m,i)=>`<span class="filter-chip active" data-month="${i+1}" onclick="toggleFilterChip(this,'month')">${m}</span>`).join('');
-  _activeMonths=new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
+  // Constrain the month pickers to the data's span and clear them
+  const ym=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  ['filter-from','filter-to'].forEach(id=>{
+    const el=$(id);
+    el.value='';el.classList.remove('active');
+    if(_dataMinDate) el.min=ym(_dataMinDate);
+    if(_dataMaxDate) el.max=ym(_dataMaxDate);
+  });
 
+  _dateRange={from:null,to:null};
+  _activePreset='all';
   updateFilterSummary(rows);
 }
 
-function toggleFilterChip(el, type){
-  el.classList.toggle('active');
-  if(type==='year'){
-    const y=Number(el.dataset.year);
-    if(el.classList.contains('active')) _activeYears.add(y); else _activeYears.delete(y);
-  } else {
-    const m=Number(el.dataset.month);
-    if(el.classList.contains('active')) _activeMonths.add(m); else _activeMonths.delete(m);
-  }
+function setDatePreset(id){
+  const p=DATE_PRESETS.find(x=>x.id===id);
+  if(!p) return;
+  const anchor=_dataMaxDate||new Date();
+  let from=null;
+  if(p.days){ from=new Date(anchor); from.setDate(from.getDate()-p.days); }
+  else if(p.months){ from=new Date(anchor); from.setMonth(from.getMonth()-p.months); }
+  else if(p.id==='ytd'){ from=new Date(anchor.getFullYear(),0,1); }
+  _dateRange={from, to:null}; // presets run to the end of the data
+  _activePreset=id;
+
+  // Reflect state in the UI: highlight the pill, clear the custom inputs
+  document.querySelectorAll('#filter-presets .filter-chip').forEach(c=>
+    c.classList.toggle('active', c.dataset.preset===id));
+  ['filter-from','filter-to'].forEach(i=>{const el=$(i);el.value='';el.classList.remove('active');});
+
+  applyDateFilter();
+}
+
+function onRangeInput(){
+  const fromVal=$('filter-from').value; // "YYYY-MM" or ""
+  const toVal=$('filter-to').value;
+  // From = first instant of the From month; To = last instant of the To
+  // month, so both endpoint months are fully included.
+  const from=fromVal?new Date(Number(fromVal.slice(0,4)),Number(fromVal.slice(5,7))-1,1):null;
+  const to=toVal?new Date(Number(toVal.slice(0,4)),Number(toVal.slice(5,7)),0,23,59,59,999):null;
+  _dateRange={from,to};
+  _activePreset=null; // custom range — no preset applies
+
+  document.querySelectorAll('#filter-presets .filter-chip').forEach(c=>c.classList.remove('active'));
+  $('filter-from').classList.toggle('active',!!fromVal);
+  $('filter-to').classList.toggle('active',!!toVal);
+
   applyDateFilter();
 }
 
 function clearDateFilter(){
-  document.querySelectorAll('#filter-years .filter-chip, #filter-months .filter-chip').forEach(c=>{
-    c.classList.add('active');
-    if(c.dataset.year) _activeYears.add(Number(c.dataset.year));
-    if(c.dataset.month) _activeMonths.add(Number(c.dataset.month));
-  });
-  applyDateFilter();
+  setDatePreset('all');
 }
 
 function getFilteredRows(rows){
-  // If all active (nothing deselected), skip filtering
-  const allYears=[...$('filter-years').querySelectorAll('[data-year]')].map(c=>Number(c.dataset.year));
-  const allActive=allYears.every(y=>_activeYears.has(y))&&_activeMonths.size===12;
-  if(allActive) return rows;
+  const {from,to}=_dateRange;
+  if(!from&&!to) return rows; // nothing to do
   return rows.filter(r=>{
     // Filter by Create date (invitation), not Start date — keeps unattempted invitations in the bucket.
     const s=r['Create date'];
     if(isNA(s)) return false;
     const d=new Date(s);
     if(isNaN(d)) return false;
-    return _activeYears.has(d.getFullYear())&&_activeMonths.has(d.getMonth()+1);
+    if(from&&d<from) return false;
+    if(to&&d>to) return false;
+    return true;
   });
 }
 
@@ -1691,9 +1894,18 @@ function updateFilterSummary(rows){
   const filtered=getFilteredRows(rows);
   const isFiltered=filtered.length<rows.length;
   $('r-filter-active').style.display=isFiltered?'inline-block':'none';
-  $('filter-summary').textContent=isFiltered
+  // Describe the active range in plain words next to the counts
+  const fmtD=d=>d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
+  let rangeDesc='';
+  const {from,to}=_dateRange;
+  if(from||to){
+    if(from&&to) rangeDesc=` — invitations from ${fmtD(from)} to ${fmtD(to)}`;
+    else if(from) rangeDesc=` — invitations from ${fmtD(from)} onward`;
+    else rangeDesc=` — invitations up to ${fmtD(to)}`;
+  }
+  $('filter-summary').textContent=(isFiltered
     ?`Showing ${filtered.length} of ${rows.length} attempts after filter`
-    :`Showing all ${rows.length} attempts`;
+    :`Showing all ${rows.length} attempts`)+rangeDesc;
 }
 
 function applyDateFilter(){
@@ -2310,6 +2522,13 @@ function render(d){
   const thNum=$('th-num');
   if(thNum) thNum.style.display=showNum?'':'none';
 
+  // Rebuilding the table orphans any open per-task distribution rows, so
+  // destroy their Chart.js instances first.
+  Object.values(taskDistCharts).forEach(c=>{try{c.destroy();}catch(e){}});
+  taskDistCharts={};
+  // Total visible column count — the expanded distribution row spans them all.
+  window._taskTableCols = 4 + (showNum?1:0) + (showWeight?1:0);
+
   let tableHtml='';
   d.slots.forEach(slot=>{
     const isRotated=slot.variants.length>1;
@@ -2333,7 +2552,9 @@ function render(d){
       </tr>`;
     }
     slot.variants.forEach((v,vi)=>{
-      const chipCls=diffChipClass(v.diff);
+      // Custom content gets the periwinkle stripe (platform convention);
+      // library tasks are striped by difficulty.
+      const chipCls=isCustomTask(v.name)?'chip-custom':diffChipClass(v.diff);
       const avgDisp=isFinite(v.avg)?`${fmt(v.avg,0)}%`:'N/A';
       const discDisp=isFinite(v.disc)?v.disc.toFixed(2):'N/A';
       const discCol=discColour(v.disc);
@@ -2357,9 +2578,9 @@ function render(d){
       // entirely (any-rotation case), skip writing the cell at all so
       // column alignment stays correct.
       const numCell = isRotated ? '' : String(slot.num);
-      tableHtml+=`<tr class="variant-row">
+      tableHtml+=`<tr class="variant-row clickable" onclick="toggleTaskDist(this,${slot.num},${vi})" title="Click to show this task's score distribution">
         ${showNum?`<td style="color:var(--grey-500);font-weight:600;">${numCell}</td>`:''}
-        <td class="task-cell"><span class="task-name-chip ${chipCls}">${esc(v.name)}</span></td>
+        <td class="task-cell"><div class="task-cell-inner"><span class="dist-caret">▶</span><span class="task-name-chip ${chipCls}">${esc(v.name)}</span></div></td>
         <td>
           <div class="calc-wrap avg-cell">
             <span class="avg-score">${avgDisp}</span>${avgBadge}
@@ -2394,6 +2615,7 @@ function render(d){
 
   // ── Chart ──
   renderChart(d.allScores);
+  renderCutScoreAnalysis(d.allScores, d.cfg);
   // Distribution shape indicator. We compute two signals:
   //   1. Score SD bucket (the same buckets as the SD pill above).
   //   2. A "bimodality" check — if both the 0% bucket and the 91-100% bucket
@@ -2511,12 +2733,17 @@ function renderChart(scores){
       labels,
       datasets:[{
         data:pcts,
-        backgroundColor:pcts.map((_,i)=>i>=8?'#4A64E9':'#A8B6F4'),
+        // Product-UI palette: the platform's overall "Score distribution"
+        // chart uses uniform periwinkle bars (yellow is reserved for the
+        // per-task distribution chart).
+        backgroundColor:'#7B88EA',
         borderRadius:4,borderSkipped:false,
       }]
     },
     options:{
       responsive:true,
+      // Fill the .chart-canvas-box so both bottom cards stay equal height
+      maintainAspectRatio:false,
       // Extra top padding so the passing-line label pill doesn't get clipped
       layout: { padding: { top: 16 } },
       plugins:{
@@ -2542,6 +2769,238 @@ function renderChart(scores){
       }
     },
     plugins: [passingLinePlugin],
+  });
+}
+
+// ══════════════════════════════════
+// CUT SCORE ANALYSIS
+// ══════════════════════════════════
+// Pass-rate curve: for every integer cut score 0..100, the % of candidates
+// whose total score is >= that cut (same >= rule the passing-rate KPI uses).
+// A slider moves a marker along the curve with a live readout, so the
+// operator can see exactly how many candidates each cut score lets through.
+function renderCutScoreAnalysis(scores, cfg){
+  const canvas=$('cutScoreChart');
+  if(!canvas) return;
+
+  // Precompute the curve once per render. Sort descending isn't needed —
+  // one ascending sort + walking pointer gives O(N log N + 101).
+  const sorted=[...scores].sort((a,b)=>a-b);
+  const N=sorted.length;
+  _cutCurve=[];
+  let lo=0; // index of first score >= c (sorted ascending, c increases monotonically)
+  for(let c=0;c<=100;c++){
+    while(lo<N && sorted[lo]<c) lo++;
+    const count=N-lo;
+    _cutCurve.push({count, pct:N?+(count/N*100).toFixed(1):0});
+  }
+
+  // Default slider position: the configured passing score if set, else 60.
+  const slider=$('cs-slider');
+  const initCut=(cfg && isFinite(cfg.passingScore))
+    ? Math.max(0,Math.min(100,Math.round(Number(cfg.passingScore))))
+    : 60;
+  slider.value=initCut;
+
+  if(cutChartInstance){cutChartInstance.destroy();cutChartInstance=null;}
+  const ctx=canvas.getContext('2d');
+
+  // Marker plugin — vertical dashed line + dot at the current slider cut.
+  // Reads chart.$cut so the slider can move it with a cheap update('none').
+  const cutMarkerPlugin={
+    id:'cutMarker',
+    afterDatasetsDraw(chart){
+      const cut=chart.$cut;
+      if(!isFinite(cut)) return;
+      const {ctx, chartArea:{top,bottom}, scales:{x,y}}=chart;
+      const xPx=x.getPixelForValue(cut);
+      const yPx=y.getPixelForValue(_cutCurve[cut].pct);
+      if(!isFinite(xPx)) return;
+      ctx.save();
+      ctx.strokeStyle='#C32F2F'; ctx.lineWidth=2; ctx.setLineDash([4,3]);
+      ctx.beginPath(); ctx.moveTo(xPx,top); ctx.lineTo(xPx,bottom); ctx.stroke();
+      ctx.setLineDash([]);
+      // Dot on the curve at the cut point
+      ctx.fillStyle='#C32F2F';
+      ctx.beginPath(); ctx.arc(xPx,yPx,4.5,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.restore();
+    }
+  };
+
+  cutChartInstance=new Chart(ctx,{
+    type:'line',
+    data:{
+      datasets:[{
+        data:_cutCurve.map((p,c)=>({x:c,y:p.pct})),
+        // Periwinkle — same family as the overall score distribution bars,
+        // since the cut score curve is derived from overall scores.
+        borderColor:'#7B88EA',
+        backgroundColor:'rgba(123,136,234,0.12)',
+        fill:true,
+        pointRadius:0,
+        pointHitRadius:8,
+        borderWidth:2,
+        stepped:false,
+        tension:0,
+      }]
+    },
+    options:{
+      responsive:true,
+      // Fill the .chart-canvas-box so both bottom cards stay equal height
+      maintainAspectRatio:false,
+      animation:false,
+      layout:{padding:{top:8}},
+      interaction:{mode:'nearest',axis:'x',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            title:items=>`Cut score: ${items[0].parsed.x}%`,
+            label:item=>{
+              const c=Math.round(item.parsed.x);
+              const p=_cutCurve[c];
+              return `${p.pct}% would pass (${p.count.toLocaleString()} of ${scores.length.toLocaleString()})`;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{
+          type:'linear',min:0,max:100,
+          title:{display:true,text:'Cut score',font:{size:11}},
+          ticks:{stepSize:10,callback:v=>v+'%',font:{size:11}},
+          grid:{display:false}
+        },
+        y:{
+          min:0,max:100,
+          title:{display:true,text:'% of candidates passing',font:{size:11}},
+          ticks:{callback:v=>v+'%',font:{size:11}},
+          grid:{color:'#f3f4f6'}
+        }
+      }
+    },
+    plugins:[cutMarkerPlugin],
+  });
+  cutChartInstance.$cut=initCut;
+  updateCutReadout(initCut);
+  cutChartInstance.update('none');
+}
+
+function onCutSliderInput(val){
+  const cut=Math.max(0,Math.min(100,Math.round(Number(val))));
+  if(!_cutCurve) return;
+  updateCutReadout(cut);
+  if(cutChartInstance){
+    cutChartInstance.$cut=cut;
+    cutChartInstance.update('none'); // repaint marker only, no animation
+  }
+}
+
+function updateCutReadout(cut){
+  const p=_cutCurve[cut];
+  const total=_cutCurve[0].count; // everyone passes at cut 0 = total candidates
+  $('cs-slider-value').textContent=`${cut}%`;
+  const el=$('cs-readout');
+  if(!el) return;
+  const failCount=total-p.count;
+  el.innerHTML=`Cut score at <strong>${cut}%</strong> → <strong style="color:var(--blue)">${p.pct}%</strong> of candidates would pass `+
+    `(${p.count.toLocaleString()} pass, ${failCount.toLocaleString()} fail, of ${total.toLocaleString()} scored attempts).`+
+    (_lastCfg && isFinite(_lastCfg.passingScore)
+      ? ` <span style="color:var(--grey-500)">Configured passing score: ${_lastCfg.passingScore}%.</span>`
+      : '');
+}
+
+// ══════════════════════════════════
+// PER-TASK SCORE DISTRIBUTION (expandable rows)
+// ══════════════════════════════════
+// Clicking a task row in the Task Analysis table toggles an inline row
+// beneath it showing that task's own score histogram (same 11 buckets as
+// the Live Score Distribution chart). Scores come from the taskScores
+// array already retained on each variant in _lastRenderData.slots.
+function toggleTaskDist(rowEl, slotNum, variantIdx){
+  const next=rowEl.nextElementSibling;
+  // Already open → collapse
+  if(next && next.classList.contains('task-dist-row')){
+    const cv=next.querySelector('canvas');
+    if(cv && taskDistCharts[cv.id]){taskDistCharts[cv.id].destroy();delete taskDistCharts[cv.id];}
+    next.remove();
+    rowEl.classList.remove('expanded');
+    return;
+  }
+  const d=window._lastRenderData;
+  if(!d) return;
+  const slot=d.slots.find(s=>s.num===slotNum);
+  const v=slot && slot.variants[variantIdx];
+  if(!v) return;
+
+  const distRow=document.createElement('tr');
+  distRow.className='task-dist-row';
+  const td=document.createElement('td');
+  td.colSpan=window._taskTableCols||6;
+  if(!v.taskScores || !v.taskScores.length){
+    td.innerHTML=`<div class="task-dist-meta">No scores recorded for this task yet.</div>`;
+  } else {
+    const cid=`task-dist-chart-${++taskDistSeq}`;
+    const med=median(v.taskScores), stdev=sd(v.taskScores);
+    td.innerHTML=`
+      <div class="task-dist-meta">
+        <strong>${esc(v.name)}</strong> — score distribution across ${v.n.toLocaleString()} attempt${v.n!==1?'s':''}
+        &nbsp;·&nbsp; median ${fmt(med,0)}% &nbsp;·&nbsp; avg ${fmt(v.avg,0)}% &nbsp;·&nbsp; SD ${fmt(stdev,0)}
+      </div>
+      <canvas id="${cid}"></canvas>`;
+    // Defer chart creation until the canvas is in the DOM
+    requestAnimationFrame(()=>renderTaskDistChart(cid, v.taskScores));
+  }
+  distRow.appendChild(td);
+  rowEl.after(distRow);
+  rowEl.classList.add('expanded');
+}
+
+function renderTaskDistChart(canvasId, scores){
+  const el=document.getElementById(canvasId);
+  if(!el) return;
+  // Same bucketing as the main Live Score Distribution chart: a dedicated
+  // 0% bucket, then 1–10 … 91–100.
+  const labels=['0%','1–10%','11–20%','21–30%','31–40%','41–50%','51–60%','61–70%','71–80%','81–90%','91–100%'];
+  const counts=new Array(11).fill(0);
+  scores.forEach(s=>{
+    if(s===0) counts[0]++;
+    else counts[Math.min(Math.ceil(s/10),10)]++;
+  });
+  const total=scores.length||1;
+  const pcts=counts.map(c=>+((c/total)*100).toFixed(2));
+  taskDistCharts[canvasId]=new Chart(el.getContext('2d'),{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{
+        data:pcts,
+        // Yellow bars — matches the platform's "Score distribution by task"
+        // chart ("Your candidates" series).
+        backgroundColor:'#FEE64B',
+        borderRadius:3,borderSkipped:false,
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{
+            title:ctx=>`Score range: ${ctx[0].label}`,
+            label:ctx=>{
+              const count=counts[ctx.dataIndex];
+              return `${count} candidate${count!==1?'s':''} (${ctx.parsed.y}% of attempts)`;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10}}},
+        y:{ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#f3f4f6'}}
+      }
+    }
   });
 }
 
@@ -2600,6 +3059,15 @@ async function downloadPPTX(){
     gray:'F5F7F9',  grayFg:'5D666F',      // coolgrey-100 / coolgrey-600
     // Elementary difficulty — aqua family (brand-faithful teal)
     elementaryBg:'E6F4FD', elementaryFg:'0074B1', // aqua-100 / aqua-900
+    // Data-viz — matches the dashboard/platform: periwinkle for overall
+    // score charts, pastel stripes for task category.
+    periwinkle:'7B88EA',
+    stripeCustom:'AAB4F1',      // custom content (platform periwinkle)
+    stripeElementary:'BEE5FA',  // aqua-400
+    stripeEasy:'A2EBD0',        // mint-600
+    stripeMedium:'FEE64B',      // sunset-600
+    stripeHard:'FC9797',        // strawberry-600
+    stripeUnknown:'D8DFE4',     // coolgrey-300
   };
 
   // Display font — JetBrains Mono Bold per Codility brand. Used for heroes,
@@ -2989,6 +3457,140 @@ async function downloadPPTX(){
     });
 
     footer(sl,'CONTENTS');
+    return sl;
+  }
+
+  // ── CANDIDATE FUNNEL (closes Section 01) ──
+  // Mirrors the platform's "Candidate funnel" widget: top-anchored yellow
+  // stage blocks whose heights shrink with each conversion step, with the
+  // count, share, and stage label beneath each block. The final "Results
+  // over Passing Score" stage renders only when a passing score is
+  // configured, matching the platform behaviour.
+  function funnelSlide(){
+    slideNum++;
+    const sl=pres.addSlide();
+    sl.background={color:C.bgLight};
+    sl.addText('ALL TIME',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT_DISPLAY,fontSize:9,bold:true,color:C.blue,charSpacing:3,margin:0});
+    sl.addText([
+      {text:'Candidate funnel', options:{}},
+      {text:'_',                options:{color:C.sky}},
+    ],{x:0.4,y:0.6,w:6.3,h:0.42,fontFace:FONT_DISPLAY,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle',wrap:false,shrinkText:true});
+    addMinMeta(sl, 6.8, 0.36, 2.8);
+
+    const s=_overall;
+    const stages=[
+      {label:'Candidates invited', count:s.invitations},
+      {label:'Assessments taken',  count:s.attempts},
+      {label:'Non zero results',   count:s.nonZero},
+    ];
+    if(isFinite(cfg.passingScore)){
+      stages.push({label:`Results over Passing Score ${cfg.passingScore}%`, count:s.passedCount});
+    }
+    const base=s.invitations||1;
+
+    // Card wrapping the funnel for visual cohesion with the stat slides
+    sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:0.4,y:1.15,w:9.2,h:3.95,fill:{color:C.card},line:{color:C.border,pt:1},rectRadius:0.10});
+
+    const plotX=0.75, plotW=8.5, plotTop=1.45, plotH=2.35;
+    const gap=0.08, colW=(plotW-gap*(stages.length-1))/stages.length;
+    // Sunset progression, palest → strongest, like the platform gradient
+    const tones=stages.length===4?['FFF5B5','FFF196','FEE64B','FFDD00']
+                                 :['FFF5B5','FEE64B','FFDD00'];
+    // Wedge funnel, platform-style: stages sit on a shared bottom baseline
+    // and each stage's TOP edge slopes from its own level down to the NEXT
+    // stage's level (the last stage is flat). The slope makes each
+    // conversion drop visible at the stage boundary even when retention is
+    // high and plain bars would render as near-identical rectangles. Each
+    // wedge = a bottom-anchored rectangle at the lower level + a default
+    // right-triangle (right angle bottom-left) carrying the sloped drop.
+    const plotBottom=plotTop+plotH;
+    const fracs=stages.map(st=>Math.max(0,Math.min(1,st.count/base)));
+
+    // Display scaling. A high-retention funnel (e.g. 100% → 98% → 97%)
+    // renders as near-identical blocks under true proportions, which reads
+    // as a bug. When every stage retains more than 60% of invited, remap
+    // the DISPLAY heights linearly from [minFrac..1] onto [0.5..1] so the
+    // steps use the available visual range. The printed counts and
+    // percentages always carry the true numbers; funnels with real drops
+    // (minFrac <= 0.6) keep true proportions.
+    const minFrac=Math.min(...fracs);
+    const dispFracs=(minFrac>0.6&&minFrac<1)
+      ? fracs.map(f=>0.5+((f-minFrac)/(1-minFrac))*0.5)
+      : fracs;
+
+    stages.forEach((st,i)=>{
+      const f=dispFracs[i];
+      const fNext=(i<stages.length-1)?Math.min(f,dispFracs[i+1]):f;
+      const x=plotX+i*(colW+gap);
+      const rectH=Math.max(0.06,fNext*plotH);
+      const triH=(f-fNext)*plotH;
+      sl.addShape(pres.shapes.RECTANGLE,{x,y:plotBottom-rectH,w:colW,h:rectH,fill:{color:tones[i]},line:{type:'none'}});
+      if(triH>0.01){
+        // Full height at the left edge, tapering down to the next stage's
+        // level at the right edge.
+        // 0.01" overlap into the rectangle hides the renderer seam between
+        // the two adjacent shapes.
+        sl.addShape(pres.shapes.RIGHT_TRIANGLE,{x,y:plotBottom-rectH-triH,w:colW,h:triH+0.01,fill:{color:tones[i]},line:{type:'none'}});
+      }
+      // Count (bold) + share, then the stage label beneath — always the
+      // TRUE share, never the display-scaled one.
+      const pct=Math.round(fracs[i]*100);
+      sl.addText([
+        {text:`${st.count.toLocaleString()} `, options:{bold:true, color:C.inkDark, fontSize:16}},
+        {text:`(${pct}%)`,                     options:{color:C.mutedLight, fontSize:11}},
+      ],{x,y:plotTop+plotH+0.18,w:colW,h:0.3,fontFace:FONT,margin:0,valign:'middle'});
+      sl.addText(st.label,{x,y:plotTop+plotH+0.5,w:colW-0.1,h:0.5,fontFace:FONT,fontSize:10,color:C.inkText,margin:0,valign:'top'});
+    });
+
+    footer(sl,'ALL TIME');
+    return sl;
+  }
+
+  // ── ASSESSMENT HEALTH INSIGHTS (summary, right before Next Steps) ──
+  // Renders the same six insights as the dashboard's Assessment Health
+  // Insights card, via the shared buildInsightsData() copy builder, laid
+  // out as a 2×3 grid of cards. Serves as the summary the closing Next
+  // Steps slide acts on.
+  function insightsSlide(){
+    slideNum++;
+    const sl=pres.addSlide();
+    sl.background={color:C.bgLight};
+    sl.addText('SUMMARY',{x:0.4,y:0.36,w:6,h:0.22,fontFace:FONT_DISPLAY,fontSize:9,bold:true,color:C.blue,charSpacing:3,margin:0});
+    sl.addText([
+      {text:'Assessment health insights', options:{}},
+      {text:'_',                          options:{color:C.sky}},
+    ],{x:0.4,y:0.6,w:6.3,h:0.42,fontFace:FONT_DISPLAY,fontSize:20,bold:true,color:C.inkDark,margin:0,valign:'middle',wrap:false,shrinkText:true});
+    addMinMeta(sl, 6.8, 0.36, 2.8);
+
+    // buildInsightsData() reads the dashboard's render-data shape; assemble
+    // it from the overall stats + config. Slots come from the dashboard's
+    // last render (same source the Task Analysis slides use).
+    const d={
+      cfg,
+      medScore:_overall.medScore,
+      medTime:_overall.medTime,
+      numAttempts:_overall.attempts,
+      totalInvitations:_overall.invitations,
+      slots:(window._lastRenderData&&window._lastRenderData.slots)||[],
+    };
+    const ins=buildInsightsData(d);
+
+    const cardW=4.5, cardH=1.22, gapX=0.2, gapY=0.12, startX=0.4, startY=1.2;
+    ins.slice(0,6).forEach((it,i)=>{
+      const col=i%2, row=Math.floor(i/2);
+      const x=startX+col*(cardW+gapX), y=startY+row*(cardH+gapY);
+      sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x,y,w:cardW,h:cardH,fill:{color:C.card},line:{color:C.border,pt:1},rectRadius:0.08});
+      // Status icon in a tinted circle — mirrors the dashboard's ok/warn/neutral
+      const tone= it.cls==='ok'   ? {bg:C.greenBg, fg:C.green}
+                : it.cls==='warn' ? {bg:C.amberBg, fg:C.amber}
+                :                   {bg:C.gray,    fg:C.grayFg};
+      sl.addShape(pres.shapes.OVAL,{x:x+0.15,y:y+0.14,w:0.3,h:0.3,fill:{color:tone.bg},line:{type:'none'}});
+      sl.addText(it.icon==='✓'?'✓':it.icon==='⚠'?'!':'○',{x:x+0.15,y:y+0.14,w:0.3,h:0.3,fontFace:FONT,fontSize:11,bold:true,color:tone.fg,align:'center',valign:'middle',margin:0});
+      sl.addText(it.title,{x:x+0.55,y:y+0.11,w:cardW-0.7,h:0.25,fontFace:FONT,fontSize:11.5,bold:true,color:C.inkDark,margin:0,valign:'middle'});
+      sl.addText(it.desc,{x:x+0.55,y:y+0.37,w:cardW-0.7,h:cardH-0.48,fontFace:FONT,fontSize:9,color:C.inkText,margin:0,valign:'top',shrinkText:true});
+    });
+
+    footer(sl,'INSIGHTS');
     return sl;
   }
 
@@ -3395,21 +3997,27 @@ async function downloadPPTX(){
       // overlaps the name. shrinkText handles long task titles.
       const chipW=0.55;
       sl.addText(v.name,{x:colXs[1]+0.08,y:curY,w:colWidths[1]-0.16-chipW-0.05,h:rowH,fontFace:FONT,fontSize:density.fontVariant,bold:true,color:C.inkDark,margin:0,valign:'middle',shrinkText:true,wrap:false});
-      if(v.diff){
-        // Filled chip: tinted background + matching foreground text, matching
-        // the dashboard. Mint for elementary, green for easy, amber for
-        // medium, raspberry for hard, grey for unknown.
-        const dl=String(v.diff).toLowerCase();
-        const chipTone= dl==='elementary' ? {bg:C.elementaryBg, fg:C.elementaryFg}
-                      : dl==='easy'       ? {bg:C.greenBg,      fg:C.green}
-                      : dl==='medium'     ? {bg:C.amberBg,      fg:C.amber}
-                      : dl==='hard'       ? {bg:C.accent2Tint,  fg:C.accent2}
-                      :                      {bg:C.gray,         fg:C.grayFg};
+      if(v.diff || isCustomTask(v.name)){
+        // Platform-style chip: white card, hairline border, dark text, and
+        // a colored left stripe carrying the category — mirroring the
+        // dashboard's task chips. Custom content wins over difficulty and
+        // gets the periwinkle stripe with a "Custom" label.
+        const custom=isCustomTask(v.name);
+        const dl=String(v.diff||'').toLowerCase();
+        const stripe= custom            ? C.stripeCustom
+                    : dl==='elementary' ? C.stripeElementary
+                    : dl==='easy'       ? C.stripeEasy
+                    : dl==='medium'     ? C.stripeMedium
+                    : dl==='hard'       ? C.stripeHard
+                    :                     C.stripeUnknown;
+        const chipLabel=custom?'Custom':String(v.diff);
         const chipH=density.chipH;
         const chipX=colXs[1]+colWidths[1]-chipW-0.12;
         const chipY=curY+(rowH-chipH)/2;
-        sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:chipX,y:chipY,w:chipW,h:chipH,fill:{color:chipTone.bg},line:{type:'none'},rectRadius:0.05});
-        sl.addText(String(v.diff),{x:chipX,y:chipY,w:chipW,h:chipH,fontFace:FONT,fontSize:density.chipFont,bold:true,color:chipTone.fg,align:'center',valign:'middle',margin:0});
+        const stripeW=0.035;
+        sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:chipX,y:chipY,w:chipW,h:chipH,fill:{color:C.card},line:{color:C.border,pt:0.75},rectRadius:0.04});
+        sl.addShape(pres.shapes.RECTANGLE,{x:chipX+0.015,y:chipY+0.015,w:stripeW,h:chipH-0.03,fill:{color:stripe},line:{type:'none'}});
+        sl.addText(chipLabel,{x:chipX+stripeW,y:chipY,w:chipW-stripeW,h:chipH,fontFace:FONT,fontSize:density.chipFont,bold:true,color:C.inkDark,align:'center',valign:'middle',margin:0});
       }
       // Language
       sl.addText(v.lang||'—',{x:colXs[2]+0.08,y:curY,w:colWidths[2]-0.16,h:rowH,fontFace:FONT,fontSize:density.fontVariant-1,color:C.inkDark,margin:0,valign:'middle'});
@@ -3625,7 +4233,9 @@ async function downloadPPTX(){
       sl.addText(`${s.allScores.length} attempts`,{x:3.4,y:2.93,w:6.05,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
       sl.addChart(pres.charts.BAR,[{name:'%',labels:chartLabels,values:chartVals}],{
         x:0.5,y:3.18,w:9.0,h:1.32,barDir:'col',
-        chartColors:chartVals.map((_,i)=>i>=8?C.bg:C.muted),
+        // Uniform periwinkle — same as the dashboard's Live Score
+        // Distribution and the platform's overall score chart.
+        chartColors:chartVals.map(()=>C.periwinkle),
         chartArea:{fill:{color:C.card},roundedCorners:false},
         plotArea:{fill:{color:C.card}},
         catAxisLabelFontFace:FONT,valAxisLabelFontFace:FONT,
@@ -3833,10 +4443,11 @@ async function downloadPPTX(){
   const taskAnalysisPages = showTaskAnalysis ? taskAnalysisSlideCount() : 0;
 
   // totalSlides counts only CONTENT slides (those that increment slideNum):
-  //   exec summary + TOC + statCount + methodology = 3 + statCount
+  //   exec summary + TOC + statCount + funnel + insights + methodology
+  //   = 5 + statCount
   // Add 1 for integrityImpactSlide when present, plus N for the
   // taskAnalysis pages (1 in the common case, more for big assessments).
-  totalSlides = 3 + statCount + (showIntegritySection ? 1 : 0) + taskAnalysisPages;
+  totalSlides = 5 + statCount + (showIntegritySection ? 1 : 0) + taskAnalysisPages;
 
   // ════════════════════════════════
   // 1. COVER
@@ -3865,6 +4476,9 @@ async function downloadPPTX(){
   if(showTaskAnalysis){
     taskAnalysisSlides();
   }
+  // Candidate funnel closes Section 01 — invited → taken → non-zero →
+  // over passing score (last stage only when a passing score is set).
+  funnelSlide();
 
   // ════════════════════════════════
   // SECTION 2 — BY YEAR
@@ -3908,8 +4522,9 @@ async function downloadPPTX(){
   }
 
   // ════════════════════════════════
-  // CLOSING — METHODOLOGY
+  // CLOSING — INSIGHTS SUMMARY + NEXT STEPS
   // ════════════════════════════════
+  insightsSlide();
   methodologySlide();
 
   const fname=`${(testName||'Assessment').replace(/[^a-z0-9]/gi,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')}.pptx`;
@@ -4153,6 +4768,15 @@ function diffChipClass(diff){
        : d==='medium'    ?'chip-medium'
        : d==='hard'      ?'chip-hard'
        : '';
+}
+// Custom content detection. Codility library tasks are single CamelCase
+// identifiers (MatchingPlates, WordGame); customer-authored tasks carry
+// human-readable titles with spaces ("Power Platform and Copilot Studio
+// Graduate Screening Test Set 1"). The platform colors custom content
+// periwinkle regardless of difficulty, so custom wins over the difficulty
+// stripe.
+function isCustomTask(name){
+  return typeof name==='string' && name.trim().includes(' ');
 }
 // Discrimination color rule. Most assessments only have 3-5 tasks so a "good"
 // threshold has to be set conservatively — pulling green back to >=0.75

@@ -43,7 +43,7 @@ test-health-analysis/
     └── vendor/
         ├── xlsx.full.min.js         # SheetJS, parses .xls / .xlsx / .csv
         ├── pptxgen.bundle.js        # PptxGenJS, generates the .pptx
-        └── chart.umd.min.js         # Chart.js, score distribution chart on the dashboard
+        └── chart.umd.min.js         # Chart.js: score distribution, cut score curve, per-task histograms
 ```
 
 `assets/logos.js` is generated from the two PNGs + the banding SVG so the
@@ -91,13 +91,19 @@ and clicks **Generate report**. The app then:
 1. Parses the file into rows of candidate attempt data.
 2. Computes aggregate stats across All Time, by Year, and by Month.
 3. Renders a single-page dashboard with KPI tiles, a score distribution
-   chart with a passing-threshold marker, a Task Analysis table, an
+   chart with a passing-threshold marker, an interactive Cut Score
+   Analysis panel (pass-rate curve + slider), a Task Analysis table whose
+   rows expand into per-task score distribution histograms, an
    Assessment Health Insights list, and a three-tab Integrity panel
-   (Integrity Risk, Similarity Check, Behavioural Signals).
+   (Integrity Risk, Similarity Check, Behavioural Signals). A date
+   filter (preset pills + custom From/To month range) re-scopes the
+   whole dashboard by invitation date.
 4. On click, generates a PowerPoint deck and downloads it. Slide count
-   varies with the data, typically 14 to 25 slides depending on the time
+   varies with the data, typically 15 to 27 slides depending on the time
    range, the number of task variants, and whether the export contains
-   integrity data.
+   integrity data. The deck mirrors the dashboard: stat slides per
+   period, Task Analysis, a Candidate Funnel closing the All Time
+   section, an Assessment Health Insights summary, and Next Steps.
 
 The configuration screen is intentionally separate from the report screen:
 on the production platform port, the configuration values come from the
@@ -213,9 +219,11 @@ GET /api/tests/{testId}/health-export
 
 The two seams to change:
 
-**1. Skip the configuration screen.** `showUpload()` and `showReport()` are
-the two view-toggling functions in `index.html`. The platform port should
-hide `#upload-screen` permanently and show `#report-screen` directly.
+**1. Skip the configuration screen.** `showUpload()` toggles back to the
+upload view; the report view is shown at the end of `render()` (which
+`buildReport()` calls). The platform port should hide `#upload-screen`
+permanently — calling `buildReport(rows, config)` already switches the
+view to `#report-screen`.
 
 **2. Replace the parser.** The file-handling code (`handleFile()`,
 `parseCSV()`, the SheetJS path) is invoked when a file is selected and it
@@ -254,19 +262,45 @@ call it from anywhere.
 
 State lives in module-level globals in `index.html`'s `<script>`:
 
-| Global              | What it holds                                                      |
-| ------------------- | ------------------------------------------------------------------ |
-| `_allRows`          | Every row from the source data (one per candidate attempt)          |
-| `_lastCfg`          | The test-level config object (see contract above)                  |
-| `_integrityRows`    | Rows surfaced for the Integrity Risk tab (date-filtered, pre-exclusion) |
-| `_activeYears`      | Set of years currently selected in the Year filter                  |
-| `_activeMonths`     | Set of month numbers currently selected in the Month filter         |
-| `_lastRenderData`   | The full data object passed to `render()`. Used by the PPTX builder for slot data |
-| `LOGO_DATA_URIS`    | `{dark, light}` data URIs, populated at startup from `logos.js`     |
+| Global                       | What it holds                                                      |
+| ---------------------------- | ------------------------------------------------------------------ |
+| `_allRows`                   | Every row from the source data (one per candidate attempt)          |
+| `_lastCfg`                   | The test-level config object (see contract above)                  |
+| `_integrityRows`             | Rows surfaced for the Integrity Risk tab (date-filtered, pre-exclusion) |
+| `_dateRange`                 | `{from: Date\|null, to: Date\|null}` — the single active date filter range (inclusive) |
+| `_activePreset`              | Id of the active date preset (`'all'`, `'30d'`, `'90d'`, `'6m'`, `'12m'`, `'ytd'`), or `null` when a custom From/To range is set |
+| `_dataMinDate`/`_dataMaxDate`| Earliest / latest `Create date` in the file. Presets are anchored to `_dataMaxDate` |
+| `_lastRenderData`            | The full data object passed to `render()`. Used by the PPTX builder and the per-task distribution rows for slot data |
+| `_cutCurve`                  | Precomputed pass-rate curve: `_cutCurve[c] = {count, pct}` of attempts with `% total score >= c`, for c = 0..100 |
+| `cutChartInstance`           | Chart.js instance of the Cut Score Analysis curve                   |
+| `taskDistCharts`             | Map of canvas id → Chart.js instance for open per-task distribution rows. All destroyed whenever the task table re-renders |
+| `LOGO_DATA_URIS`             | `{dark, light}` data URIs, populated at startup from `logos.js`     |
 
 When the user changes a filter or toggles an integrity exclusion, the
 dashboard re-runs `buildReport()` over the filtered subset of `_allRows` and
 re-renders. Nothing is persisted to disk or to localStorage.
+
+### Date filter
+
+The date filter is a single `[from, to]` range over `Create date`
+(invitation date), driven by two inputs that are mutually exclusive in
+the UI:
+
+- **Preset pills** — All time, Last 30 days, Last 90 days, Last 6
+  months, Last 12 months, YTD (`DATE_PRESETS` in `index.html`). Presets
+  are anchored to the **latest invitation date in the data**
+  (`_dataMaxDate`), not today, so "Last 90 days" means the last 90 days
+  of the data and never produces an empty report for an older export.
+- **From/To month pickers** (`<input type="month">`) for custom ranges.
+  From resolves to the first instant of its month, To to the last
+  instant of its month, so both endpoint months are fully included.
+  Selecting a custom range deselects the preset and vice versa.
+
+`getFilteredRows(rows)` applies the range; `setDatePreset(id)`,
+`onRangeInput()` and `clearDateFilter()` mutate it. Cross-year ranges
+(e.g. Nov 2025 → Feb 2026) work correctly — this replaced an earlier
+year-chips × month-chips design that could not express ranges spanning
+a year boundary.
 
 ---
 
@@ -356,6 +390,28 @@ Passing rate badge:
 | > 90             | red         | Very High   |
 | 40 to 70         | green       | Good Range  |
 
+### Cut Score Analysis (dashboard)
+
+The Cut Score Analysis card (side by side with the Live Score
+Distribution) renders a pass-rate curve plus an interactive slider:
+
+```
+for c in 0..100:
+  _cutCurve[c] = { count: attempts with % total score >= c,
+                   pct:   count / attempts × 100 }
+```
+
+The pass rule is `>=`, matching the passing-rate KPI. The curve is a
+Chart.js line chart over a linear 0–100 x-axis; a slider moves a red
+dashed marker (custom `cutMarker` plugin reading `chart.$cut`, updated
+via `chart.update('none')` so dragging is cheap) and drives a live
+readout: "Cut score at 60% → 41.6% of candidates would pass (37 pass,
+52 fail, of 89 scored attempts)". The slider initialises to
+`cfg.passingScore` when set, else 60. The curve is recomputed inside
+`renderCutScoreAnalysis()` on every `render()`, so it always reflects
+the current date-filtered cohort. Relevant functions:
+`renderCutScoreAnalysis`, `onCutSliderInput`, `updateCutReadout`.
+
 ### Time
 
 ```
@@ -398,16 +454,45 @@ set conservatively. Anything between 0 and 0.75 is normal but not
 exceptional; the green color is reserved for tasks doing genuinely strong
 discriminating work.
 
-Difficulty chip color (Task / Difficulty column on the dashboard and PPTX):
+**Task chips (platform style).** Task names render as white chips with a
+grey hairline border, dark text, and a colored left stripe carrying the
+category — matching the platform's "Tasks selected for the test" panel.
+Same treatment on the dashboard (CSS `.task-name-chip` + `.chip-*`
+classes) and on the PPTX Task Analysis slide (white rounded rect +
+stripe rect + label).
 
-| Task N difficulty | Color           |
-| ----------------- | --------------- |
-| `elementary`      | mint / teal     |
-| `easy`            | green           |
-| `medium`          | amber           |
-| `hard`            | raspberry       |
+| Category                     | Stripe color            | Hex       |
+| ---------------------------- | ----------------------- | --------- |
+| Custom content               | periwinkle              | `#AAB4F1` |
+| `elementary`                 | aqua-400                | `#BEE5FA` |
+| `easy`                       | mint-600                | `#A2EBD0` |
+| `medium`                     | sunset-600              | `#FEE64B` |
+| `hard`                       | strawberry-600          | `#FC9797` |
+| blank / unrecognised         | coolgrey-300            | `#D8DFE4` |
 
-Anything else (blank, unrecognised, typos) renders as a plain uncolored pill.
+**Custom content detection** (`isCustomTask(name)`): the export carries no
+explicit custom-content flag, so the app uses a naming heuristic —
+Codility library tasks are single CamelCase identifiers
+(`MatchingPlates`, `WordGame`) while customer-authored tasks have
+human-readable titles containing spaces ("Power Platform and Copilot
+Studio Graduate Screening Test Set 1"). A name containing a space is
+treated as custom. Custom wins over the difficulty stripe, matching the
+platform, and the PPTX chip label reads "Custom" instead of the
+difficulty. If the platform port has a real is-custom flag on the task
+record, replace this heuristic with it.
+
+### Per-task score distribution (expandable rows)
+
+Every variant row in the Task Analysis table is clickable. Clicking
+inserts an inline row beneath it with a histogram of that task's own
+scores (same 11 buckets as the main chart: exact-zero bucket + ten
+ceil-based deciles) and a meta line (attempts, median, avg, SD). Several
+rows can be open at once for side-by-side comparison; clicking again
+collapses. The raw per-attempt scores are already retained on each
+variant (`taskScores` on the objects in `_lastRenderData.slots`), so no
+recomputation is needed. Chart instances are tracked in `taskDistCharts`
+and destroyed whenever the table re-renders (filter change, re-run).
+Relevant functions: `toggleTaskDist`, `renderTaskDistChart`.
 
 ### Integrity
 
@@ -454,12 +539,14 @@ structure, not exact numbers.
 | 4  | Section 01 divider   | "ALL TIME"                                                       |
 | 5  | All Time stats       | 3 stat cards, score distribution, **Key Takeaway** band          |
 | …  | Task Analysis        | Per-task table (name, difficulty, most common language, avg, discrimination, N). Paginates if there are 15+ variants |
+| …  | Candidate Funnel     | Closes Section 01. Platform-style wedge funnel on a shared bottom baseline: Candidates invited → Assessments taken → Non zero results → Results over Passing Score X% (last stage only when `cfg.passingScore` is set). Each stage's top edge slopes to the next stage's level. **Display scaling:** when every stage retains > 60% of invited, display heights are remapped linearly from `[minShare..1]` to `[0.5..1]` so a high-retention funnel (100% → 98% → 97%) doesn't render as identical blocks; the printed counts and percentages always carry the true numbers. Funnels with real drops keep true proportions |
 | …  | Section 02 divider   | "YEAR BY YEAR"                                                   |
 | 7… | One slide per year   | Same layout as the All Time slide, no Key Takeaway               |
 | …  | Section 03 divider   | "MONTH BY MONTH"                                                 |
 | …  | One slide per month  | Same layout                                                      |
 | …  | Section 04 divider   | "INTEGRITY IMPACT" (only when the export has integrity data)     |
 | …  | Integrity Impact     | Side-by-side 5-KPI comparison, all candidates vs. high-risk excluded |
+| …  | Assessment Health Insights | 2×3 grid of the same six insights as the dashboard card, via the shared `buildInsightsData()` builder. Acts as the summary the Next Steps slide acts on |
 | …  | Next Steps           | Up to 3 action recommendations                                   |
 
 ### Slide-header meta block
@@ -517,6 +604,36 @@ header row above their variants. The layout uses three density levels
 (comfortable / medium / tight) chosen automatically based on how many rows
 the data produces. If even tight density does not fit on one slide, the
 section paginates with a "(2 of 3)" suffix on the slide title.
+
+Task chips on this slide use the platform style described in
+[Per-task analytics](#per-task-analytics): white rounded rect, hairline
+border, colored left-stripe by category, with custom content detected
+via `isCustomTask()` and labelled "Custom" with the periwinkle stripe.
+The stripe hex values live in the `C` palette
+(`C.stripeCustom`, `C.stripeEasy`, …).
+
+The Score Distribution bar chart on the All Time / Year / Month slides
+uses uniform periwinkle bars (`C.periwinkle`, `#7B88EA`) to match the
+dashboard and the platform's overall score chart. The dashboard's Cut
+Score Analysis panel is **not** yet mirrored in the deck.
+
+### Candidate Funnel slide (Section 01)
+
+Built by `funnelSlide()`. Wedge geometry: each stage is a bottom-anchored
+rectangle at the *next* stage's level plus a right-triangle carrying the
+sloped drop (the last stage is flat). Stage tones walk the Sunset
+progression palest → strongest. See the slide table above for the
+display-scaling rule that keeps high-retention funnels legible; the rule
+lives in `funnelSlide()` next to the geometry.
+
+### Assessment Health Insights slide (closing)
+
+Built by `insightsSlide()`, rendered immediately before Next Steps. It
+assembles a dashboard-shaped data object from `_overall` + `cfg` +
+`_lastRenderData.slots` and feeds it to the shared `buildInsightsData()`
+builder, so the slide copy is always identical to the dashboard's
+Assessment Health Insights card — one source of truth, no drift. Layout
+is a 2×3 grid of cards with the same ok / warn / neutral iconography.
 
 ### Copy generation
 
@@ -579,8 +696,10 @@ for the PPTX export. They are derived from the marketing system's
 
 | Role                   | Hex       | Where it shows up                                                              |
 | ---------------------- | --------- | ------------------------------------------------------------------------------ |
-| Ultramarine (primary)  | `#4A64E9` | Primary buttons, big stat numbers on the PPTX, link colors, chart accent       |
+| Ultramarine (primary)  | `#4A64E9` | Primary buttons, big stat numbers on the PPTX, link colors, active filter pills |
 | Ultramarine-800 (deep) | `#30418C` | The dashboard upload-screen hero surface                                       |
+| Periwinkle (data-viz)  | `#7B88EA` | Overall score distribution bars (dashboard + PPTX) and the cut score curve — matches the platform's overall score chart |
+| Sunset-600 (data-viz)  | `#FEE64B` | Per-task score distribution bars — matches the platform's "Score distribution by task" chart |
 | Brand ink              | `#253641` | Section-divider slide background, 2pt hairline above stat numbers, body text   |
 | Sky-blue (underscore)  | `#80D5FF` | The `_` mark after titles on light surfaces, section-divider eyebrows          |
 | Sky-200 (cover circle) | `#C7E6FA` | Large circle decoration bleeding off the top-right of the PPTX cover           |
@@ -588,6 +707,15 @@ for the PPTX export. They are derived from the marketing system's
 | Raspberry (secondary)  | `#C82372` | Reserved as secondary action color; used sparingly                             |
 | Coolgrey-100 (paper)   | `#F5F7F9` | Cover slide background                                                         |
 | Paper-soft             | `#F8F9FA` | Content slide background, dashboard background                                 |
+
+**Data-viz convention** (mirrors the platform product UI): periwinkle for
+charts derived from **overall** scores, yellow for **per-task** charts,
+pastel category stripes on task chips (see the stripe table under
+Per-task analytics). The report screen follows the product UI, not the
+marketing site: plain sans-serif page title on the light page
+background, blue primary buttons, white cards with `coolgrey-200`
+hairline borders. The dark-ink + yellow banner treatment is reserved
+for marketing surfaces and is not used on the report screen.
 
 **Fonts.** Display: **JetBrains Mono** (Regular, Medium, SemiBold, Bold,
 ExtraBold) self-hosted from `assets/fonts/`. Body: **Inter** loaded from
@@ -601,7 +729,10 @@ surfaces, yellow on dark. The cover slide's only decoration is a large
 sky-blue circle bleeding off the top-right corner. The brand explicitly
 rejects: em dashes for emphasis, vertical pipe separators, left-rail
 accent bars on cards, decorative drop shadows, and centered text. The
-codebase follows all of these rules.
+codebase follows all of these rules. (The colored left stripes on task
+chips are not a violation of the left-rail rule: they replicate the
+product UI's own task-chip component, which carries category color that
+way.)
 
 ---
 
@@ -633,8 +764,8 @@ codebase follows all of these rules.
   "Keep the assessment as it is" when there are zero actionable
   recommendations. It is never mixed with "Improve X" / "Set Y"
   recommendations on the same slide.
-- **Pre-handoff checklist** (round 24 cleanup):
-  - JS parses cleanly (single inline script block, ~147k chars)
+- **Pre-handoff checklist**:
+  - JS parses cleanly (single inline script block, ~167k chars)
   - CSS braces balanced
   - All asset references resolve
   - No dead code (no `placeBanding`, no `bandIdx`, no orphan tokens)
