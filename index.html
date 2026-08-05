@@ -642,6 +642,9 @@
       color: var(--navy);
       white-space: nowrap;
     }
+    /* Placeholder values ("Not set" / "No data") — greyed out and slightly
+       smaller so they read as absent configuration, not as a data point. */
+    .stat-value.muted { color: var(--muted); font-size: 16px; }
     /* Default badge = neutral grey. Use modifier classes for semantic meaning. */
     /* Badges — small status pills under KPI values. The 100-tint backgrounds
        are very pale, so the foreground MUST be the deepest brand step in the
@@ -2419,8 +2422,10 @@ function render(d){
   $('r-dropoff2').className=dropoff2>30?'badge red':dropoff2>15?'badge amber':dropoff2<=5?'badge green':'badge gray';
 
   // ── Scoring ──
-  $('r-passing-score').textContent=isFinite(d.cfg.passingScore)?`${d.cfg.passingScore}%`:'N/A';
+  $('r-passing-score').textContent=isFinite(d.cfg.passingScore)?`${d.cfg.passingScore}%`:'Not set';
+  $('r-passing-score').classList.toggle('muted',!isFinite(d.cfg.passingScore));
 
+  $('r-passing-rate').classList.toggle('muted',d.passingRate===null);
   if(d.passingRate!==null){
     $('r-passing-rate').textContent=`${fmt(d.passingRate,0)}%`;
     setCalc('calc-passing-rate','Share of attempts that scored at or above the passing score.',`${d.passedCount} of ${d.allScores.length} attempts passed (${fmt(d.passingRate,1)}%)`);
@@ -2429,7 +2434,7 @@ function render(d){
     else if(d.passingRate>=40&&d.passingRate<=70) setBadge('r-passing-badge','Good Range','green');
     else hideBadge('r-passing-badge');
   } else {
-    $('r-passing-rate').textContent='N/A';
+    $('r-passing-rate').textContent='Not set';
     setCalc('calc-passing-rate','No passing score has been set for this assessment.','');
     hideBadge('r-passing-badge');
   }
@@ -2490,6 +2495,7 @@ function render(d){
   }
 
   // ── Fairness ──
+  $('r-fairness').classList.toggle('muted',!isFinite(d.cfg.fairness));
   if(isFinite(d.cfg.fairness)){
     $('r-fairness').textContent=`${Math.round(d.cfg.fairness)}%`;
     const rel=d.cfg.fairnessRel;
@@ -2498,7 +2504,7 @@ function render(d){
     else if(rel==='below')  setBadge('r-fairness-badge','Below Global Avg.','');
     else                    setBadge('r-fairness-badge',`${Math.round(d.cfg.fairness)}%`,'gray');
   } else {
-    $('r-fairness').textContent='N/A';
+    $('r-fairness').textContent='No data';
     hideBadge('r-fairness-badge');
   }
 
@@ -3317,7 +3323,7 @@ async function downloadPPTX(){
       {label:'INVITATIONS', value:String(s.invitations||0), sub:'candidates invited'},
       {label:'ATTEMPTS', value:String(s.attempts||0), sub:`${100-dropoff}% completion`},
       {label:'MEDIAN SCORE', value:isFinite(s.medScore)? `${Math.round(s.medScore)}%` : '—', sub:'across all attempts'},
-      {label:'PASSING RATE', value:passing!==null? `${passing}%` : '—', sub:passing!==null? `${s.passedCount} passed` : 'no threshold set'},
+      {label:'PASSING RATE', value:passing!==null? `${passing}%` : 'Not set', sub:passing!==null? `${s.passedCount} passed` : 'no threshold set', muted:passing===null},
       {label:'MEDIAN TIME', value:tDisp, sub:tSub},
     ];
 
@@ -3336,7 +3342,13 @@ async function downloadPPTX(){
       // Big blue number — left-aligned, the visual hero. Auto-shrink for long strings.
       const vLen=k.value.length;
       const vSize=vLen<=4?44:vLen<=6?36:30;
-      sl.addText(k.value,{x:x+0.02,y:kpiY+0.34,w:kpiW-0.04,h:0.7,fontFace:FONT_DISPLAY,fontSize:vSize,bold:true,color:C.blue,align:'left',margin:0,valign:'top',wrap:false,shrinkText:true});
+      if(k.muted){
+        // Placeholder value ("Not set"): grey, smaller, split onto two lines
+        // so it stays inside its own tile instead of running into the next.
+        sl.addText(k.value.replace(' ','\n'),{x:x+0.02,y:kpiY+0.34,w:kpiW-0.04,h:0.7,fontFace:FONT_DISPLAY,fontSize:18,bold:true,color:C.mutedLight,align:'left',margin:0,valign:'top'});
+      } else {
+        sl.addText(k.value,{x:x+0.02,y:kpiY+0.34,w:kpiW-0.04,h:0.7,fontFace:FONT_DISPLAY,fontSize:vSize,bold:true,color:C.blue,align:'left',margin:0,valign:'top',wrap:false,shrinkText:true});
+      }
       // Sub-label — Inter regular ink
       sl.addText(k.sub,{x:x+0.02,y:kpiY+kpiH-0.32,w:kpiW-0.04,h:0.22,fontFace:FONT,fontSize:9,color:C.inkText,align:'left',margin:0});
     });
@@ -3696,7 +3708,7 @@ async function downloadPPTX(){
         {label:'INVITATIONS',  value:String(s.invitations||0),                                  raw:s.invitations||0},
         {label:'ATTEMPTS',     value:String(s.attempts||0),    sub:`${100-dropoff}% completion`, raw:s.attempts||0},
         {label:'MEDIAN SCORE', value:isFinite(s.medScore)?`${Math.round(s.medScore)}%`:'—',     raw:isFinite(s.medScore)?Math.round(s.medScore):null},
-        {label:'PASSING RATE', value:passing!==null?`${passing}%`:'—',                          raw:passing},
+        {label:'PASSING RATE', value:passing!==null?`${passing}%`:'Not set',                    raw:passing, muted:passing===null},
         {label:'MEDIAN TIME',  value:tDisp,                                                     raw:isFinite(s.medTime)?Math.round(s.medTime):null},
       ];
     }
@@ -3733,7 +3745,9 @@ async function downloadPPTX(){
       const vSize= showChip
         ? (k.value.length<=4?16:k.value.length<=6?14:12)
         : (k.value.length<=4?20:k.value.length<=6?16:14);
-      sl.addText(k.value,{x:rightX,y:valY,w:rightW,h:valH,fontFace:FONT_DISPLAY,fontSize:vSize,bold:true,color:C.blue,align:'right',margin:0,valign:'middle',wrap:false,shrinkText:true});
+      // Placeholder values ("Not set") render grey and a step smaller so they
+      // read as absent configuration rather than a headline number.
+      sl.addText(k.value,{x:rightX,y:valY,w:rightW,h:valH,fontFace:FONT_DISPLAY,fontSize:k.muted?11:vSize,bold:true,color:k.muted?C.mutedLight:C.blue,align:'right',margin:0,valign:'middle',wrap:false,shrinkText:true});
       if(showChip){
         const chipW=0.85, chipH=tileH*0.28;
         const chipX=x+colW-chipW-0.1;
@@ -4169,7 +4183,14 @@ async function downloadPPTX(){
         // Add a small horizontal inset so the value cell has whitespace
         // between adjacent columns even at the bigger end of the scale.
         const _valInset = 0.05;
-        sl.addText(col.val,{x:colX+_valInset,y:cy+0.6,w:colW-_valInset*2,h:0.4,fontFace:FONT_DISPLAY,fontSize:_vSize,bold:true,color:C.blue,align:'center',margin:0,valign:'middle',wrap:false,shrinkText:true});
+        if(col.muted){
+          // Placeholder value ("Not set" / "No data"): grey and split onto
+          // two lines so it cannot collide with a neighbouring column, and
+          // reads as absent configuration rather than a data point.
+          sl.addText(String(col.val).replace(' ','\n'),{x:colX+_valInset,y:cy+0.55,w:colW-_valInset*2,h:0.5,fontFace:FONT_DISPLAY,fontSize:11,bold:true,color:C.mutedLight,align:'center',margin:0,valign:'middle'});
+        } else {
+          sl.addText(col.val,{x:colX+_valInset,y:cy+0.6,w:colW-_valInset*2,h:0.4,fontFace:FONT_DISPLAY,fontSize:_vSize,bold:true,color:C.blue,align:'center',margin:0,valign:'middle',wrap:false,shrinkText:true});
+        }
         if(col.badge){
           const bBg=col.badgeBg||C.gray, bFg=col.badgeFg||C.grayFg;
           // Badge fills column with 0.04" inset and a single line of bold 8pt — fits "Good Difficulty", "Above Global Avg.", etc.
@@ -4190,17 +4211,17 @@ async function downloadPPTX(){
       {label:'Non-Zero',val:String(s.nonZero),badge:`${Math.round(d2off)}% drop-off`,badgeBg:d2t.bg,badgeFg:d2t.fg},
     ]);
 
-    // Scoring — when no passing score is configured, display N/A (not 0%, which would
-    // misleadingly imply zero candidates cleared the bar).
-    const psDisp=isFinite(cfg.passingScore)?`${cfg.passingScore}%`:'N/A';
-    const prDisp=s.passingRate!==null?`${Math.round(s.passingRate)}%`:'N/A';
+    // Scoring — when no passing score is configured, display "Not set" (not 0%, which
+    // would misleadingly imply zero candidates cleared the bar).
+    const psDisp=isFinite(cfg.passingScore)?`${cfg.passingScore}%`:'Not set';
+    const prDisp=s.passingRate!==null?`${Math.round(s.passingRate)}%`:'Not set';
     const msDisp=isFinite(s.medScore)?`${Math.round(s.medScore)}%`:'N/A';
     const msBg=isFinite(s.medScore)?(s.medScore<20||s.medScore>85?C.redBg:s.medScore>=40&&s.medScore<=75?C.greenBg:C.gray):null;
     const msFg=isFinite(s.medScore)?(s.medScore<20||s.medScore>85?C.red:s.medScore>=40&&s.medScore<=75?C.green:C.grayFg):null;
     const msBadge=isFinite(s.medScore)?(s.medScore<20?'High Difficulty':s.medScore>85?'Low Difficulty':s.medScore>=40&&s.medScore<=75?'Good Difficulty':'Med Difficulty'):null;
     statCard(sl,0.4+(cardW+gap),cardY,'SCORING & OUTCOMES',[
-      {label:'Passing Score',val:psDisp},
-      {label:'Passing Rate',val:prDisp},
+      {label:'Passing Score',val:psDisp,muted:!isFinite(cfg.passingScore)},
+      {label:'Passing Rate',val:prDisp,muted:s.passingRate===null},
       {label:'Median Score',val:msDisp,badge:msBadge,badgeBg:msBg,badgeFg:msFg},
     ]);
 
@@ -4217,6 +4238,10 @@ async function downloadPPTX(){
       const fBg=low?C.redBg:rel==='above'?C.greenBg:C.amberBg;
       const fFg=low?C.red:rel==='above'?C.green:C.amber;
       expCols.push({label:'Fairness Rating',val:`${Math.round(cfg.fairness)}%`,badge:fBadge,badgeBg:fBg,badgeFg:fFg});
+    } else if(showFairness){
+      // No survey data entered — show the tile anyway so the reader knows the
+      // rating is missing rather than wondering where it went.
+      expCols.push({label:'Fairness Rating',val:'No data',muted:true});
     }
     statCard(sl,0.4+(cardW+gap)*2,cardY,'ASSESSMENT EXPERIENCE',expCols);
 
