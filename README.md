@@ -43,7 +43,7 @@ test-health-analysis/
     └── vendor/
         ├── xlsx.full.min.js         # SheetJS, parses .xls / .xlsx / .csv
         ├── pptxgen.bundle.js        # PptxGenJS, generates the .pptx
-        └── chart.umd.min.js         # Chart.js: score distribution, cut score curve, per-task histograms
+        └── chart.umd.min.js         # Chart.js: score distribution, cut score curve, per-task histograms, PPTX chart images
 ```
 
 `assets/logos.js` is generated from the two PNGs + the banding SVG so the
@@ -168,15 +168,23 @@ overrides, etc.).
 | Key                | Type                          | Required? | Source today              | What it controls                                                              |
 | ------------------ | ----------------------------- | --------- | ------------------------- | ----------------------------------------------------------------------------- |
 | `creator`          | string                        | No        | Test creator name input   | Subheader on dashboard and on the PPTX cover/Executive Summary ("Test created by ...") |
-| `passingScore`     | number \| null                | No        | Passing score input       | Passing rate calculation. Rows with `% total score >= passingScore` pass. Drives the red dashed threshold line on the score-distribution chart. `null` skips the calculation |
+| `passingScore`     | number \| null                | No        | Passing score input       | Passing rate calculation. Rows with `% total score >= passingScore` pass. Drives the red dashed threshold line on the score-distribution chart. `null` skips the calculation; Passing Score and Passing Rate then render as a greyed-out "Not set" on the dashboard and the deck |
 | `maxTime`          | number \| null                | No        | Max test duration input   | Time pressure analysis. `medTimeLeft = maxTime − medTime`. `null` hides the time-pressure badge |
-| `fairness`         | number \| null                | No        | Fairness rating input     | Fairness rating displayed in Assessment Experience. The platform should populate this from the post-assessment survey ("share of candidates who said the test fairly evaluated their coding skills"). `null` hides the tile |
+| `fairness`         | number \| null                | No        | Fairness rating input     | Fairness rating displayed in Assessment Experience. The platform should populate this from the post-assessment survey ("share of candidates who said the test fairly evaluated their coding skills"). `null` renders the tile as a greyed-out "No data" on the dashboard and the All Time slide |
 | `fairnessRel`      | `'above' \| 'below' \| null`  | No        | Fairness vs global average | Whether the fairness rating is above or below the global average. Drives the color of the Fairness Rating badge |
 | `rotation`         | boolean                       | No        | Task rotation toggle      | Whether task slots serve rotated variants. Auto-detected from task-slot uniqueness when this field is missing; the upload screen pre-fills this based on detection |
 | `proctoringLevel`  | `0 \| 1 \| 2 \| 3`            | No        | Proctoring level picker   | 0=Off (warning insight). 1=Behavioural signals. 2=Level 1 + extended live multimedia (webcam snapshots and/or screen recording). 3=Level 2 + identity verification (full webcam/mic + ID check). Drives the Configuration insight wording and tone, including a "consider moving to Level N+1" suggestion for levels 1-2 |
 | `leakedTasks`      | `string[]`                    | No        | Leaked tasks multi-select | Array of task names the operator has marked as leaked. Each name in the array is shown with a "Leaked" badge on the dashboard task table and triggers a "X should be replaced because it has been leaked" line on the Question Quality insight |
 | `weighted`         | boolean                       | No        | Weighted scoring toggle   | When `true`, the Weight column on the task table is shown                     |
 | `slotWeights`      | `{[n: number]: number}`       | No        | Per-slot weight inputs    | Map of task slot number to percentage weight. Should sum to 100 when `weighted` is `true` |
+
+`buildReport()` normalizes the three numeric fields (`passingScore`,
+`maxTime`, `fairness`) on entry: `null`, `undefined`, and `''` all become
+`NaN`, so every downstream `isFinite()` check treats them as "not set". An
+API can therefore send `null` for any of them (as the shape below does)
+without special-casing. This guard matters because `isFinite(null) === true`
+in JavaScript — without the normalization a `null` passing score would
+render as "null%" and compute a passing rate against a threshold of 0.
 
 ### Suggested API shape
 
@@ -389,6 +397,12 @@ Passing rate badge:
 | < 20             | red         | Very Low    |
 | > 90             | red         | Very High   |
 | 40 to 70         | green       | Good Range  |
+
+When no passing score is configured, the Passing Score and Passing Rate
+tiles render a greyed-out "Not set" instead of a number, on both the
+dashboard (`.stat-value.muted`) and the deck (grey, split onto two lines
+on the stat cards and the Executive Summary tile). A missing fairness
+rating renders the same way as "No data".
 
 ### Cut Score Analysis (dashboard)
 
@@ -612,9 +626,18 @@ via `isCustomTask()` and labelled "Custom" with the periwinkle stripe.
 The stripe hex values live in the `C` palette
 (`C.stripeCustom`, `C.stripeEasy`, …).
 
-The Score Distribution bar chart on the All Time / Year / Month slides
-uses uniform periwinkle bars (`C.periwinkle`, `#7B88EA`) to match the
-dashboard and the platform's overall score chart. The dashboard's Cut
+The Score Distribution chart on the All Time / Year / Month slides is a
+high-resolution PNG (rendered at 4× pixel density, ~400 DPI at the
+9-inch placement) of the exact same Chart.js chart the dashboard shows:
+uniform periwinkle bars, a "% of candidates" y-axis, and the red dashed
+threshold marker drawn by the shared `passingLine` plugin. Three shared
+functions keep the dashboard and the deck identical — `makeScoreBuckets`
+(bucket math), `makePassingLinePlugin` (threshold line + pill), and
+`scoreChartDataURI` (offscreen high-DPI render for the deck). This is
+deliberately an image rather than a native PPTX chart: Google Slides
+cannot keep imported PowerPoint charts editable, so it rasterizes them
+at low resolution on import and they come out blurry. The trade-off is
+that the chart is not editable inside PowerPoint. The dashboard's Cut
 Score Analysis panel is **not** yet mirrored in the deck.
 
 ### Candidate Funnel slide (Section 01)
@@ -744,7 +767,7 @@ way.)
   code path (every insight branch, every badge variant, the rotation /
   no-rotation paths, the integrity / no-integrity paths, long testnames,
   zero-attempt months, etc.). A future port should add unit tests around
-  `computeStats`, `buildTakeaway`, `buildFindings`,
+  `computeStats`, `makeScoreBuckets`, `buildTakeaway`, `buildFindings`,
   `buildRecommendations`, and `buildInsightsData`.
 - **Vendored libraries.** All three live in `assets/vendor/`. Versions
   are intentionally pinned to whatever was checked in. Bumping them
@@ -765,7 +788,7 @@ way.)
   recommendations. It is never mixed with "Improve X" / "Set Y"
   recommendations on the same slide.
 - **Pre-handoff checklist**:
-  - JS parses cleanly (single inline script block, ~167k chars)
+  - JS parses cleanly (single inline script block, ~169k chars)
   - CSS braces balanced
   - All asset references resolve
   - No dead code (no `placeBanding`, no `bandIdx`, no orphan tokens)

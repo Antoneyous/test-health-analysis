@@ -2224,17 +2224,6 @@ function renderSigTab(rows){
 // ANALYSIS ENGINE
 // ══════════════════════════════════
 function buildReport(rows, cfg, skipFilterRebuild=false){
-  // Normalize the numeric config fields so the isFinite() checks used
-  // throughout treat null / '' / undefined as "not set". This matters for
-  // the platform port: isFinite(null) === true (Number(null) is 0), so a
-  // platform-fed config with passingScore: null — exactly what the README's
-  // suggested API shape sends — would otherwise render as "null%" and
-  // compute a passing rate against a threshold of 0. The upload form never
-  // hits this (empty inputs parse to NaN), but an API easily can.
-  ['passingScore','maxTime','fairness'].forEach(k=>{
-    cfg[k]=(cfg[k]===null||cfg[k]===undefined||cfg[k]==='')?NaN:Number(cfg[k]);
-  });
-
   // Store for date filter re-runs.
   // On a fresh load (skipFilterRebuild=false) reset the integrity filter state too —
   // a brand-new dataset shouldn't carry over the previous run's exclusions.
@@ -3126,9 +3115,9 @@ async function downloadPPTX(){
     gray:'F5F7F9',  grayFg:'5D666F',      // coolgrey-100 / coolgrey-600
     // Elementary difficulty — aqua family (brand-faithful teal)
     elementaryBg:'E6F4FD', elementaryFg:'0074B1', // aqua-100 / aqua-900
-    // Data-viz — pastel stripes for task category. (The score-distribution
-    // chart's periwinkle #7B88EA lives in scoreChartDataURI, shared with
-    // the dashboard's Chart.js config.)
+    // Data-viz — matches the dashboard/platform: periwinkle for overall
+    // score charts, pastel stripes for task category.
+    periwinkle:'7B88EA',
     stripeCustom:'AAB4F1',      // custom content (platform periwinkle)
     stripeElementary:'BEE5FA',  // aqua-400
     stripeEasy:'A2EBD0',        // mint-600
