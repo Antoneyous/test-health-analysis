@@ -2665,7 +2665,10 @@ function renderInsights(d){
     </div>`).join('');
 }
 
-function renderChart(scores){
+// ── Shared score-distribution chart pieces ──
+// Used by both the dashboard chart (renderChart) and the PPTX export
+// (scoreChartDataURI) so the two always look identical.
+function makeScoreBuckets(scores){
   const labels=['0%','1–10%','11–20%','21–30%','31–40%','41–50%','51–60%','61–70%','71–80%','81–90%','91–100%'];
   const counts=new Array(11).fill(0);
   scores.forEach(s=>{
@@ -2674,19 +2677,18 @@ function renderChart(scores){
   });
   const total=scores.length||1;
   const pcts=counts.map(c=>+((c/total)*100).toFixed(2));
+  return {labels, counts, pcts};
+}
 
-  if(chartInstance){chartInstance.destroy();chartInstance=null;}
-  const ctx=$('scoreChart').getContext('2d');
-
-  // Passing-score vertical marker. When _lastCfg.passingScore is set, draw
-  // a red vertical line at the passing-score position over the bars. The
-  // x-axis is categorical (11 buckets at positions 0..10), so we convert
-  // the configured percentage into a fractional bucket index. The buckets
-  // are: 0% (idx 0), 1–10% (idx 1, midpoint 5%), 11–20% (idx 2, midpoint
-  // 15%), ..., 91–100% (idx 10, midpoint 95%). So passing X% maps to
-  // fractional index ~= 0.5 + X/10 for X>0.
-  const passing = (_lastCfg && isFinite(_lastCfg.passingScore)) ? Number(_lastCfg.passingScore) : null;
-  const passingLinePlugin = {
+// Passing-score vertical marker. When a passing score is set, draws a red
+// dashed vertical line at the passing-score position over the bars, plus a
+// "Threshold: X%" pill. The x-axis is categorical (11 buckets at positions
+// 0..10), so the configured percentage is converted into a fractional bucket
+// index: 0% (idx 0), 1–10% (idx 1, midpoint 5%), 11–20% (idx 2, midpoint
+// 15%), ..., 91–100% (idx 10, midpoint 95%). So passing X% maps to
+// fractional index ~= 0.5 + X/10 for X>0.
+function makePassingLinePlugin(passing){
+  return {
     id: 'passingLine',
     afterDatasetsDraw(chart) {
       if(passing===null) return;
@@ -2732,6 +2734,54 @@ function renderChart(scores){
       ctx.restore();
     }
   };
+}
+
+// Renders the same chart as the dashboard's Live Score Distribution to a
+// high-resolution PNG data URI for the PPTX export. This is deliberately an
+// image rather than a native PPTX chart: when a deck is imported into Google
+// Slides, native PowerPoint charts cannot stay editable, so Google Slides
+// rasterizes them to a low-resolution image and they come out blurry. A
+// pre-rendered high-DPI PNG (dpr=4 → ~400 DPI at the 9-inch slide width)
+// stays crisp everywhere and is guaranteed to match the dashboard.
+function scoreChartDataURI(scores, passing, cssW=900, cssH=132, dpr=4){
+  const {labels, pcts}=makeScoreBuckets(scores);
+  const canvas=document.createElement('canvas');
+  canvas.width=cssW; canvas.height=cssH;
+  const chart=new Chart(canvas.getContext('2d'),{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{data:pcts,backgroundColor:'#7B88EA',borderRadius:4,borderSkipped:false}]
+    },
+    options:{
+      responsive:false, animation:false, devicePixelRatio:dpr,
+      // Extra top padding so the passing-line label pill doesn't get clipped
+      layout:{padding:{top:18,right:8}},
+      plugins:{legend:{display:false},tooltip:{enabled:false}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10}}},
+        y:{
+          title:{display:true,text:'% of candidates',font:{size:10}},
+          ticks:{callback:v=>v+'%',font:{size:10}},
+          grid:{color:'#f3f4f6'}
+        }
+      }
+    },
+    plugins:[makePassingLinePlugin(passing)],
+  });
+  const uri=chart.toBase64Image('image/png',1);
+  chart.destroy();
+  return uri;
+}
+
+function renderChart(scores){
+  const {labels, counts, pcts}=makeScoreBuckets(scores);
+
+  if(chartInstance){chartInstance.destroy();chartInstance=null;}
+  const ctx=$('scoreChart').getContext('2d');
+
+  const passing = (_lastCfg && isFinite(_lastCfg.passingScore)) ? Number(_lastCfg.passingScore) : null;
+  const passingLinePlugin = makePassingLinePlugin(passing);
 
   chartInstance=new Chart(ctx,{
     type:'bar',
@@ -4247,72 +4297,17 @@ async function downloadPPTX(){
 
     // ── Score distribution chart ──
     if(s.allScores.length){
-      const chartLabels=['0%','1-10%','11-20%','21-30%','31-40%','41-50%','51-60%','61-70%','71-80%','81-90%','91-100%'];
-      const chartCounts=new Array(11).fill(0);
-      s.allScores.forEach(sc=>{if(sc===0)chartCounts[0]++;else chartCounts[Math.min(Math.ceil(sc/10),10)]++;});
-      const tot=s.allScores.length||1;
-      const chartVals=chartCounts.map(c=>+((c/tot)*100).toFixed(2));
       // Card wrapping the chart for visual cohesion with the stat cards above
       sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:0.4,y:2.85,w:9.2,h:1.7,fill:{color:C.card},line:{color:C.border,pt:1},rectRadius:0.10});
       sl.addText('SCORE DISTRIBUTION',{x:0.55,y:2.93,w:6,h:0.22,fontFace:FONT_DISPLAY,fontSize:9,bold:true,color:C.blue,charSpacing:2,margin:0});
       sl.addText(`${s.allScores.length} attempts`,{x:3.4,y:2.93,w:6.05,h:0.22,fontFace:FONT,fontSize:9,color:C.mutedLight,align:'right',margin:0});
-      sl.addChart(pres.charts.BAR,[{name:'%',labels:chartLabels,values:chartVals}],{
-        x:0.5,y:3.18,w:9.0,h:1.32,barDir:'col',
-        // Uniform periwinkle — same as the dashboard's Live Score
-        // Distribution and the platform's overall score chart.
-        chartColors:chartVals.map(()=>C.periwinkle),
-        chartArea:{fill:{color:C.card},roundedCorners:false},
-        plotArea:{fill:{color:C.card}},
-        catAxisLabelFontFace:FONT,valAxisLabelFontFace:FONT,
-        catAxisLabelColor:C.mutedLight,valAxisLabelColor:C.mutedLight,
-        catAxisLabelFontSize:8,valAxisLabelFontSize:8,
-        valGridLine:{color:C.borderLight,size:0.5},catGridLine:{style:'none'},
-        catAxisLineShow:false,valAxisLineShow:false,
-        showLegend:false,showValue:true,
-        dataLabelFontFace:FONT,dataLabelColor:C.inkDark,dataLabelFontSize:7,
-        valAxisLabelFormatCode:'0"%"',
-      });
-
-      // Passing-score marker — red dashed vertical line over the bar chart
-      // at the configured passing score. PptxGenJS's BAR chart doesn't
-      // support overlays, so we draw the line as a separate shape positioned
-      // by manually mapping passing% → chart x.
-      //
-      // Chart geometry: x=0.5, w=9.0. The plot area inside the chart is
-      // narrower than the chart frame because the Y-axis label column eats
-      // ~0.45" on the left. Bars are centered on 11 categorical positions.
-      // Plot starts at ~chart.x+0.55 and ends at ~chart.x+chart.w-0.1.
+      // The chart is a high-resolution PNG of the exact same Chart.js chart
+      // the dashboard renders (same buckets, same y-axis in % of candidates,
+      // same threshold marker drawn by the shared passingLine plugin) — see
+      // scoreChartDataURI for why this is an image and not a native PPTX
+      // chart (Google Slides rasterizes native charts at low DPI on import).
       const passingCfg = (cfg && isFinite(cfg.passingScore)) ? Number(cfg.passingScore) : null;
-      if(passingCfg!==null){
-        const chartX = 0.5, chartY = 3.18, chartW = 9.0, chartH = 1.32;
-        const plotX0 = chartX + 0.55;
-        const plotX1 = chartX + chartW - 0.10;
-        const plotW = plotX1 - plotX0;
-        // 11 bucket centers: bucket 0 (=0%) at index 0, bucket 1 (1-10%, mid 5%) at index 1, ..., bucket 10 (91-100%, mid 95%) at index 10.
-        const passingIdx = passingCfg<=0 ? 0 : 0.5 + passingCfg/10;
-        const xPos = plotX0 + (Math.min(passingIdx,10)/10) * plotW;
-        // Dashed red line spanning the plot height. Slight inset top/bottom
-        // to avoid touching the axis labels.
-        sl.addShape(pres.shapes.LINE, {
-          x:xPos, y:chartY+0.05, w:0, h:chartH-0.30,
-          line:{color:'C32F2F', pt:1.25, dashType:'dash'},
-        });
-        // Label pill above the line
-        const labelText = `Threshold: ${passingCfg}%`;
-        const pillW = 1.0, pillH = 0.18;
-        // Keep pill within chart bounds
-        let pillX = xPos + 0.04;
-        if(pillX + pillW > chartX + chartW - 0.1) pillX = xPos - pillW - 0.04;
-        sl.addShape(pres.shapes.ROUNDED_RECTANGLE, {
-          x:pillX, y:chartY+0.05, w:pillW, h:pillH,
-          fill:{color:'C32F2F'}, line:{type:'none'}, rectRadius:0.04,
-        });
-        sl.addText(labelText, {
-          x:pillX, y:chartY+0.05, w:pillW, h:pillH,
-          fontFace:FONT, fontSize:7, bold:true, color:'FFFFFF',
-          align:'center', valign:'middle', margin:0, wrap:false,
-        });
-      }
+      sl.addImage({data:scoreChartDataURI(s.allScores, passingCfg), x:0.5, y:3.18, w:9.0, h:1.32});
     } else {
       sl.addShape(pres.shapes.ROUNDED_RECTANGLE,{x:0.4,y:2.85,w:9.2,h:1.7,fill:{color:C.card},line:{color:C.border,pt:1},rectRadius:0.10});
       sl.addText('No attempt data for this period.',{x:0.4,y:2.85,w:9.2,h:1.7,fontFace:FONT,fontSize:13,color:C.mutedLight,align:'center',valign:'middle',margin:0});
